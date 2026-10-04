@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /mobile
+    schedule:
+      interval: weekly
+    groups:
+      androidx:
+        patterns: ["androidx.*"]
+      kotlin:
+        patterns: ["org.jetbrains.kotlin*", "org.jetbrains.kotlinx*", "com.google.devtools.ksp*"]
+      koin:
+        patterns: ["io.insert-koin*"]
+      ktor:
+        patterns: ["io.ktor*"]
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      tanstack:
+        patterns: ["@tanstack/*"]
+      tooling:
+        patterns: ["@biomejs/*", "typescript", "vite", "@vitejs/*", "wrangler", "@cloudflare/*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,0 +1,47 @@
+name: mobile
+
+on:
+  push:
+    branches: [main]
+    paths: ["mobile/**", ".github/workflows/mobile.yml"]
+  pull_request:
+    paths: ["mobile/**", ".github/workflows/mobile.yml"]
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          # Read-only cache on PRs; only main writes it.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Format check (ktlint)
+        run: ./gradlew spotlessCheck
+      - name: Unit tests
+        run: ./gradlew :shared:testAndroidHostTest :androidApp:testDebugUnitTest
+      - name: Android lint
+        run: ./gradlew :androidApp:lintDebug
+      - name: Assemble debug APK
+        run: ./gradlew :androidApp:assembleDebug
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mobile-reports
+          path: |
+            mobile/**/build/reports/
+            mobile/**/build/test-results/
+          if-no-files-found: ignore

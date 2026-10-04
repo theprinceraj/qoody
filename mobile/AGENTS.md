@@ -1,0 +1,38 @@
+# mobile/ — Kotlin Multiplatform app
+
+Root rules in `../AGENTS.md` apply. This file adds mobile-specific rules.
+
+## Stack (all latest stable at scaffold time, 2026-10-04; versions live in `gradle/libs.versions.toml`)
+
+Kotlin 2.4 · AGP 9.4 (built-in Kotlin; **no `kotlin-android` plugin**) · Gradle 9.8 · Compose BOM + Material 3 · Navigation 3 · Koin · Ktor · kotlinx (coroutines, serialization, datetime) · AndroidX Lifecycle ViewModel (KMP) · JUnit4 / kotlin-test / Turbine · Spotless + ktlint.
+
+## Architecture
+
+- `shared` (KMP library, plugin `com.android.kotlin.multiplatform.library`) holds repositories, use cases, ViewModels (`androidx.lifecycle.ViewModel`, exposing `StateFlow<UiState>`), DI modules, networking, models. **Default location for new code is `shared/src/commonMain`.**
+- `androidApp` holds only Android specifics: `Application`, `MainActivity`, Compose screens + theme, navigation graph, manifest/resources. Screens take state from a shared ViewModel and render it; no business logic.
+- Unidirectional data flow: UI → event/function call on ViewModel → state update → UI collects `StateFlow` with `collectAsStateWithLifecycle()`.
+- DI: Koin. Shared bindings in `shared/.../di/SharedModule.kt`; the app starts Koin in `QoodyApplication`.
+- Navigation: Navigation 3 (`NavKey` data objects/classes, `NavDisplay`). Use the `navigation-3` skill before changing it.
+- Package roots: `com.qoody.shared` (shared), `com.qoody.app` (Android). Feature code is grouped by feature (`home/`, ...), not by layer.
+
+## Rules
+
+- **`commonMain` must contain no Android/JVM-only imports** (`android.*`, `java.*`, `androidx.compose.*` Android-only APIs). Platform needs go behind an interface in `commonMain` implemented in `androidMain`, or `expect/actual` for tiny cases. This is what keeps the future iOS port cheap.
+- Use `kotlinx-datetime` instead of `java.time`, `kotlinx-serialization` instead of Gson/Moshi, Ktor instead of Retrofit, Koin instead of Hilt (Hilt is Android-only).
+- Compose: stateless composables take state + lambdas; hoist state; add `@Preview` for new screens; follow the Material 3 theme in `ui/theme`. Composable functions are PascalCase (ktlint is configured for this in `.editorconfig`).
+- Dispatchers are injected or set via `Dispatchers.setMain` in tests; no `GlobalScope`; no `runBlocking` outside tests.
+- Every ViewModel/repository change needs a test in `shared/src/commonTest` (Turbine for Flows). Android-only behavior gets tests in `androidApp/src/test` (JUnit4 — `kotlin.test` annotations are not available there) or `androidTest`.
+- Release builds use R8 + resource shrinking (`proguard-rules.pro`). When adding reflection-based or serialization-heavy code, run `:androidApp:assembleRelease` and check for R8 issues (see `r8-analyzer` skill).
+- Format with `spotlessApply` before finishing; `spotlessCheck` runs in CI.
+- `applicationId`/namespace `com.qoody.app` is a **placeholder the user has not confirmed**. It cannot change after the first Play upload — confirm with the user before publishing.
+
+## iOS (future)
+
+Not started. To start: add `iosArm64()` and `iosSimulatorArm64()` targets to `shared/build.gradle.kts` (needs a Mac to compile), add `iosMain` actuals, create `iosApp/` (Xcode). Decide then between Compose Multiplatform UI (move screens into `shared`) or native SwiftUI over the shared ViewModels, and record it in `docs/DECISIONS.md`.
+
+## Gotchas
+
+- `settings.gradle.kts`: Kotlin string escapes like `"\."` are invalid; use `[.]` in regexes.
+- AGP 9 + KMP: the shared module must use `com.android.kotlin.multiplatform.library`; the app must be a separate `com.android.application` module. They cannot be combined in one module.
+- On Windows, set `JAVA_HOME` to JDK 21 if Gradle cannot find Java (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).
+- First Gradle run downloads ~1 GB and takes 10+ minutes; run long builds in the background rather than with a short timeout.

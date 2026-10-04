@@ -1,0 +1,26 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+
+# Secrets (never commit)
+.env
+.env.*
+*.jks
+*.keystore
+keystore.properties
+local.properties
+
+# Build output / caches
+build/
+dist/
+node_modules/
+.gradle/
+.kotlin/
+.wrangler/
+.tanstack/
+
+# Claude Code personal overrides
+.claude/settings.local.json
+CLAUDE.local.md

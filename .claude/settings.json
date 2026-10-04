@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(pnpm install*)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm typecheck*)",
+      "Bash(pnpm check*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm biome*)",
+      "Bash(pnpm dev*)",
+      "Bash(./gradlew*)",
+      "Bash(.\\gradlew.bat*)",
+      "Bash(android docs*)",
+      "Bash(android skills list*)",
+      "Bash(android sdk list*)",
+      "Bash(powershell -File scripts/verify.ps1*)",
+      "Bash(./scripts/verify.sh*)"
+    ],
+    "deny": [
+      "Read(**/*.jks)",
+      "Read(**/*.keystore)",
+      "Read(**/keystore.properties)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Edit(web/src/routeTree.gen.ts)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/scripts/hooks/format-on-edit.mjs"],
+            "timeout": 60,
+            "statusMessage": "Formatting with Biome"
+          }
+        ]
+      }
+    ]
+  }
+}
