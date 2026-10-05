@@ -39,6 +39,10 @@ class QoodyNavigator(
         backStack.add(ReceiptKey(id.value))
     }
 
+    fun openUnparsedCaptures() {
+        backStack.add(UnparsedCapturesKey)
+    }
+
     fun pop() {
         backStack.removeLastOrNull()
     }

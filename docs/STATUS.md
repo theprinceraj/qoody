@@ -45,6 +45,7 @@
 
 ## Log
 
+- 2026-10-05 — Notification capture step 3 + 3b: `CaptureNotificationUseCase` (allowlist → parse → rule category → dedupe → save / Failed-to-parse), `CapturePolicy` with 64 Indian payment/bank/card apps each verified on Google Play (HTTP 200 + listing title/developer), "Failed to parse" Settings row + list screen (Add manually / Dismiss / Clear all) with screenshot test. Not yet wired to Android (step 4). `verify -Target mobile` green.
 - 2026-10-05 — Notification capture step 2 (persistence): `LedgerRepository.addCaptured` with a unique `dedupeKey` column, race-free id allocation in a write transaction, `unparsed_captures` table + `UnparsedCaptureRepository` (cap 50), `Categorization.Rule` with a receipt label, DB v1→v2 auto-migration (tested on a real v1 file), backup format 2 (v1 still imports). Decisions D16, D17. `verify -Target mobile` green.
 - 2026-10-05 — Notification capture step 1 (see `docs/plans/notification-capture.md`): added `shared/.../capture` rule-based `PaymentNotificationParser` (INR/UPI debits, outcome Payment/NotAnExpense/Unparsed) and `MerchantCategoryRules`, with 21 tests. Not wired into the app yet. Plan updated with the user's answers (broad allowlist, no SMS, INR only, "Failed to parse" list in Settings, keep raw text).
 - 2026-10-05 — Wrote the rule-based notification-capture plan (`docs/plans/notification-capture.md`); docs only, no code changed, `verify` not run.

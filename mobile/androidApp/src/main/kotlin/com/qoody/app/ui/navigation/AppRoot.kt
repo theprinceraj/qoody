@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.qoody.app.ui.capture.UnparsedCapturesScreen
 import com.qoody.app.ui.components.QoodyBottomBar
 import com.qoody.app.ui.insights.InsightsScreen
 import com.qoody.app.ui.ledger.LedgerScreen
@@ -82,7 +83,11 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                         SettingsScreen(
                             onSearchClick = navigator::openSearch,
                             onOpenNotificationAccessSettings = onOpenNotificationAccessSettings,
+                            onOpenUnparsedCaptures = navigator::openUnparsedCaptures,
                         )
+                    }
+                    entry<UnparsedCapturesKey> {
+                        UnparsedCapturesScreen(onBack = navigator::pop, onProfileClick = openSettings)
                     }
                     entry<ReceiptKey> { key ->
                         ReceiptScreen(

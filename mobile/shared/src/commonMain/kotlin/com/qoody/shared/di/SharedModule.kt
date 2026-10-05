@@ -10,6 +10,7 @@ import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
+import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
 import com.qoody.shared.feature.insights.InsightsViewModel
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
 import com.qoody.shared.feature.ledger.LedgerViewModel
@@ -37,6 +38,7 @@ val sharedModule =
         viewModel { LedgerViewModel(get(), get(), get()) }
         viewModel { AddExpenseViewModel(get(), get()) }
         viewModel { InsightsViewModel(get(), get(), get()) }
-        viewModel { SettingsViewModel(get(), get(), get(), get()) }
+        viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
+        viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { (transactionId: Long) -> ReceiptViewModel(TransactionId(transactionId), get(), get(), get()) }
     }

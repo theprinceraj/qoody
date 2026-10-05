@@ -8,16 +8,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.qoody.app.ui.capture.UnparsedCapturesContent
 import com.qoody.app.ui.insights.InsightsContent
 import com.qoody.app.ui.ledger.LedgerContent
 import com.qoody.app.ui.onboarding.OnboardingContent
 import com.qoody.app.ui.receipt.ReceiptContent
 import com.qoody.app.ui.settings.SettingsContent
 import com.qoody.app.ui.theme.QoodyTheme
+import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
+import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
+import com.qoody.shared.domain.model.NewUnparsedCapture
+import com.qoody.shared.feature.capture.UnparsedCapturesUiState
+import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
 import com.qoody.shared.feature.insights.InsightsUiState
 import com.qoody.shared.feature.insights.InsightsViewModel
 import com.qoody.shared.feature.ledger.LedgerUiState
@@ -160,7 +166,9 @@ class ScreenshotTest {
 
     @Test
     fun settings() {
-        val viewModel = SettingsViewModel(settings, ledger, FakeLlmKeyVerifier(), dates)
+        val unparsed = InMemoryUnparsedCaptureRepository()
+        runBlocking { unparsed.add(sampleUnparsed()) }
+        val viewModel = SettingsViewModel(settings, ledger, FakeLlmKeyVerifier(), dates, unparsed)
         viewModel.onApiKeyPasted(SAMPLE_API_KEY)
         viewModel.onNotificationListenerToggled(true)
         val state = viewModel.uiState.await { it is SettingsUiState.Content }
@@ -172,6 +180,7 @@ class ScreenshotTest {
                 onProfileClick = {},
                 onNotificationToggled = {},
                 onManageApps = {},
+                onOpenUnparsedCaptures = {},
                 onPasteKey = {},
                 onToggleKeyVisibility = {},
                 onTestKey = {},
@@ -185,6 +194,36 @@ class ScreenshotTest {
             )
         }
     }
+
+    @Test
+    fun unparsedCaptures() {
+        val repository = InMemoryUnparsedCaptureRepository()
+        runBlocking { repository.add(sampleUnparsed()) }
+        val state =
+            UnparsedCapturesViewModel(repository, dates).uiState.await { it is UnparsedCapturesUiState.Content }
+        capture("unparsed-captures") {
+            UnparsedCapturesContent(
+                state = state,
+                onBack = {},
+                onProfileClick = {},
+                onAddManually = {},
+                onDismiss = {},
+                onClearAll = {},
+            )
+        }
+    }
+
+    /** A synthetic bank alert that names no amount. */
+    private fun sampleUnparsed() =
+        NewUnparsedCapture(
+            packageName = "com.example.bank",
+            appName = "Example Bank",
+            title = "Transaction alert",
+            text = "Your account XX1234 has been debited towards UPI payment.",
+            postedAt = noon - 2.hours,
+            reason = UnparsedReason.NoAmount,
+            dedupeKey = "sample",
+        )
 
     private companion object {
         const val SAMPLE_API_KEY = "sk-ant-api03-9kL20d9f8A1b2c3d4e5f6g7h8j"
