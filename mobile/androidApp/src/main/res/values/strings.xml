@@ -1,3 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand -->
     <string name="app_name">Qoody</string>
+    <string name="brand_wordmark">qoody</string>
+    <string name="cd_app_logo">Qoody logo</string>
+
+    <!-- Shared actions & accessibility -->
+    <string name="cd_search">Search ledger</string>
+    <string name="cd_close_search">Close search</string>
+    <string name="cd_profile">Open settings</string>
+    <string name="cd_back">Go back</string>
+    <string name="action_save">Save entry</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_ledger">Ledger</string>
+    <string name="nav_insights">Insights</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Categories: full name, short chip label, emoji -->
+    <string name="category_food_and_drink">Food &amp; Drink</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_bills">Rent &amp; Bills</string>
+    <string name="category_friends">Friends</string>
+    <string name="category_subscriptions">Subscriptions</string>
+    <string name="category_uncategorized">Uncategorized</string>
+
+    <string name="category_chip_food_and_drink">food</string>
+    <string name="category_chip_transport">transport</string>
+    <string name="category_chip_shopping">shopping</string>
+    <string name="category_chip_bills">bills</string>
+    <string name="category_chip_friends">friends</string>
+    <string name="category_chip_subscriptions">subscriptions</string>
+    <string name="category_chip_uncategorized">other</string>
+
+    <string name="category_emoji_food_and_drink">☕</string>
+    <string name="category_emoji_transport">🚇</string>
+    <string name="category_emoji_shopping">🛍️</string>
+    <string name="category_emoji_bills">🏠</string>
+    <string name="category_emoji_friends">👥</string>
+    <string name="category_emoji_subscriptions">🔁</string>
+    <string name="category_emoji_uncategorized">🗂️</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_headline">The ledger that writes itself.</string>
+    <string name="onboarding_subhead">Qoody turns bank and payment notifications into a clean running tab. You never type an expense.</string>
+    <string name="onboarding_step_1_title">Payment arrives</string>
+    <string name="onboarding_step_1_body">You buy a coffee or pay rent via Apple Pay, GPay, or debit card.</string>
+    <string name="onboarding_step_2_title">Notification captured</string>
+    <string name="onboarding_step_2_body">Qoody securely reads the push alert on this phone in real time.</string>
+    <string name="onboarding_step_3_title">Instantly organized</string>
+    <string name="onboarding_step_3_body">An on-device LLM extracts the merchant and category in seconds.</string>
+    <string name="onboarding_preview_merchant">Monmouth Coffee Co.</string>
+    <string name="onboarding_preview_amount">-£3.80</string>
+    <string name="onboarding_cta">Enable notification access</string>
+    <string name="onboarding_learn_more">Learn what we read (and what we never touch)</string>
+    <string name="onboarding_trust_footer">100% on-device. Zero cloud servers. Open source &amp; free forever.</string>
+    <string name="privacy_sheet_title">Data Sovereignty Pledge</string>
+    <string name="privacy_reads_title">What Qoody reads</string>
+    <string name="privacy_reads_body">Only push alerts originating from verified banking, card, and financial apps. It parses amount, merchant name, and timestamp.</string>
+    <string name="privacy_never_title">What Qoody never sees</string>
+    <string name="privacy_never_body">Personal SMS, chats, passwords, 2FA codes, account balances, or credentials. Notifications stay inside the phone sandbox.</string>
+    <string name="privacy_dismiss">Got it, thanks</string>
+
+    <!-- Ledger -->
+    <string name="ledger_spent_this_month">Spent this month (%1$s)</string>
+    <string name="ledger_active_cycle">Active cycle</string>
+    <string name="ledger_trend_comparison">%1$s vs last month (%2$s)</string>
+    <string name="ledger_trend_same">Same as last month (%1$s)</string>
+    <string name="ledger_filter_all">all</string>
+    <string name="ledger_day_today">Today, %1$s</string>
+    <string name="ledger_day_yesterday">Yesterday, %1$s</string>
+    <string name="ledger_row_subtitle">via %1$s • %2$s</string>
+    <string name="ledger_add_expense">Add Expense</string>
+    <string name="ledger_search_placeholder">Search merchants, notes, tags</string>
+    <string name="ledger_empty_title">Your ledger is empty</string>
+    <string name="ledger_empty_body">Payments you make will appear here automatically.</string>
+    <string name="ledger_no_results_title">No matching entries</string>
+    <string name="ledger_no_results_body">Try a different category or search term.</string>
+
+    <!-- Add expense sheet -->
+    <string name="add_expense_title">Add expense</string>
+    <string name="add_expense_amount_label">Amount</string>
+    <string name="add_expense_merchant_label">Merchant</string>
+    <string name="add_expense_merchant_hint">Where did you spend it?</string>
+    <string name="add_expense_category_label">Category</string>
+
+    <!-- Insights -->
+    <string name="insights_title">Insights</string>
+    <string name="insights_subtitle">Mindful summary of your ledger pace</string>
+    <string name="insights_period_this_month">This month (%1$s)</string>
+    <string name="insights_period_last_month">Last month</string>
+    <string name="insights_period_all_time">All time</string>
+    <string name="cd_jump_to_this_month">Jump to this month</string>
+    <string name="insights_weekly_pace">Weekly Pace</string>
+    <string name="insights_monthly_pace">Monthly Pace</string>
+    <string name="insights_total_suffix">total</string>
+    <string name="insights_current_badge">Current</string>
+    <string name="insights_week_label">W%1$d</string>
+    <string name="insights_range">%1$s–%2$s</string>
+    <string name="insights_current_week_marker">Tomato indicator marks this active week</string>
+    <string name="insights_current_month_marker">Tomato indicator marks this active month</string>
+    <plurals name="insights_weeks_progress">
+        <item quantity="one">%1$d of %2$d week</item>
+        <item quantity="other">%1$d of %2$d weeks</item>
+    </plurals>
+    <plurals name="insights_months_progress">
+        <item quantity="one">%1$d of %2$d month</item>
+        <item quantity="other">%1$d of %2$d months</item>
+    </plurals>
+    <string name="insights_category_breakdown">Category Breakdown</string>
+    <string name="insights_category_subtitle">Sorted by cumulative outflow</string>
+    <plurals name="insights_category_count">
+        <item quantity="one">%d category</item>
+        <item quantity="other">%d categories</item>
+    </plurals>
+    <string name="insights_empty_title">No spending in this period</string>
+    <string name="insights_empty_body">Pick another period, or check back once payments start arriving.</string>
+    <string name="insights_reflection_label">Quiet Reflection</string>
+    <string name="insights_per_day">%1$s / day</string>
+    <string name="insights_reflection_average">Average daily spend: %1$s.</string>
+    <string name="insights_reflection_lower">Average daily spend: %1$s. You\'re tracking %2$s lower than this time last month.</string>
+    <string name="insights_reflection_higher">Average daily spend: %1$s. You\'re tracking %2$s higher than this time last month.</string>
+    <string name="insights_reflection_same">Average daily spend: %1$s. You\'re tracking in line with this time last month.</string>
+    <string name="insights_verified_footer">Physical balance confirmed against verified receipts</string>
+
+    <!-- Receipt detail -->
+    <string name="receipt_title">Receipt Detail</string>
+    <string name="receipt_code">#%1$s</string>
+    <string name="receipt_status_settled">Expense Settled</string>
+    <string name="receipt_status_excluded">Excluded from ledger</string>
+    <string name="receipt_meta_captured">%1$s • %2$s • Captured via %3$s</string>
+    <string name="receipt_meta_manual">%1$s • %2$s • Added manually</string>
+    <string name="receipt_assigned_category">Assigned Category</string>
+    <string name="receipt_change">Change</string>
+    <string name="receipt_model_confidence">%1$s %2$s</string>
+    <string name="receipt_set_by_you">Set by you</string>
+    <string name="receipt_inaccurate_question">Is this inaccurate?</string>
+    <string name="receipt_correct_category">Correct category</string>
+    <string name="receipt_personal_note">Personal Note</string>
+    <string name="receipt_note_hint">e.g., Morning pour-over before sprint planning…</string>
+    <string name="receipt_original_notification">Original system notification</string>
+    <string name="receipt_parsed_on_device">Parsed on-device from notification tray. Zero telemetry sent to external clouds.</string>
+    <string name="receipt_transaction_method">Transaction Method</string>
+    <string name="receipt_reference_code">Reference Code</string>
+    <string name="receipt_budget_impact">Monthly Budget Impact</string>
+    <string name="receipt_budget_impact_value">%1$s of %2$s</string>
+    <string name="receipt_split">Split expense</string>
+    <string name="receipt_keep">Keep entry</string>
+    <string name="receipt_exclude">Exclude from ledger</string>
+    <string name="receipt_split_unavailable">Splitting expenses isn\'t available yet.</string>
+    <string name="receipt_not_found">This receipt no longer exists.</string>
+    <string name="category_picker_title">Choose a category</string>
+
+    <!-- Settings -->
+    <string name="settings_eyebrow">Configuration</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_sync_ok">Sync OK</string>
+    <string name="settings_sync_paused">Paused</string>
+    <string name="settings_section_core">Core Automation</string>
+    <string name="settings_listener_title">Notification Listener</string>
+    <string name="settings_listener_active">Active</string>
+    <string name="settings_listener_paused">Paused</string>
+    <string name="settings_listener_body">Reads incoming payment push notifications from banking &amp; UPI apps to automatically add entries to your tab.</string>
+    <plurals name="settings_listening_apps">
+        <item quantity="one">Listening to %d financial app</item>
+        <item quantity="other">Listening to %d financial apps</item>
+    </plurals>
+    <string name="settings_manage">Manage</string>
+    <string name="settings_section_intelligence">Intelligence &amp; Parsing</string>
+    <string name="settings_byok_badge">BYOK Model</string>
+    <string name="settings_llm_title">LLM Categorization</string>
+    <string name="settings_optional_badge">Optional</string>
+    <string name="settings_llm_body">Used strictly for semantic category tags and receipt cleanups. Keys remain exclusively on this device.</string>
+    <string name="settings_key_empty">No key saved</string>
+    <string name="cd_show_key">Show key</string>
+    <string name="cd_hide_key">Hide key</string>
+    <string name="settings_paste_key">Paste Key</string>
+    <string name="settings_test_link">Test Link</string>
+    <string name="settings_key_testing">Testing…</string>
+    <string name="settings_key_verified">Verified!</string>
+    <string name="settings_key_failed">Key rejected</string>
+    <string name="settings_model_label">Model: %1$s</string>
+    <string name="settings_local_fallback_ready">Local fallback ready</string>
+    <string name="settings_section_interface">Tactile &amp; Interface</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_subtitle">Physical ivory stationery</string>
+    <string name="theme_warm_paper">Warm Paper</string>
+    <string name="settings_currency_title">Ledger Currency</string>
+    <string name="settings_currency_subtitle">Display symbol &amp; alignment</string>
+    <string name="settings_currency_option">%1$s (%2$s)</string>
+    <string name="settings_haptics_title">Haptic Feedback</string>
+    <string name="settings_haptics_subtitle">Mechanical stamp tap on entries</string>
+    <string name="settings_section_privacy">Sovereignty &amp; Privacy</string>
+    <string name="settings_open_source_title">Open Source Code</string>
+    <string name="settings_open_source_subtitle">Public repository on GitHub</string>
+    <string name="settings_export_title">Export Ledger as CSV</string>
+    <string name="settings_export_subtitle">Plain text, raw tabular receipt data</string>
+    <string name="settings_pledge_title">100% On-Device Ledger</string>
+    <string name="settings_pledge_body">Qoody has no advertising SDKs, no analytics telemetry, and no remote server database. Your transactions never leave this physical hardware.</string>
+    <string name="settings_version">Qoody v%1$s</string>
+    <string name="settings_edition">Cloth &amp; Paper edition</string>
+    <string name="settings_tagline">Free &amp; Open Source Bookkeeping</string>
+    <string name="settings_export_done">Ledger exported.</string>
+    <string name="settings_export_failed">Couldn\'t write the file.</string>
+    <string name="settings_clipboard_empty">Nothing to paste: the clipboard is empty.</string>
+    <string name="settings_no_browser">No app available to open this link.</string>
 </resources>

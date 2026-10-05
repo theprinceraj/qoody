@@ -24,3 +24,18 @@ Decision: `AGENTS.md` hierarchy (root + `mobile/` + `web/`, with `CLAUDE.md` shi
 
 **D7 — iOS targets omitted until iOS work starts** · 2026-10-04 · accepted
 Declaring `iosArm64`/`iosSimulatorArm64` on Windows adds noise and can't be compiled here. Add them (with a Mac) when iOS begins; see `mobile/AGENTS.md`.
+
+**D8 — Design tokens and strings are the only home for literals** · 2026-10-05 · accepted
+Colours, sizes, spacing, shapes, alphas, durations and the type scale live in `androidApp/.../ui/theme`; all UI copy lives in `strings.xml` (plurals for counts). Elsewhere, meaningful literals must be named constants. Enforced with detekt `MagicNumber` (exempting `ui/theme`, sample fixtures and tests) plus review; there is no mechanical rule for strings, so audit with a grep for `"` in `androidApp/src/main`.
+
+**D9 — Detekt 2.0 alpha is allowed** · 2026-10-05 · accepted
+Exception to "no pre-release": detekt 1.x does not support Kotlin 2.4 and 2.0 is only published as `alpha`. It is a build-time linter, not shipped. Revisit when 2.0 is stable.
+
+**D10 — Visual verification without an emulator** · 2026-10-05 · accepted
+Screens are rendered to PNG in JVM tests (Robolectric native graphics + Roborazzi) from the real ViewModels and sample data, so agents can look at them. These are smoke/visual aids, not pixel-diff goldens (yet).
+
+**D11 — UI talks to repository interfaces; storage/LLM/notification capture are swapped in later** · 2026-10-05 · accepted
+`InMemory*` repositories and `FakeLlmKeyVerifier` are explicit placeholders. When the real ones arrive only `SharedModule` bindings change.
+
+**D12 — Fonts and icons are bundled, not downloaded** · 2026-10-05 · accepted
+DM Sans, Plus Jakarta Sans and JetBrains Mono (SIL OFL; licences in `docs/licenses`) ship as variable fonts in `res/font`; Material Symbols (Apache 2.0) ship as vector drawables. No Google Fonts provider/GMS dependency, works offline (the app is on-device by promise).

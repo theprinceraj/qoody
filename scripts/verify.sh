@@ -16,7 +16,7 @@ fi
 
 if [[ "$target" == "mobile" || "$target" == "all" ]]; then
   cd "$root/mobile"
-  step "mobile: ktlint (spotlessCheck)" ./gradlew spotlessCheck --console=plain
+  step "mobile: ktlint + detekt"         ./gradlew spotlessCheck detekt --console=plain
   step "mobile: tests"                  ./gradlew :shared:testAndroidHostTest :androidApp:testDebugUnitTest --console=plain
   step "mobile: android lint"           ./gradlew :androidApp:lintDebug --console=plain
   step "mobile: assembleDebug"          ./gradlew :androidApp:assembleDebug --console=plain

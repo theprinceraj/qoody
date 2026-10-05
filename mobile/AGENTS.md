@@ -26,12 +26,24 @@ Kotlin 2.4 · AGP 9.4 (built-in Kotlin; **no `kotlin-android` plugin**) · Gradl
 - Format with `spotlessApply` before finishing; `spotlessCheck` runs in CI.
 - `applicationId`/namespace `com.qoody.app` is a **placeholder the user has not confirmed**. It cannot change after the first Play upload — confirm with the user before publishing.
 
+## UI layer (built from the Stitch designs, 2026-10-05)
+
+- Designs live in `C:\Users\profi\Downloads\stitch_qoody_automatic_expense_ledger` (screens + `DESIGN.md`, the "Warm Tactile Ledger" system). They are a reference, not part of the repo.
+- **No magic numbers or strings.** Every colour, size, spacing, shape, alpha and duration is a token in `androidApp/.../ui/theme` (`QoodyTheme.colors/spacing/sizes/shapes/typography/alphas/motion`). Every user-facing string is in `res/values/strings.xml` (use plurals for counts, `styledStringResource` for partly-styled sentences). Non-UI constants are named `const val`s. `detekt` (MagicNumber) enforces the numbers; only `ui/theme`, sample data and tests are exempt.
+- Screens are split into a stateful wrapper (gets its ViewModel from Koin, collects state) and a stateless `*Content` composable that takes state + lambdas. The `*Content` ones are what `ScreenshotTest` renders.
+- Money is `Money` (minor units) formatted by `MoneyFormatter`; dates go through `DateFormats` (locale-aware ICU skeletons); never `String.format` or hard-coded patterns.
+- Fonts (DM Sans, Plus Jakarta Sans, JetBrains Mono; OFL, licences in `docs/licenses`) and Material Symbols icons (`ic_*.xml`, Apache 2.0) are bundled; icons are tinted at the call site (`QoodyIcon`).
+- Placeholder backends: `InMemoryLedgerRepository`, `InMemorySettingsRepository`, `FakeLlmKeyVerifier` in `shared/.../data`, seeded from `data/sample/SampleLedger`. Replace the three bindings in `SharedModule` when real persistence, notification capture and the LLM client land; the UI will not need to change.
+
 ## iOS (future)
 
 Not started. To start: add `iosArm64()` and `iosSimulatorArm64()` targets to `shared/build.gradle.kts` (needs a Mac to compile), add `iosMain` actuals, create `iosApp/` (Xcode). Decide then between Compose Multiplatform UI (move screens into `shared`) or native SwiftUI over the shared ViewModels, and record it in `docs/DECISIONS.md`.
 
 ## Gotchas
 
+- Screenshot tests need JDK `--add-opens` flags (set in `androidApp/build.gradle.kts`) and a plain `Application` (`@Config(application = Application::class)`), otherwise Robolectric crashes or Koin starts twice.
+- ViewModel state uses `stateIn(WhileSubscribed)`: in tests read it through a live collector (`latest()` in `shared/commonTest/TestSupport.kt`), and construct ViewModels *after* `Dispatchers.setMain`.
+- `List.removeLast()` binds to a Java API missing before Android 15; use `removeAt(lastIndex)`. Adaptive icons must stay in `mipmap-anydpi-v26` (AAPT2 rejects them elsewhere) — `lint.xml` exempts it.
 - `settings.gradle.kts`: Kotlin string escapes like `"\."` are invalid; use `[.]` in regexes.
 - AGP 9 + KMP: the shared module must use `com.android.kotlin.multiplatform.library`; the app must be a separate `com.android.application` module. They cannot be combined in one module.
 - On Windows, set `JAVA_HOME` to JDK 21 if Gradle cannot find Java (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).

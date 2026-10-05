@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window background shown before Compose draws its first frame: the "warm paper" canvas. -->
+    <color name="qoody_canvas">#FCF9F4</color>
+</resources>

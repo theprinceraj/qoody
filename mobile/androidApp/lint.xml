@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!--
+      AAPT2 only accepts <adaptive-icon> inside a version-qualified folder, even though minSdk is 26,
+      so lint's "merge into mipmap-anydpi" advice would break the build.
+    -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>

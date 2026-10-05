@@ -27,7 +27,14 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = false
+        buildConfig = true
+    }
+
+    testOptions {
+        unitTests {
+            // Robolectric needs the merged resources to render real screens in JVM tests.
+            isIncludeAndroidResources = true
+        }
     }
 
     packaging {
@@ -49,6 +56,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
@@ -60,9 +68,34 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.androidx.compose.bom))
 
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.espresso.core)
+}
+
+// Screenshot tests write their PNGs here; open them to see each screen as rendered.
+tasks.withType<Test>().configureEach {
+    systemProperty("roborazzi.test.record", "true")
+
+    // Robolectric reaches into JDK internals, which Java 17+ seals off unless opened explicitly.
+    jvmArgs(
+        "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+        "--add-opens=java.base/java.text=ALL-UNNAMED",
+        "--add-opens=java.base/java.security=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED",
+    )
 }

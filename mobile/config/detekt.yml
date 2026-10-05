@@ -1,0 +1,52 @@
+# Detekt on top of its defaults. The goal is "no magic numbers": every literal that carries meaning
+# must be a named constant or a design token.
+style:
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2']
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: false
+    ignoreLocalVariableDeclaration: false
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreNamedArgument: false
+    ignoreEnums: false
+    ignoreRanges: false
+    ignoreExtensionFunctions: false
+    excludes:
+      # Design tokens ARE the named constants; fixture and test data are data, not logic.
+      - '**/ui/theme/**'
+      - '**/data/sample/**'
+      - '**/src/test/**'
+      - '**/src/commonTest/**'
+      - '**/src/androidTest/**'
+  # ktlint already enforces line length (120) and wildcard imports.
+  MaxLineLength:
+    active: false
+  WildcardImport:
+    active: true
+  ForbiddenComment:
+    active: false
+
+# Compose conventions the defaults do not understand.
+naming:
+  MatchingDeclarationName:
+    active: false
+  FunctionNaming:
+    active: false
+  TopLevelPropertyNaming:
+    active: true
+complexity:
+  LongMethod:
+    active: false
+  LongParameterList:
+    active: false
+  TooManyFunctions:
+    active: false
+  CyclomaticComplexMethod:
+    active: false
+  NestedBlockDepth:
+    active: false
+  ComplexCondition:
+    active: false

@@ -1,0 +1,26 @@
+package com.qoody.shared.feature.root
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.qoody.shared.core.stateInViewModel
+import com.qoody.shared.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+
+/** Which top-level experience the app shows. */
+enum class RootUiState {
+    Loading,
+    Onboarding,
+    Main,
+}
+
+class RootViewModel(
+    settings: SettingsRepository,
+) : ViewModel() {
+    val uiState: StateFlow<RootUiState> =
+        settings.settings
+            .map { if (it.onboardingCompleted) RootUiState.Main else RootUiState.Onboarding }
+            .distinctUntilChanged()
+            .stateInViewModel(viewModelScope, RootUiState.Loading)
+}

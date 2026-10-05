@@ -36,7 +36,8 @@ scripts/           verify.ps1 / verify.sh, hook scripts.
 | Verify everything | `scripts/verify.ps1 -Target all` (repo root) |
 | Android: build debug APK | `mobile`: `.\gradlew.bat :androidApp:assembleDebug` |
 | Android: unit tests | `mobile`: `.\gradlew.bat :shared:testAndroidHostTest :androidApp:testDebugUnitTest` |
-| Android: lint + format check | `mobile`: `.\gradlew.bat :androidApp:lintDebug spotlessCheck` |
+| Android: lint, format, magic numbers | `mobile`: `.\gradlew.bat :androidApp:lintDebug spotlessCheck detekt` |
+| Android: render screens to PNG (visual check, no emulator) | `mobile`: `.\gradlew.bat :androidApp:testDebugUnitTest --tests "*ScreenshotTest"`, then open the PNGs in `androidApp\build\outputs\screens` |
 | Android: auto-format | `mobile`: `.\gradlew.bat spotlessApply` |
 | Web: dev server | `web`: `pnpm dev` (http://localhost:3000) |
 | Web: typecheck / lint+format / build | `web`: `pnpm typecheck` / `pnpm check` / `pnpm build` |

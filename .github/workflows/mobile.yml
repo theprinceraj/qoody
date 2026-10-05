@@ -29,8 +29,8 @@ jobs:
         with:
           # Read-only cache on PRs; only main writes it.
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-      - name: Format check (ktlint)
-        run: ./gradlew spotlessCheck
+      - name: Format and magic-number checks (ktlint, detekt)
+        run: ./gradlew spotlessCheck detekt
       - name: Unit tests
         run: ./gradlew :shared:testAndroidHostTest :androidApp:testDebugUnitTest
       - name: Android lint

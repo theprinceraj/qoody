@@ -5,17 +5,25 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.spotless)
+    alias(libs.plugins.detekt)
 }
 
+detekt {
+    source.setFrom("shared/src", "androidApp/src")
+    config.setFrom("config/detekt.yml")
+    buildUponDefaultConfig = true
+    parallel = true
+}
+
+// Targets name source folders explicitly: a `**` glob also walks build/ while other tasks write into it,
+// which makes Spotless fail intermittently.
 spotless {
     kotlin {
-        target("**/*.kt")
-        targetExclude("**/build/**")
+        target("shared/src/**/*.kt", "androidApp/src/**/*.kt")
         ktlint(libs.versions.ktlint.get())
     }
     kotlinGradle {
-        target("**/*.gradle.kts")
-        targetExclude("**/build/**")
+        target("*.gradle.kts", "shared/*.gradle.kts", "androidApp/*.gradle.kts")
         ktlint(libs.versions.ktlint.get())
     }
 }

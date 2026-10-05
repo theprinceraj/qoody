@@ -33,7 +33,7 @@ if ($Target -in 'mobile', 'all') {
     }
     Push-Location (Join-Path $root 'mobile')
     try {
-        Invoke-Step 'mobile: ktlint (spotlessCheck)' { .\gradlew.bat spotlessCheck --console=plain }
+        Invoke-Step 'mobile: ktlint + detekt'        { .\gradlew.bat spotlessCheck detekt --console=plain }
         Invoke-Step 'mobile: tests'                  { .\gradlew.bat :shared:testAndroidHostTest :androidApp:testDebugUnitTest --console=plain }
         Invoke-Step 'mobile: android lint'           { .\gradlew.bat :androidApp:lintDebug --console=plain }
         Invoke-Step 'mobile: assembleDebug'          { .\gradlew.bat :androidApp:assembleDebug --console=plain }
