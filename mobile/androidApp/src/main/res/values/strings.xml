@@ -136,6 +136,23 @@
     <string name="receipt_change">Change</string>
     <string name="receipt_model_confidence">%1$s %2$s</string>
     <string name="receipt_matched_rule">Matched “%1$s”</string>
+    <string name="capture_unknown_merchant">Unknown merchant</string>
+    <string name="settings_unparsed_title">Failed to parse</string>
+    <string name="settings_unparsed_none">Every payment notification was read</string>
+    <plurals name="settings_unparsed_count">
+        <item quantity="one">%1$d notification to review</item>
+        <item quantity="other">%1$d notifications to review</item>
+    </plurals>
+    <string name="unparsed_title">Failed to parse</string>
+    <string name="unparsed_intro">These looked like payments, but Qoody couldn\'t read them. Add each one by hand or dismiss it.</string>
+    <string name="unparsed_empty_title">Nothing to review</string>
+    <string name="unparsed_empty_body">Payment notifications Qoody can\'t read will show up here.</string>
+    <string name="unparsed_when">%1$s · %2$s</string>
+    <string name="unparsed_reason_no_amount">No amount found</string>
+    <string name="unparsed_reason_invalid_amount">Amount unreadable</string>
+    <string name="unparsed_add_manually">Add manually</string>
+    <string name="unparsed_dismiss">Dismiss</string>
+    <string name="unparsed_clear_all">Clear all</string>
     <string name="receipt_set_by_you">Set by you</string>
     <string name="receipt_inaccurate_question">Is this inaccurate?</string>
     <string name="receipt_correct_category">Correct category</string>

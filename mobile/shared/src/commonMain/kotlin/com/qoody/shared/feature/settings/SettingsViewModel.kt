@@ -2,6 +2,7 @@ package com.qoody.shared.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.qoody.shared.capture.CapturePolicy
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.LedgerCsv
@@ -12,6 +13,7 @@ import com.qoody.shared.domain.model.KeyVerification
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.SettingsRepository
+import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -26,6 +28,8 @@ sealed interface SettingsUiState {
         val settings: AppSettings,
         val isKeyVisible: Boolean,
         val keyVerification: KeyVerification,
+        /** Notifications in the "Failed to parse" list. */
+        val unparsedCount: Int = 0,
     ) : SettingsUiState {
         val hasApiKey: Boolean get() = !settings.llm.apiKey.isNullOrEmpty()
     }
@@ -36,13 +40,24 @@ class SettingsViewModel(
     private val ledger: LedgerRepository,
     private val keyVerifier: LlmKeyVerifier,
     private val dates: DateProvider,
+    unparsedCaptures: UnparsedCaptureRepository,
 ) : ViewModel() {
     private val isKeyVisible = MutableStateFlow(false)
     private val keyVerification = MutableStateFlow<KeyVerification>(KeyVerification.Idle)
 
     val uiState: StateFlow<SettingsUiState> =
-        combine(settings.settings, isKeyVisible, keyVerification) { appSettings, visible, verification ->
-            SettingsUiState.Content(appSettings, visible, verification)
+        combine(
+            settings.settings,
+            isKeyVisible,
+            keyVerification,
+            unparsedCaptures.captures,
+        ) { appSettings, visible, verification, unparsed ->
+            SettingsUiState.Content(
+                settings = appSettings.copy(monitoredAppCount = CapturePolicy.supportedApps.size),
+                isKeyVisible = visible,
+                keyVerification = verification,
+                unparsedCount = unparsed.size,
+            )
         }.stateInViewModel(viewModelScope, SettingsUiState.Loading)
 
     fun onNotificationListenerToggled(enabled: Boolean) {

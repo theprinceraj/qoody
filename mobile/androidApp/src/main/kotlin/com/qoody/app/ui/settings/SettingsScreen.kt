@@ -90,6 +90,7 @@ import org.koin.compose.koinInject
 fun SettingsScreen(
     onSearchClick: () -> Unit,
     onOpenNotificationAccessSettings: () -> Unit,
+    onOpenUnparsedCaptures: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -156,6 +157,7 @@ fun SettingsScreen(
         onProfileClick = {},
         onNotificationToggled = viewModel::onNotificationListenerToggled,
         onManageApps = onOpenNotificationAccessSettings,
+        onOpenUnparsedCaptures = onOpenUnparsedCaptures,
         onPasteKey = {
             scope.launch {
                 val pasted =
@@ -295,6 +297,7 @@ fun SettingsContent(
     onProfileClick: () -> Unit,
     onNotificationToggled: (Boolean) -> Unit,
     onManageApps: () -> Unit,
+    onOpenUnparsedCaptures: () -> Unit,
     onPasteKey: () -> Unit,
     onToggleKeyVisibility: () -> Unit,
     onTestKey: () -> Unit,
@@ -327,7 +330,14 @@ fun SettingsContent(
                             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.lg),
                         ) {
                             item { Header(state) }
-                            item { AutomationSection(state, onNotificationToggled, onManageApps) }
+                            item {
+                                AutomationSection(
+                                    state,
+                                    onNotificationToggled,
+                                    onManageApps,
+                                    onOpenUnparsedCaptures,
+                                )
+                            }
                             item { IntelligenceSection(state, onPasteKey, onToggleKeyVisibility, onTestKey) }
                             item { InterfaceSection(state, onThemeSelected, onCurrencySelected, onHapticsToggled) }
                             item { PrivacySection(onOpenSource, onExport, onExportFull, onImportFull) }
@@ -409,6 +419,7 @@ private fun AutomationSection(
     state: SettingsUiState.Content,
     onToggled: (Boolean) -> Unit,
     onManageApps: () -> Unit,
+    onOpenUnparsedCaptures: () -> Unit,
 ) {
     val enabled = state.settings.notificationListenerEnabled
     val listenerLabel = if (enabled) R.string.settings_listener_active else R.string.settings_listener_paused
@@ -497,6 +508,29 @@ private fun AutomationSection(
                         )
                     }
                 }
+            }
+        }
+        QoodyCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues()) {
+            SettingRow(
+                icon = R.drawable.ic_error,
+                title = stringResource(R.string.settings_unparsed_title),
+                subtitle =
+                    if (state.unparsedCount == 0) {
+                        stringResource(R.string.settings_unparsed_none)
+                    } else {
+                        pluralStringResource(
+                            R.plurals.settings_unparsed_count,
+                            state.unparsedCount,
+                            state.unparsedCount,
+                        )
+                    },
+                onClick = onOpenUnparsedCaptures,
+            ) {
+                QoodyIcon(
+                    R.drawable.ic_arrow_forward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
             }
         }
     }

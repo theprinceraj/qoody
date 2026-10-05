@@ -23,6 +23,10 @@ data object InsightsKey : TabKey
 @Serializable
 data object SettingsKey : TabKey
 
+/** The "Failed to parse" list, opened from Settings. */
+@Serializable
+data object UnparsedCapturesKey : NavKey
+
 @Serializable
 data class ReceiptKey(
     val transactionId: Long,

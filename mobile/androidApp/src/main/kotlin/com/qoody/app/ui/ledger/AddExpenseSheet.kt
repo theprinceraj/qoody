@@ -32,10 +32,11 @@ import com.qoody.shared.feature.ledger.AddExpenseUiState
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
 import org.koin.androidx.compose.koinViewModel
 
-/** Bottom sheet for typing in a payment by hand. */
+/** Bottom sheet for typing in a payment by hand. [onSaved] runs instead of [onDismiss] after a save. */
 @Composable
 fun AddExpenseSheet(
     onDismiss: () -> Unit,
+    onSaved: () -> Unit = onDismiss,
     viewModel: AddExpenseViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -43,7 +44,7 @@ fun AddExpenseSheet(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                AddExpenseEvent.Saved -> onDismiss()
+                AddExpenseEvent.Saved -> onSaved()
             }
         }
     }

@@ -1,12 +1,16 @@
 package com.qoody.shared.feature
 
 import com.qoody.shared.ViewModelTest
+import com.qoody.shared.capture.CapturePolicy
+import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
+import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.KeyVerification
 import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.feature.ledger.AddExpenseEvent
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
@@ -23,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 private const val ACCEPTED_KEY = "sk-valid"
 
@@ -54,9 +59,30 @@ class SettingsViewModelTest : ViewModelTest() {
         }
 
     // Lazy: a ViewModel must be created after the test installs the Main dispatcher.
-    private val viewModel by lazy { SettingsViewModel(settings, ledger, verifier, dates) }
+    private val unparsed = InMemoryUnparsedCaptureRepository()
+    private val viewModel by lazy { SettingsViewModel(settings, ledger, verifier, dates, unparsed) }
 
     private fun content() = viewModel.uiState.latest() as SettingsUiState.Content
+
+    @Test
+    fun showsTheFailedToParseCountAndTheAllowlistSize() =
+        runTest {
+            unparsed.add(
+                NewUnparsedCapture(
+                    packageName = "com.example.pay",
+                    appName = "Test Pay",
+                    title = "",
+                    text = "Account debited",
+                    postedAt = Instant.fromEpochMilliseconds(0),
+                    reason = UnparsedReason.NoAmount,
+                    dedupeKey = "k",
+                ),
+            )
+
+            val state = content()
+            assertEquals(1, state.unparsedCount)
+            assertEquals(CapturePolicy.supportedApps.size, state.settings.monitoredAppCount)
+        }
 
     @Test
     fun pastingAKeyStoresItTrimmedAndResetsVerification() =
