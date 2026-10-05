@@ -49,6 +49,7 @@ import com.qoody.app.ui.components.EmptyState
 import com.qoody.app.ui.components.FilterPill
 import com.qoody.app.ui.components.LoadingIndicator
 import com.qoody.app.ui.components.PrimaryButton
+import com.qoody.app.ui.components.ProgressTrack
 import com.qoody.app.ui.components.QoodyCard
 import com.qoody.app.ui.components.QoodyIcon
 import com.qoody.app.ui.components.QoodyTextField
@@ -328,32 +329,6 @@ private fun SummaryCard(
 @Composable
 private fun TrendText(text: String) {
     Text(text = text, style = QoodyTheme.typography.bodySm, color = MaterialTheme.colorScheme.secondary)
-}
-
-/** A thin pill-shaped bar showing how far this month's spending has come against last month's. */
-@Composable
-private fun ProgressTrack(
-    fraction: Float,
-    modifier: Modifier = Modifier,
-) {
-    val animated by animateFloatAsState(fraction, tween(QoodyTheme.motion.chartMillis))
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .heightIn(min = QoodyTheme.sizes.progressTrack)
-                .clip(QoodyTheme.shapes.pill)
-                .background(MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth(animated)
-                    .heightIn(min = QoodyTheme.sizes.progressTrack)
-                    .clip(QoodyTheme.shapes.pill)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-        )
-    }
 }
 
 @Composable

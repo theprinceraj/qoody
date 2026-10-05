@@ -14,6 +14,7 @@ import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
+import com.qoody.shared.feature.budgets.BudgetsViewModel
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.insights.InsightsViewModel
@@ -48,6 +49,7 @@ val sharedModule =
         viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
+        viewModel { BudgetsViewModel(get(), get(), get(), get()) }
         viewModel { (transactionId: Long) ->
             ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get())
         }

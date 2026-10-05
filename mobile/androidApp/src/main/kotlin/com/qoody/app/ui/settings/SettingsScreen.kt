@@ -92,6 +92,7 @@ fun SettingsScreen(
     onOpenNotificationAccessSettings: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
+    onOpenBudgets: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -161,6 +162,7 @@ fun SettingsScreen(
         onManageApps = onOpenNotificationAccessSettings,
         onOpenUnparsedCaptures = onOpenUnparsedCaptures,
         onOpenExcludedEntries = onOpenExcludedEntries,
+        onOpenBudgets = onOpenBudgets,
         onPasteKey = {
             scope.launch {
                 val pasted =
@@ -302,6 +304,7 @@ fun SettingsContent(
     onManageApps: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
+    onOpenBudgets: () -> Unit = {},
     onPasteKey: () -> Unit,
     onToggleKeyVisibility: () -> Unit,
     onTestKey: () -> Unit,
@@ -341,6 +344,7 @@ fun SettingsContent(
                                     onManageApps,
                                     onOpenUnparsedCaptures,
                                     onOpenExcludedEntries,
+                                    onOpenBudgets,
                                 )
                             }
                             item { IntelligenceSection(state, onPasteKey, onToggleKeyVisibility, onTestKey) }
@@ -426,6 +430,7 @@ private fun AutomationSection(
     onManageApps: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
+    onOpenBudgets: () -> Unit,
 ) {
     val enabled = state.settings.notificationListenerEnabled
     val listenerLabel = if (enabled) R.string.settings_listener_active else R.string.settings_listener_paused
@@ -553,6 +558,19 @@ private fun AutomationSection(
                         )
                     },
                 onClick = onOpenExcludedEntries,
+            ) {
+                QoodyIcon(
+                    R.drawable.ic_arrow_forward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+            }
+            HairlineDivider()
+            SettingRow(
+                icon = R.drawable.ic_account_balance_wallet,
+                title = stringResource(R.string.settings_budgets_title),
+                subtitle = stringResource(R.string.settings_budgets_subtitle),
+                onClick = onOpenBudgets,
             ) {
                 QoodyIcon(
                     R.drawable.ic_arrow_forward,

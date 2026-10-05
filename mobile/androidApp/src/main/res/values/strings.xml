@@ -174,6 +174,16 @@
     <string name="edit_entry_date_label">Date</string>
     <string name="edit_entry_date_confirm">OK</string>
     <string name="settings_excluded_title">Excluded entries</string>
+    <string name="settings_budgets_title">Monthly budgets</string>
+    <string name="settings_budgets_subtitle">Spending limits per category</string>
+    <string name="budgets_title">Monthly budgets</string>
+    <string name="budgets_intro">Set a monthly limit for any category. Progress is for %1$s so far.</string>
+    <string name="budgets_spent_of">%1$s of %2$s</string>
+    <string name="budgets_no_budget">%1$s spent · no budget</string>
+    <string name="budgets_set">Set budget</string>
+    <string name="budgets_sheet_title">%1$s budget</string>
+    <string name="budgets_monthly_limit">Monthly limit</string>
+    <string name="budgets_remove">Remove budget</string>
     <string name="settings_excluded_none">Nothing excluded</string>
     <plurals name="settings_excluded_count">
         <item quantity="one">%1$d entry hidden from your ledger</item>
