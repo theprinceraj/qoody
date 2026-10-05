@@ -5,6 +5,7 @@ import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
+import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.NewUnparsedCapture
@@ -49,6 +50,18 @@ interface LedgerRepository {
 
     /** Puts an excluded entry back into the ledger and its totals. */
     suspend fun restore(id: TransactionId)
+}
+
+/** Monthly spending limits per category. */
+interface BudgetRepository {
+    /** The monthly limit of every category that has one. */
+    val budgets: Flow<Map<Category, Money>>
+
+    /** Sets [category]'s monthly limit, or removes it when [limit] is `null`. */
+    suspend fun setBudget(
+        category: Category,
+        limit: Money?,
+    )
 }
 
 /** Categories the user chose for merchants, applied to that merchant's future captures. */

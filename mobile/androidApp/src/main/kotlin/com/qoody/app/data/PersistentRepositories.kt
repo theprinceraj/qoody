@@ -14,12 +14,14 @@ import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.MerchantKey
+import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.model.UnparsedCapture
+import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
@@ -180,6 +182,31 @@ class RoomMerchantCategoryRepository(
     ) {
         val key = MerchantKey.of(merchant)
         if (key.isNotEmpty()) dao.upsert(MerchantCategoryEntity(key, category.name))
+    }
+}
+
+class RoomBudgetRepository(
+    database: QoodyDatabase,
+) : BudgetRepository {
+    private val dao = database.categoryBudgetDao()
+
+    override val budgets: Flow<Map<Category, Money>> =
+        dao.observeAll().map { entities ->
+            entities
+                .mapNotNull { entity ->
+                    Category.entries.firstOrNull { it.name == entity.category }?.let { it to Money(entity.limitMinor) }
+                }.toMap()
+        }
+
+    override suspend fun setBudget(
+        category: Category,
+        limit: Money?,
+    ) {
+        if (limit == null) {
+            dao.delete(category.name)
+        } else {
+            dao.upsert(CategoryBudgetEntity(category.name, limit.minorUnits))
+        }
     }
 }
 
