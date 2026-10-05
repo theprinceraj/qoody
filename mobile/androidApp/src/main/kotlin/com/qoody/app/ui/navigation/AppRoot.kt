@@ -75,6 +75,7 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                         LedgerScreen(
                             onOpenReceipt = { id: TransactionId -> navigator.openReceipt(id) },
                             onProfileClick = openSettings,
+                            onOpenBudgets = navigator::openBudgets,
                             startWithSearch = key.openSearch,
                         )
                     }
@@ -108,6 +109,7 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                             transactionId = key.transactionId,
                             onBack = navigator::pop,
                             onProfileClick = openSettings,
+                            onOpenBudgets = navigator::openBudgets,
                         )
                     }
                 },

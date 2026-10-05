@@ -1,5 +1,6 @@
 package com.qoody.shared.feature.ledger
 
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
@@ -48,8 +49,11 @@ data class MonthSummary(
     val spent: Money,
     /** `null` when last month has no spending to compare against. */
     val trend: Trend?,
-    /** Spend so far as a share of last month's total, capped at 100%. */
-    val progress: Permille,
+    /**
+     * Spending this month in categories that have a budget, against the sum of those budgets.
+     * `null` when no budget is set.
+     */
+    val budget: BudgetProgress?,
 )
 
 enum class DayLabel {

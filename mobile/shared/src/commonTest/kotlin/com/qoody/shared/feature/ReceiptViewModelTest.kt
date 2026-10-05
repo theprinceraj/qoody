@@ -1,6 +1,7 @@
 package com.qoody.shared.feature
 
 import com.qoody.shared.ViewModelTest
+import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
@@ -9,6 +10,7 @@ import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
@@ -37,9 +39,10 @@ class ReceiptViewModelTest : ViewModelTest() {
     private val groceries = transaction(2, Money.of(95, 50), Category.FoodAndDrink, "Groceries")
     private val ledger = InMemoryLedgerRepository(dates, listOf(coffee, groceries))
     private val merchantCategories = InMemoryMerchantCategoryRepository()
+    private val budgets = InMemoryBudgetRepository()
 
     private fun viewModel(id: TransactionId = coffee.id) =
-        ReceiptViewModel(id, ledger, InMemorySettingsRepository(), dates, merchantCategories)
+        ReceiptViewModel(id, ledger, InMemorySettingsRepository(), dates, merchantCategories, budgets)
 
     private fun ReceiptViewModel.content() = uiState.latest() as ReceiptUiState.Content
 
@@ -53,8 +56,20 @@ class ReceiptViewModelTest : ViewModelTest() {
             assertEquals(Money.of(4, 50), state.amount)
             assertEquals(Category.FoodAndDrink, state.category)
             assertEquals(EntryStatus.Settled, state.status)
-            // 4.50 of the 100.00 spent on food this month.
-            assertEquals(45, state.categoryShare.share.value)
+            // No budget yet: 100.00 spent on food this month, no share to show.
+            assertEquals(Money.of(100), state.budgetImpact!!.month.spent)
+            assertNull(state.budgetImpact.paymentShare(state.amount))
+        }
+
+    @Test
+    fun budgetImpactUsesTheCategoryBudget() =
+        runTest {
+            budgets.setBudget(Category.FoodAndDrink, Money.of(90))
+
+            val impact = viewModel().content().budgetImpact!!
+
+            assertEquals(Permille(50), impact.paymentShare(Money.of(4, 50)))
+            assertTrue(impact.month.isOver)
         }
 
     @Test

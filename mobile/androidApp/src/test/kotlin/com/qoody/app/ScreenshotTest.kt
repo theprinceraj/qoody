@@ -128,7 +128,14 @@ class ScreenshotTest {
 
     @Test
     fun ledger() {
-        val state = LedgerViewModel(ledger, settings, dates).uiState.await { it is LedgerUiState.Content }
+        val budgets =
+            InMemoryBudgetRepository(
+                mapOf(
+                    Category.FoodAndDrink to Money.of(150),
+                    Category.Transport to Money.of(400),
+                ),
+            )
+        val state = LedgerViewModel(ledger, settings, dates, budgets).uiState.await { it is LedgerUiState.Content }
         capture("ledger", TALL_PAGE) {
             LedgerContent(
                 state = state,
@@ -154,7 +161,15 @@ class ScreenshotTest {
     @Test
     fun receipt() {
         val newest = runBlocking { ledger.transactions.first().first() }
-        val viewModel = ReceiptViewModel(newest.id, ledger, settings, dates, InMemoryMerchantCategoryRepository())
+        val viewModel =
+            ReceiptViewModel(
+                newest.id,
+                ledger,
+                settings,
+                dates,
+                InMemoryMerchantCategoryRepository(),
+                InMemoryBudgetRepository(mapOf(newest.category to Money.of(150))),
+            )
         val state = viewModel.uiState.await { it is ReceiptUiState.Content }
         capture("receipt", TALL_PAGE) {
             ReceiptContent(

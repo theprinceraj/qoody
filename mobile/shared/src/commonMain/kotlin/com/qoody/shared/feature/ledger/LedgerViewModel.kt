@@ -8,11 +8,13 @@ import com.qoody.shared.core.spentBetween
 import com.qoody.shared.core.startOfMonth
 import com.qoody.shared.core.startOfPreviousMonth
 import com.qoody.shared.core.stateInViewModel
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.sumMoneyOf
+import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +31,7 @@ class LedgerViewModel(
     ledger: LedgerRepository,
     settings: SettingsRepository,
     private val dates: DateProvider,
+    budgets: BudgetRepository,
 ) : ViewModel() {
     private val selectedCategory = MutableStateFlow<Category?>(null)
     private val search = MutableStateFlow(SearchState())
@@ -39,13 +42,14 @@ class LedgerViewModel(
             settings.settings,
             selectedCategory,
             search,
-        ) { transactions, appSettings, category, search ->
+            budgets.budgets,
+        ) { transactions, appSettings, category, search, limits ->
             val zone = dates.zone
             val today = dates.today()
             LedgerUiState.Content(
                 currency = appSettings.currency,
                 hapticsEnabled = appSettings.hapticsEnabled,
-                summary = summarise(transactions, today, zone),
+                summary = summarise(transactions, limits, today, zone),
                 selectedCategory = category,
                 search = search,
                 dayGroups = groupByDay(transactions.filter { it.matches(category, search.query) }, today, zone),
@@ -62,6 +66,7 @@ class LedgerViewModel(
 
     private fun summarise(
         transactions: List<Transaction>,
+        limits: Map<Category, Money>,
         today: LocalDate,
         zone: TimeZone,
     ): MonthSummary {
@@ -73,7 +78,13 @@ class LedgerViewModel(
             month = today.month,
             spent = spent,
             trend = trendOf(spent, previous),
-            progress = Permille.of(spent, previous).coerceAtMost(Permille.Full),
+            budget =
+                limits.takeIf { it.isNotEmpty() }?.let {
+                    BudgetProgress(
+                        spent = transactions.filter { it.category in limits }.spentBetween(thisMonth..today, zone),
+                        limit = limits.values.sumMoneyOf { it },
+                    )
+                },
         )
     }
 

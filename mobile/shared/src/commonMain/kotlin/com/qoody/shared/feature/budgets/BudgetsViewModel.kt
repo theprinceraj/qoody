@@ -9,10 +9,10 @@ import com.qoody.shared.core.startOfMonth
 import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.MoneyInput
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
-import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.SettingsRepository
@@ -22,18 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Month
-
-/** How one category's spending this month compares with its monthly limit. */
-data class BudgetProgress(
-    val spent: Money,
-    /** `null` when the category has no budget. */
-    val limit: Money?,
-) {
-    /** Share of the limit used; above [Permille.Full] when over budget. `null` without a limit. */
-    val used: Permille? get() = limit?.let { Permille.of(spent, it) }
-
-    val isOver: Boolean get() = limit != null && spent > limit
-}
 
 data class BudgetRow(
     val category: Category,

@@ -11,13 +11,14 @@ import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.format.toReceiptCode
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.Money
-import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
@@ -49,6 +50,7 @@ class ReceiptViewModel(
     settings: SettingsRepository,
     private val dates: DateProvider,
     private val merchantCategories: MerchantCategoryRepository,
+    budgets: BudgetRepository,
 ) : ViewModel() {
     private val noteDraft = MutableStateFlow<String?>(null)
     private val isCategoryPickerOpen = MutableStateFlow(false)
@@ -63,11 +65,12 @@ class ReceiptViewModel(
             ledger.transactions,
             settings.settings,
             combine(noteDraft, isCategoryPickerOpen, editor, ::Overlays),
-        ) { transaction, settled, appSettings, overlays ->
+            budgets.budgets,
+        ) { transaction, settled, appSettings, overlays, limits ->
             if (transaction == null) {
                 ReceiptUiState.NotFound
             } else {
-                content(transaction, settled, appSettings.currency, overlays)
+                content(transaction, settled, appSettings.currency, overlays, limits)
             }
         }.stateInViewModel(viewModelScope, ReceiptUiState.Loading)
 
@@ -165,6 +168,7 @@ class ReceiptViewModel(
         settled: List<Transaction>,
         currency: Currency,
         overlays: Overlays,
+        limits: Map<Category, Money>,
     ): ReceiptUiState.Content {
         val zone = dates.zone
         val local = transaction.occurredAt.toLocalDateTime(zone)
@@ -184,24 +188,25 @@ class ReceiptViewModel(
             notification = transaction.notification,
             paymentMethod = transaction.paymentMethod,
             referenceCode = transaction.referenceCode,
-            categoryShare = categoryShare(transaction, settled, zone),
+            budgetImpact = budgetImpact(transaction, settled, limits, zone),
             isCategoryPickerOpen = overlays.isCategoryPickerOpen,
             editor = overlays.editor,
         )
     }
 
-    /** This amount as a share of everything in the same category during the same month. */
-    private fun categoryShare(
+    /** The entry's category budget for the month the entry happened in. */
+    private fun budgetImpact(
         transaction: Transaction,
         settled: List<Transaction>,
+        limits: Map<Category, Money>,
         zone: TimeZone,
-    ): CategoryShare {
+    ): BudgetImpact? {
+        if (transaction.category == Category.Uncategorized) return null
         val monthStart = transaction.localDate(zone).startOfMonth()
-        val categoryTotal: Money =
+        val spent =
             settled
                 .filter { it.category == transaction.category }
                 .spentBetween(monthStart..monthStart.endOfMonth(), zone)
-        val share = Permille.of(transaction.amount, categoryTotal).coerceAtMost(Permille.Full)
-        return CategoryShare(transaction.category, share)
+        return BudgetImpact(transaction.category, BudgetProgress(spent, limits[transaction.category]))
     }
 }

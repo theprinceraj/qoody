@@ -31,8 +31,8 @@
 - **Add Expense** opens a bottom sheet (amount, merchant, category). Manual entries show "Added manually".
 - **Split expense** is visible but only shows "isn't available yet" — no split flow was designed.
 - **Calendar button** on Insights jumps back to "This month".
-- **Month progress bar** = spend so far ÷ last month's total (capped at 100%); the design did not define it.
-- **"Monthly Budget Impact"** (receipt) = this amount as a share of the same category's spend that month; there are no budgets yet.
+- **Month progress bar** (ledger) = this month's spending in budgeted categories ÷ the sum of all category budgets, red when over; without budgets it is replaced by a "Set a monthly budget" link. Budgets live in Settings → Monthly budgets.
+- **"Monthly Budget Impact"** (receipt) = this payment as a share of its category's monthly budget, plus that category's spend for the month against the limit; without a budget it links to "Set a … budget". Hidden for Uncategorized entries.
 - **"Sync OK"** pill and the listener status mirror Android's notification-access setting (re-read on every resume, never stored or backed up). The listener switch opens Android's notification-access page, because only Android can grant or revoke it.
 - **Enable notification access** opens Android's notification-access settings (Qoody is listed there) and finishes onboarding.
 - **Edit entry** (receipt pencil): corrects amount, merchant and date; the time of day is kept.
@@ -49,6 +49,7 @@
 
 ## Log
 
+- 2026-10-05 — Monthly category budgets (D21): `BudgetRepository` + Room `category_budgets` (DB v4, backup format 4), Settings → Monthly budgets screen (set/change/remove per category, over-budget in red), ledger summary bar and receipt "Monthly Budget Impact" now use real budgets. `ProgressTrack` moved to `ui/components`. `verify -Target mobile` green.
 - 2026-10-05 — Edit entries: receipt pencil opens an "Edit entry" sheet (amount, merchant, date via Material date picker, no future dates; time of day kept). `LedgerRepository.updateDetails`; dedupe key unchanged so a re-posted SMS does not duplicate an edited entry. New `ic_edit` (Material Symbols). `verify -Target mobile` green.
 - 2026-10-05 — Remember category corrections (D20): receipt category changes are stored per merchant (`MerchantCategoryRepository`, Room `merchant_categories`, DB v3) and applied to later captures ahead of keyword rules (`Categorization.Remembered`). Backup format 3. `verify -Target mobile` green.
 - 2026-10-05 — v0.3.2: excluded entries can be restored. User confirmed on device that SMS capture now works (v0.3.1) but had no way back after "Exclude from ledger". Added `LedgerRepository.excluded`/`restore`, Settings → Excluded entries (list with Restore; tap opens the receipt), and "Restore to ledger" on an excluded receipt. Tests: Room + in-memory restore, receipt and list ViewModels, screenshot. `verify -Target mobile` green.

@@ -1,6 +1,7 @@
 package com.qoody.shared.feature.receipt
 
 import com.qoody.shared.domain.format.MoneyInput
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
@@ -24,10 +25,15 @@ data class EntryEditor(
         get() = MoneyInput.parse(amountInput) != null && merchant.isNotBlank() && date <= maxDate
 }
 
-data class CategoryShare(
+/** What this payment means for its category's monthly budget. */
+data class BudgetImpact(
     val category: Category,
-    val share: Permille,
-)
+    /** The category's spending this month against its budget (limit `null` when it has none). */
+    val month: BudgetProgress,
+) {
+    /** This payment as a share of the budget; `null` without a budget. */
+    fun paymentShare(amount: Money): Permille? = month.limit?.let { Permille.of(amount, it) }
+}
 
 sealed interface ReceiptUiState {
     data object Loading : ReceiptUiState
@@ -50,7 +56,8 @@ sealed interface ReceiptUiState {
         val notification: CapturedNotification?,
         val paymentMethod: String?,
         val referenceCode: String?,
-        val categoryShare: CategoryShare,
+        /** `null` for uncategorized entries, which cannot have a budget. */
+        val budgetImpact: BudgetImpact?,
         val isCategoryPickerOpen: Boolean,
         val editor: EntryEditor? = null,
     ) : ReceiptUiState

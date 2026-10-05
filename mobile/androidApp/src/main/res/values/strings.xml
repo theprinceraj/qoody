@@ -165,7 +165,11 @@
     <string name="receipt_transaction_method">Transaction Method</string>
     <string name="receipt_reference_code">Reference Code</string>
     <string name="receipt_budget_impact">Monthly Budget Impact</string>
-    <string name="receipt_budget_impact_value">%1$s of %2$s</string>
+    <string name="receipt_budget_impact_value">%1$s of %2$s budget</string>
+    <string name="receipt_budget_month">This month: %1$s of %2$s</string>
+    <string name="receipt_set_budget">Set a %1$s budget</string>
+    <string name="ledger_budget_line">%1$s of %2$s budgeted</string>
+    <string name="ledger_set_budget">Set a monthly budget</string>
     <string name="receipt_split">Split expense</string>
     <string name="receipt_keep">Keep entry</string>
     <string name="receipt_exclude">Exclude from ledger</string>
