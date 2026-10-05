@@ -149,6 +149,22 @@ class ReceiptViewModelTest : ViewModelTest() {
         }
 
     @Test
+    fun aDeliberateUncategorizedIsNotOverwritten() =
+        runTest {
+            val id = ledger.add(NewExpense("Unknown merchant", Money.of(5), Category.Uncategorized))
+            ledger.updateCategory(id, Category.Uncategorized)
+            merchantCategories.remember("Chai Point", Category.FoodAndDrink)
+            val viewModel = viewModel(id)
+
+            viewModel.onEditRequested()
+            viewModel.content()
+            viewModel.onEditMerchantChanged("Chai Point")
+            viewModel.onEditSaved()
+
+            assertEquals(Category.Uncategorized, ledger.observe(id).first()!!.category)
+        }
+
+    @Test
     fun correctingTheMerchantKeepsAnExistingCategory() =
         runTest {
             val viewModel = viewModel()

@@ -150,13 +150,14 @@ class ReceiptViewModel(
     /**
      * A corrected merchant on an uncategorized entry (typically a bank SMS that named no payee) gets the
      * same category a capture would: the remembered choice or a keyword rule. A category the user or
-     * Qoody already set is left alone.
+     * Qoody already decided, including a deliberate "Uncategorized", is left alone.
      */
     private suspend fun recategorise(
         transaction: Transaction,
         merchant: String,
     ): Pair<Category, Categorization>? {
-        if (transaction.category != Category.Uncategorized || merchant == transaction.merchant) return null
+        val undecided = transaction.categorization == Categorization.None
+        if (!undecided || merchant == transaction.merchant) return null
         return categoriser.categorise(merchant).takeIf { (category, _) -> category != Category.Uncategorized }
     }
 
