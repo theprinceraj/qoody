@@ -141,7 +141,7 @@ private fun EntryDatePicker(
         confirmButton = {
             TextButton(
                 onClick = { state.selectedDateMillis?.let { onPicked(it.toUtcDate()) } ?: onDismiss() },
-            ) { Text(stringResource(R.string.action_save)) }
+            ) { Text(stringResource(R.string.edit_entry_date_confirm)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     ) {
