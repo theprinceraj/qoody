@@ -2,6 +2,7 @@ package com.qoody.shared.feature.receipt
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.qoody.shared.capture.MerchantCategoriser
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.core.endOfMonth
 import com.qoody.shared.core.localDate
@@ -12,6 +13,7 @@ import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.format.toReceiptCode
 import com.qoody.shared.domain.model.BudgetProgress
+import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
@@ -52,6 +54,7 @@ class ReceiptViewModel(
     private val merchantCategories: MerchantCategoryRepository,
     budgets: BudgetRepository,
 ) : ViewModel() {
+    private val categoriser = MerchantCategoriser(merchantCategories)
     private val noteDraft = MutableStateFlow<String?>(null)
     private val isCategoryPickerOpen = MutableStateFlow(false)
     private val editor = MutableStateFlow<EntryEditor?>(null)
@@ -130,16 +133,32 @@ class ReceiptViewModel(
         viewModelScope.launch {
             val transaction = ledger.observe(id).first() ?: return@launch
             val time = transaction.occurredAt.toLocalDateTime(dates.zone).time
+            val merchant = draft.merchant.trim()
             ledger.updateDetails(
                 id,
                 EntryDetails(
-                    merchant = draft.merchant.trim(),
+                    merchant = merchant,
                     amount = amount,
                     occurredAt = draft.date.atTime(time).toInstant(dates.zone),
+                    recategorised = recategorise(transaction, merchant),
                 ),
             )
             editor.value = null
         }
+    }
+
+    /**
+     * A corrected merchant on an uncategorized entry (typically a bank SMS that named no payee) gets the
+     * same category a capture would: the remembered choice or a keyword rule. A category the user or
+     * Qoody already decided, including a deliberate "Uncategorized", is left alone.
+     */
+    private suspend fun recategorise(
+        transaction: Transaction,
+        merchant: String,
+    ): Pair<Category, Categorization>? {
+        val undecided = transaction.categorization == Categorization.None
+        if (!undecided || merchant == transaction.merchant) return null
+        return categoriser.categorise(merchant).takeIf { (category, _) -> category != Category.Uncategorized }
     }
 
     fun onKeepEntry() {
