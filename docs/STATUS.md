@@ -49,6 +49,7 @@
 
 ## Log
 
+- 2026-10-05 — Release v0.4.0 (code 6): remembered category corrections, edit entries, monthly category budgets, categorise-on-merchant-edit. DB v4 (auto-migrations from v1–v3), backup format 4.
 - 2026-10-05 — Correcting the merchant of an Uncategorized entry now applies the remembered category or a keyword rule (shared `MerchantCategoriser`, also used by capture). Existing categories are never overwritten. `verify -Target mobile` green.
 - 2026-10-05 — Monthly category budgets (D21): `BudgetRepository` + Room `category_budgets` (DB v4, backup format 4), Settings → Monthly budgets screen (set/change/remove per category, over-budget in red), ledger summary bar and receipt "Monthly Budget Impact" now use real budgets. `ProgressTrack` moved to `ui/components`. `verify -Target mobile` green.
 - 2026-10-05 — Edit entries: receipt pencil opens an "Edit entry" sheet (amount, merchant, date via Material date picker, no future dates; time of day kept). `LedgerRepository.updateDetails`; dedupe key unchanged so a re-posted SMS does not duplicate an edited entry. New `ic_edit` (Material Symbols). `verify -Target mobile` green.
