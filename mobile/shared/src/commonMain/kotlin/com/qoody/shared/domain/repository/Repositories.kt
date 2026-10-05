@@ -4,9 +4,12 @@ import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
+import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
+import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.domain.model.UnparsedCapture
 import kotlinx.coroutines.flow.Flow
 
 interface LedgerRepository {
@@ -17,6 +20,9 @@ interface LedgerRepository {
     fun observe(id: TransactionId): Flow<Transaction?>
 
     suspend fun add(expense: NewExpense): TransactionId
+
+    /** Stores a captured payment, or returns `null` when one with the same dedupe key already exists. */
+    suspend fun addCaptured(capture: NewCapturedTransaction): TransactionId?
 
     suspend fun updateCategory(
         id: TransactionId,
@@ -30,6 +36,24 @@ interface LedgerRepository {
 
     /** Removes the entry from the ledger and every total without deleting it. */
     suspend fun exclude(id: TransactionId)
+}
+
+/** Notifications that looked like payments but could not be read. */
+interface UnparsedCaptureRepository {
+    /** Newest first. */
+    val captures: Flow<List<UnparsedCapture>>
+
+    /** Stores [capture] unless one with the same dedupe key exists; keeps only the most recent entries. */
+    suspend fun add(capture: NewUnparsedCapture)
+
+    suspend fun dismiss(id: Long)
+
+    suspend fun clear()
+
+    companion object {
+        /** Older entries beyond this many are dropped so the list cannot grow without bound. */
+        const val MAX_ENTRIES = 50
+    }
 }
 
 interface SettingsRepository {

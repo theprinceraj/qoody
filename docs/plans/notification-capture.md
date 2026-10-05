@@ -1,6 +1,6 @@
 # Plan: Notification capture (rule-based)
 
-Status: **in progress**: step 1 done (parser + rules); open questions answered 2026-10-05 · Owner: next implementing agent · Written 2026-10-05
+Status: **in progress**: steps 1–2 done (parser + rules, persistence); open questions answered 2026-10-05 · Owner: next implementing agent · Written 2026-10-05
 
 ## Goal
 
@@ -98,7 +98,7 @@ Platform-independent logic goes in `shared/commonMain`, so a future iOS port reu
 ## Work breakdown (one PR each, in order; `scripts/verify.ps1 -Target mobile` must pass on each)
 
 1. **Parser + categoriser (shared). DONE** (branch `feat/notification-parser`). Pure Kotlin, no wiring. Fixture-driven tests: per-app formats, grouping, decimals, credits/refunds/OTP rejected, malformed amounts, unknown formats, merchant clean-up, rule table. Largest test surface; no risk to the running app.
-2. **Persistence.** `addCaptured`, `dedupeKey` column, `unparsed_captures` table, DB 1→2 migration + migration test, race-free id allocation, `Categorization.Rule` + codec + receipt label, backup compatibility. Add decisions D16 (rule provenance) and D17 (dedupe key).
+2. **Persistence. DONE** (branch `feat/capture-persistence`; Room auto-migration instead of a hand-written one, see D17). `addCaptured`, `dedupeKey` column, `unparsed_captures` table, DB 1→2 migration + migration test, race-free id allocation, `Categorization.Rule` + codec + receipt label, backup compatibility. Add decisions D16 (rule provenance) and D17 (dedupe key).
 3. **Use case (shared).** `CaptureNotificationUseCase` and `CapturePolicy` (broad verified allowlist), tested with in-memory repositories, covering dedupe, the not-allowlisted/not-a-debit paths, and routing `Unparsed` to the new repository. Add `addCaptured` to `InMemoryLedgerRepository`.
 3b. **Failed-to-parse list.** `unparsed_captures` table + repository (persistence part lands with step 2's migration), Settings row, list screen, screenshot test, backup inclusion.
 4. **Android service.** Manifest, service, Koin binding, `NotificationAccessChecker`, truthful enabled state, Robolectric tests that build real `Notification` objects and drive `onNotificationPosted`. Run `:androidApp:assembleRelease` and check R8 (service class is referenced from the manifest; no reflection added).

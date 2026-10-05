@@ -135,6 +135,7 @@
     <string name="receipt_assigned_category">Assigned Category</string>
     <string name="receipt_change">Change</string>
     <string name="receipt_model_confidence">%1$s %2$s</string>
+    <string name="receipt_matched_rule">Matched “%1$s”</string>
     <string name="receipt_set_by_you">Set by you</string>
     <string name="receipt_inaccurate_question">Is this inaccurate?</string>
     <string name="receipt_correct_category">Correct category</string>

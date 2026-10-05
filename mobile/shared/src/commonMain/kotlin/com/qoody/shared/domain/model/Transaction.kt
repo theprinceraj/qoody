@@ -1,5 +1,6 @@
 package com.qoody.shared.domain.model
 
+import com.qoody.shared.capture.UnparsedReason
 import kotlin.jvm.JvmInline
 import kotlin.time.Instant
 
@@ -20,6 +21,11 @@ sealed interface Categorization {
     data class Model(
         val modelName: String,
         val confidence: Permille,
+    ) : Categorization
+
+    /** A keyword rule matched the merchant name; [ruleId] is the keyword that matched. */
+    data class Rule(
+        val ruleId: String,
     ) : Categorization
 }
 
@@ -66,4 +72,42 @@ data class NewExpense(
     val merchant: String,
     val amount: Money,
     val category: Category,
+)
+
+/** An expense read from a payment notification, ready to be stored. */
+data class NewCapturedTransaction(
+    val merchant: String,
+    val amount: Money,
+    val occurredAt: Instant,
+    val category: Category,
+    val categorization: Categorization,
+    val paymentApp: String,
+    val paymentMethod: String?,
+    val referenceCode: String?,
+    val notification: CapturedNotification,
+    /** Identifies the payment across repeated announcements; a second capture with the same key is dropped. */
+    val dedupeKey: String,
+)
+
+/** A notification that looked like a payment but could not be read, kept so the user can enter it by hand. */
+data class UnparsedCapture(
+    val id: Long,
+    val packageName: String,
+    val appName: String,
+    val title: String,
+    val text: String,
+    val postedAt: Instant,
+    val reason: UnparsedReason,
+)
+
+/** What is stored for a new [UnparsedCapture]. */
+data class NewUnparsedCapture(
+    val packageName: String,
+    val appName: String,
+    val title: String,
+    val text: String,
+    val postedAt: Instant,
+    val reason: UnparsedReason,
+    /** Re-posts of the same notification share this key and are stored once. */
+    val dedupeKey: String,
 )
