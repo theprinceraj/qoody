@@ -21,22 +21,34 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+
       - uses: pnpm/action-setup@v6
         with:
-          package_json_file: web/package.json
+          version: 11.20.0
+          run_install: false
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
+
+      - name: Install dependencies
         working-directory: web
-      - run: pnpm typecheck
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
         working-directory: web
-      - run: pnpm check
+        run: pnpm run typecheck
+
+      - name: Check
         working-directory: web
-      - run: pnpm build
+        run: pnpm run check
+
+      - name: Build
         working-directory: web
+        run: pnpm run build
+
       - name: Require a static Pages entrypoint
         run: test -f web/dist/client/index.html
       - uses: actions/configure-pages@v5
