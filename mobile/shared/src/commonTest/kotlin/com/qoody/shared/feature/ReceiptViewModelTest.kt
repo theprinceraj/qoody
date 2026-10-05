@@ -9,6 +9,8 @@ import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
+import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.receipt.ReceiptEvent
 import com.qoody.shared.feature.receipt.ReceiptUiState
 import com.qoody.shared.feature.receipt.ReceiptViewModel
@@ -92,5 +94,40 @@ class ReceiptViewModelTest : ViewModelTest() {
             assertEquals(ReceiptEvent.Close, viewModel.events.first())
             assertEquals(listOf(groceries.id), ledger.transactions.first().map { it.id })
             assertEquals(EntryStatus.Excluded, ledger.observe(coffee.id).first()!!.status)
+        }
+
+    @Test
+    fun restoringAnExcludedEntryPutsItBackAndCloses() =
+        runTest {
+            ledger.exclude(coffee.id)
+            assertEquals(listOf(coffee.id), ledger.excluded.first().map { it.id })
+            val viewModel = viewModel()
+
+            viewModel.onRestoreToLedger()
+
+            assertEquals(ReceiptEvent.Close, viewModel.events.first())
+            assertEquals(
+                setOf(coffee.id, groceries.id),
+                ledger.transactions
+                    .first()
+                    .map { it.id }
+                    .toSet(),
+            )
+            assertTrue(ledger.excluded.first().isEmpty())
+        }
+
+    @Test
+    fun excludedEntriesListShowsAndRestoresHiddenEntries() =
+        runTest {
+            ledger.exclude(groceries.id)
+            val excluded = ExcludedEntriesViewModel(ledger, InMemorySettingsRepository(), dates)
+
+            val entries = (excluded.uiState.latest() as ExcludedEntriesUiState.Content).entries
+            assertEquals(listOf("Groceries"), entries.map { it.merchant })
+
+            excluded.onRestore(groceries.id)
+
+            assertTrue((excluded.uiState.latest() as ExcludedEntriesUiState.Content).entries.isEmpty())
+            assertEquals(EntryStatus.Settled, ledger.observe(groceries.id).first()!!.status)
         }
 }

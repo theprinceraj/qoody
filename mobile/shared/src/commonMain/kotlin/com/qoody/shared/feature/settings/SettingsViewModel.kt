@@ -30,6 +30,8 @@ sealed interface SettingsUiState {
         val keyVerification: KeyVerification,
         /** Notifications in the "Failed to parse" list. */
         val unparsedCount: Int = 0,
+        /** Entries the user excluded from the ledger. */
+        val excludedCount: Int = 0,
     ) : SettingsUiState {
         val hasApiKey: Boolean get() = !settings.llm.apiKey.isNullOrEmpty()
     }
@@ -51,12 +53,14 @@ class SettingsViewModel(
             isKeyVisible,
             keyVerification,
             unparsedCaptures.captures,
-        ) { appSettings, visible, verification, unparsed ->
+            ledger.excluded,
+        ) { appSettings, visible, verification, unparsed, excluded ->
             SettingsUiState.Content(
                 settings = appSettings.copy(monitoredAppCount = CapturePolicy.supportedApps.size),
                 isKeyVisible = visible,
                 keyVerification = verification,
                 unparsedCount = unparsed.size,
+                excludedCount = excluded.size,
             )
         }.stateInViewModel(viewModelScope, SettingsUiState.Loading)
 

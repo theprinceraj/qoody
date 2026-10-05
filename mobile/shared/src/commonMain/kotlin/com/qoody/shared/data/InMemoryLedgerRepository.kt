@@ -34,6 +34,13 @@ class InMemoryLedgerRepository(
                 .sortedByDescending { it.occurredAt }
         }
 
+    override val excluded: Flow<List<Transaction>> =
+        all.map { list ->
+            list
+                .filter { it.status == EntryStatus.Excluded }
+                .sortedByDescending { it.occurredAt }
+        }
+
     override fun observe(id: TransactionId): Flow<Transaction?> = all.map { list -> list.firstOrNull { it.id == id } }
 
     override suspend fun add(expense: NewExpense): TransactionId {
@@ -95,6 +102,8 @@ class InMemoryLedgerRepository(
     ) = modify(id) { it.copy(note = note) }
 
     override suspend fun exclude(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Excluded) }
+
+    override suspend fun restore(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Settled) }
 
     private fun modify(
         id: TransactionId,

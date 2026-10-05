@@ -54,6 +54,7 @@ import com.qoody.app.ui.components.ScreenContainer
 import com.qoody.app.ui.components.SectionLabel
 import com.qoody.app.ui.components.SheetHandle
 import com.qoody.app.ui.components.StatusPill
+import com.qoody.app.ui.components.TonalButton
 import com.qoody.app.ui.format.DateFormats
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.theme.QoodyTheme
@@ -106,6 +107,7 @@ fun ReceiptScreen(
         onSplit = { scope.launch { snackbarHost.showSnackbar(splitUnavailable) } },
         onKeep = viewModel::onKeepEntry,
         onExclude = viewModel::onExcludeFromLedger,
+        onRestore = viewModel::onRestoreToLedger,
     )
 }
 
@@ -123,6 +125,7 @@ fun ReceiptContent(
     onSplit: () -> Unit,
     onKeep: () -> Unit,
     onExclude: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -153,6 +156,7 @@ fun ReceiptContent(
                             onSplit = onSplit,
                             onKeep = onKeep,
                             onExclude = onExclude,
+                            onRestore = onRestore,
                         )
                     }
                 }
@@ -179,6 +183,7 @@ private fun ReceiptBody(
     onSplit: () -> Unit,
     onKeep: () -> Unit,
     onExclude: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     val formats = rememberDateFormats()
     Column(
@@ -206,12 +211,21 @@ private fun ReceiptBody(
                 onClick = onKeep,
                 modifier = Modifier.fillMaxWidth(),
             )
-            GhostButton(
-                text = stringResource(R.string.receipt_exclude),
-                onClick = onExclude,
-                leadingIcon = R.drawable.ic_visibility_off,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (state.status == EntryStatus.Excluded) {
+                TonalButton(
+                    text = stringResource(R.string.receipt_restore),
+                    onClick = onRestore,
+                    leadingIcon = R.drawable.ic_refresh,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                GhostButton(
+                    text = stringResource(R.string.receipt_exclude),
+                    onClick = onExclude,
+                    leadingIcon = R.drawable.ic_visibility_off,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }
