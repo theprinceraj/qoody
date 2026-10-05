@@ -8,6 +8,7 @@ import android.os.Process
 import android.provider.Settings
 import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationCompat
+import androidx.core.app.Person
 import com.qoody.shared.capture.CaptureNotificationUseCase
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
@@ -21,7 +22,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,8 +46,15 @@ class NotificationCaptureTest {
             seed = emptyList(),
         )
     private val unparsed = InMemoryUnparsedCaptureRepository()
-    private val useCase = CaptureNotificationUseCase(ledger, unparsed, unknownMerchant = { "Unknown merchant" })
-    private val handler by lazy { NotificationCaptureHandler(useCase, context.packageName) }
+    private val sources = CaptureSources(defaultSmsPackage = { DEFAULT_SMS }, defaultSmsAppName = "SMS")
+    private val useCase =
+        CaptureNotificationUseCase(
+            ledger,
+            unparsed,
+            unknownMerchant = { "Unknown merchant" },
+            appKind = sources::kindOf,
+        )
+    private val handler by lazy { NotificationCaptureHandler(useCase, context.packageName, sources) }
 
     @After
     fun tearDown() = stopKoin()
@@ -63,7 +70,7 @@ class NotificationCaptureTest {
                 },
             )
 
-        val read = handler.read(posted)
+        val read = handler.read(posted).singleOrNull()
 
         assertNotNull(read)
         assertEquals("Google Pay", read?.appName)
@@ -82,21 +89,73 @@ class NotificationCaptureTest {
                 },
             )
 
-        assertEquals("Rs 99 debited\nto Spotify", handler.read(posted)?.text)
+        assertEquals("Rs 99 debited\nto Spotify", handler.read(posted).single().text)
     }
 
     @Test
     fun ignoresUnsupportedOngoingSummaryAndOwnNotifications() {
         val payment = build { setContentText("Paid ₹340.50 to Swiggy") }
 
-        assertNull(handler.read(posted(payment, packageName = "com.example.chat")))
-        assertNull(handler.read(posted(payment, packageName = context.packageName)))
-        assertNull(handler.read(posted(build { setContentText("Paid ₹1 to X").setOngoing(true) })))
-        assertNull(
-            handler.read(
-                posted(build { setContentText("Paid ₹1 to X").setGroup("g").setGroupSummary(true) }),
-            ),
+        assertTrue(handler.read(posted(payment, packageName = "com.example.chat")).isEmpty())
+        assertTrue(handler.read(posted(payment, packageName = context.packageName)).isEmpty())
+        assertTrue(handler.read(posted(build { setContentText("Paid ₹1 to X").setOngoing(true) })).isEmpty())
+        assertTrue(
+            handler
+                .read(posted(build { setContentText("Paid ₹1 to X").setGroup("g").setGroupSummary(true) }))
+                .isEmpty(),
         )
+    }
+
+    @Test
+    fun conversationStyleSmsYieldsEveryMessageWithItsSender() {
+        val sender = Person.Builder().setName("JD-HDFCBK-S").build()
+        val sms =
+            build {
+                setStyle(
+                    NotificationCompat
+                        .MessagingStyle(Person.Builder().setName("Me").build())
+                        .addMessage("Sent Rs.500.00 From HDFC Bank A/C *1234 To SWIGGY On 05/10/26", FIRST_SMS, sender)
+                        .addMessage(
+                            "Sent Rs.80.00 From HDFC Bank A/C *1234 To CHAI POINT On 05/10/26",
+                            SECOND_SMS,
+                            sender,
+                        ),
+                )
+            }
+
+        val read = handler.read(posted(sms, packageName = GOOGLE_MESSAGES))
+
+        assertEquals(listOf("JD-HDFCBK-S", "JD-HDFCBK-S"), read.map { it.title })
+        assertEquals(listOf(FIRST_SMS, SECOND_SMS), read.map { it.postedAt.toEpochMilliseconds() })
+        assertEquals("Google Messages", read.first().appName)
+        assertEquals(2, read.map { it.key }.toSet().size)
+    }
+
+    @Test
+    fun bankSmsInTheDefaultSmsAppIsSaved() {
+        startKoin { modules(module { single { handler } }) }
+        val service = Robolectric.buildService(QoodyNotificationListenerService::class.java).create().get()
+        val sender = Person.Builder().setName("AD-SBIUPI").build()
+        val sms =
+            build {
+                setStyle(
+                    NotificationCompat
+                        .MessagingStyle(Person.Builder().setName("Me").build())
+                        .addMessage(
+                            "Dear UPI user A/C X1234 debited by 250.0 on date 05Oct26 trf to ZOMATO Refno 512345678902.",
+                            FIRST_SMS,
+                            sender,
+                        ),
+                )
+            }
+
+        service.onNotificationPosted(posted(sms, packageName = DEFAULT_SMS))
+
+        val saved = runBlocking { withTimeout(5.seconds) { ledger.transactions.first { it.isNotEmpty() } } }.single()
+        assertEquals("Zomato", saved.merchant)
+        assertEquals(Money.of(250), saved.amount)
+        assertEquals("SBIUPI", saved.paymentApp)
+        service.onDestroy()
     }
 
     @Test
@@ -160,6 +219,10 @@ class NotificationCaptureTest {
 
     private companion object {
         const val GOOGLE_PAY = "com.google.android.apps.nbu.paisa.user"
+        const val GOOGLE_MESSAGES = "com.google.android.apps.messaging"
+        const val DEFAULT_SMS = "com.android.mms"
+        const val FIRST_SMS = 1_759_650_000_000L
+        const val SECOND_SMS = 1_759_650_060_000L
         const val CHANNEL = "payments"
         const val POST_TIME = 1_759_650_000_000L
         const val ENABLED_LISTENERS = "enabled_notification_listeners"

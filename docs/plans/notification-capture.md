@@ -131,7 +131,7 @@ Steps 1–3 can land without touching the manifest, so the app's behaviour does 
 ## Decisions from the user (2026-10-05)
 
 1. **Allowlist: support as many Indian payment and bank apps as possible.** Ship a large built-in list (UPI apps, bank apps, wallets, card apps). Every package name must be verified against Google Play at implementation time, not recalled from memory; record the list and how each was checked in `CapturePolicy`. Expect to keep extending it; the table is data, not logic.
-2. **Bank SMS: not in v1.**
+2. **Bank SMS: not in v1.** Superseded the same day by D19: bank SMS are read through SMS-app notifications (no SMS permission).
 3. **Non-INR: ignored in v1.**
 4. **Unparsed notifications are shown in Settings, under a "Failed to parse" entry.** This reverses the earlier "drop silently" proposal, so these notifications **are stored** (see below).
 5. **Raw notification text is kept** with the entry.

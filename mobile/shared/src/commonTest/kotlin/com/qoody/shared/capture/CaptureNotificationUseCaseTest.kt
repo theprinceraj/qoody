@@ -138,6 +138,76 @@ class CaptureNotificationUseCaseTest {
             assertEquals(2, ledger.transactions.first().size)
         }
 
+    @Test
+    fun bankSmsFromTheSmsAppIsSavedUnderTheSenderId() =
+        runTest {
+            val sms =
+                notification(
+                    "Sent Rs.500.00 From HDFC Bank A/C *1234 To SWIGGY On 05/10/26 Ref 512345678901",
+                    title = "JD-HDFCBK-S",
+                    packageName = GOOGLE_MESSAGES,
+                    appName = "Google Messages",
+                )
+
+            assertIs<CaptureResult.Saved>(capture(sms))
+            val saved = ledger.transactions.first().single()
+            assertEquals("HDFCBK", saved.paymentApp)
+            assertEquals(Category.FoodAndDrink, saved.category)
+        }
+
+    @Test
+    fun smsFromPersonalNumbersOrWithoutBankWordsIsIgnored() =
+        runTest {
+            val fromNumber =
+                notification(
+                    "Sent Rs.500 to Swiggy from my A/C",
+                    title = "+91 98765 43210",
+                    packageName = GOOGLE_MESSAGES,
+                )
+            val chat = notification("I paid Rs 500 to the shop", title = "Rahul", packageName = GOOGLE_MESSAGES)
+
+            assertEquals(CaptureResult.NotAnExpense, capture(fromNumber))
+            assertEquals(CaptureResult.NotAnExpense, capture(chat))
+            assertTrue(ledger.transactions.first().isEmpty())
+            assertTrue(unparsed.captures.first().isEmpty())
+        }
+
+    @Test
+    fun bankSmsAndUpiAppForTheSamePaymentYieldOneEntry() =
+        runTest {
+            val sms =
+                notification(
+                    "Dear UPI user A/C X1234 debited by 250.0 on date 05Oct26 trf to ZOMATO Refno 512345678902.",
+                    title = "AD-SBIUPI",
+                    packageName = GOOGLE_MESSAGES,
+                    key = "sms-1",
+                )
+            val app = notification("Paid ₹250 to Zomato. UPI Ref No 512345678902")
+
+            assertIs<CaptureResult.Saved>(capture(sms))
+            assertEquals(CaptureResult.Duplicate, capture(app))
+        }
+
+    @Test
+    fun theDefaultSmsAppCountsAsAnSmsApp() =
+        runTest {
+            val withDefaultSms =
+                CaptureNotificationUseCase(ledger, unparsed, unknownMerchant = { UNKNOWN }) { pkg ->
+                    CapturePolicy.kindOf(pkg) ?: AppKind.Sms.takeIf { pkg == "com.android.mms" }
+                }
+
+            val result =
+                withDefaultSms(
+                    notification(
+                        "Rs.300.00 transferred from A/c ...1234 to:UPI/512345678908.",
+                        title = "BP-BOBTXN",
+                        packageName = "com.android.mms",
+                    ),
+                )
+
+            assertIs<CaptureResult.Saved>(result)
+        }
+
     private fun notification(
         text: String,
         title: String = "",
@@ -150,6 +220,7 @@ class CaptureNotificationUseCaseTest {
     private companion object {
         const val UNKNOWN = "Unknown merchant"
         const val GOOGLE_PAY = "com.google.android.apps.nbu.paisa.user"
+        const val GOOGLE_MESSAGES = "com.google.android.apps.messaging"
         const val BUCKET_INDEX = 5_000_000L
     }
 }

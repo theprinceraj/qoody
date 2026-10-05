@@ -14,7 +14,7 @@ sealed interface CaptureResult {
     /** The app is not on the allowlist; nothing was read or stored. */
     data object UnsupportedApp : CaptureResult
 
-    /** Not an expense (credit, OTP, promo, ...); discarded. */
+    /** Not an expense (credit, OTP, promo, personal SMS, ...); discarded. */
     data object NotAnExpense : CaptureResult
 
     data class Saved(
@@ -32,25 +32,33 @@ sealed interface CaptureResult {
  * Allowlist → parse → categorise → dedupe → save, for one posted notification.
  *
  * @param unknownMerchant the name stored when a payment does not name its payee (a localised string).
+ * @param appKind which kind of supported app a package is, or `null` when it is not supported.
  */
 class CaptureNotificationUseCase(
     private val ledger: LedgerRepository,
     private val unparsed: UnparsedCaptureRepository,
     private val unknownMerchant: () -> String,
-    private val isSupported: (String) -> Boolean = CapturePolicy::isSupported,
+    private val appKind: (String) -> AppKind? = CapturePolicy::kindOf,
 ) {
     suspend operator fun invoke(notification: PaymentNotification): CaptureResult {
-        if (!isSupported(notification.packageName)) return CaptureResult.UnsupportedApp
-        return when (val outcome = PaymentNotificationParser.parse(notification)) {
+        val kind = appKind(notification.packageName) ?: return CaptureResult.UnsupportedApp
+        val outcome =
+            if (kind == AppKind.Sms && !SmsMessageFilter.mayBeBankAlert(notification.title, notification.text)) {
+                ParseOutcome.NotAnExpense
+            } else {
+                PaymentNotificationParser.parse(notification)
+            }
+        return when (outcome) {
             ParseOutcome.NotAnExpense -> CaptureResult.NotAnExpense
             is ParseOutcome.Unparsed -> storeUnparsed(notification, outcome.reason)
-            is ParseOutcome.Payment -> save(notification, outcome.payment)
+            is ParseOutcome.Payment -> save(notification, outcome.payment, kind)
         }
     }
 
     private suspend fun save(
         notification: PaymentNotification,
         payment: ParsedPayment,
+        kind: AppKind,
     ): CaptureResult {
         val merchant = payment.merchant ?: unknownMerchant()
         val rule = payment.merchant?.let(MerchantCategoryRules::categorise)
@@ -62,7 +70,7 @@ class CaptureNotificationUseCase(
                     occurredAt = notification.postedAt,
                     category = rule?.category ?: Category.Uncategorized,
                     categorization = rule?.let { Categorization.Rule(it.ruleId) } ?: Categorization.None,
-                    paymentApp = notification.appName,
+                    paymentApp = paymentApp(notification, kind),
                     paymentMethod = payment.paymentMethod,
                     referenceCode = payment.referenceCode,
                     notification = CapturedNotification(notification.appName, notification.rawText),
@@ -89,6 +97,17 @@ class CaptureNotificationUseCase(
         )
         return CaptureResult.Unparsed
     }
+
+    /** For an SMS, the bank's sender id (`HDFCBK`) says more than "Google Messages". */
+    private fun paymentApp(
+        notification: PaymentNotification,
+        kind: AppKind,
+    ): String =
+        if (kind == AppKind.Sms) {
+            SmsMessageFilter.senderLabel(notification.title).ifBlank { notification.appName }
+        } else {
+            notification.appName
+        }
 
     /** Title and body as the user saw them, one per line. */
     private val PaymentNotification.rawText: String

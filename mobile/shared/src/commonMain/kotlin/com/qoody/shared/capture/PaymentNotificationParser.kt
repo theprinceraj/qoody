@@ -24,7 +24,8 @@ object PaymentNotificationParser {
 
     private val debitCue =
         Regex(
-            "\\b(?:debited|paid|payment of|sent|spent|purchase|withdrawn|txn of|transaction of|charged)\\b",
+            "\\b(?:debited|paid|payment of|sent|spent|purchase|withdrawn|txn of|transaction of|charged|" +
+                "transferred|trf|debit of)\\b",
             ignoreCase,
         )
     private val debitedCue = Regex("\\bdebited\\b", ignoreCase)
@@ -39,11 +40,19 @@ object PaymentNotificationParser {
         Regex("(?:[$€£]|\\b(?:usd|eur|gbp|aed|sgd)\\b)\\s?\\d", ignoreCase)
 
     private val amount =
-        Regex("(?:₹|\\brs\\.?|\\binr)\\s*(\\d[\\d,]*(?:\\.\\d{1,2})?)(?!\\d|\\.\\d)", ignoreCase)
+        Regex("(?:₹|\\brs[.:]?|\\binr[.:]?)\\s*(\\d[\\d,]*(?:\\.\\d{1,2})?)(?!\\d|\\.\\d)", ignoreCase)
+
+    /** SBI-style "debited by 500.0", with no currency marker; only used when no rupee amount is found. */
+    private val bareDebitAmount =
+        Regex(
+            "\\b(?:debited\\s+(?:by|for|with)|debit\\s+of)\\s+(\\d[\\d,]*(?:\\.\\d{1,2})?)(?!\\d|\\.\\d)",
+            ignoreCase,
+        )
     private val balanceWords = Regex("bal|limit|avl|available|outstanding", ignoreCase)
 
     private const val TERMINATOR =
-        "(?=\\s(?:on|via|using|from|ref|upi|txn|utr|with|for|at|bal|avl|is|was|has)\\b|[,;(\\n]|\\.(?:\\s|$)|$)"
+        "(?=\\s(?:on|via|using|from|ref|refno|upi|txn|utr|with|for|at|bal|avl|is|was|has|not|if|dt|thru|total|" +
+            "call|sms)\\b|[,;(\\n]|\\.(?:\\s|$)|$)"
     private val payee =
         Regex(
             "\\bto\\s+(?:vpa\\s+)?(?!your\\b|you\\b|a/c|account\\b|be\\b|the\\b)(.+?)$TERMINATOR",
@@ -53,12 +62,27 @@ object PaymentNotificationParser {
     private val paidName =
         Regex("\\bpaid\\s+(?!to\\b)(.+?)\\s+(?:₹|rs\\.?|inr)", ignoreCase)
 
+    /** Axis-style "UPI/P2M/428910481902/SWIGGY". */
+    private val upiPath =
+        Regex("\\bupi/p2[amp]/\\d+/([^/\\n]+?)(?=/|\\s(?:not|sms|call)\\b|[.,;]|\\s-|$)", ignoreCase)
+
+    /** ICICI-style "...; SWIGGY credited." */
+    private val creditedName = Regex(";\\s*([^;.\\n]+?)\\s+credited\\b", ignoreCase)
+
+    /** Canara-style "towards UPI/SWIGGY." */
+    private val towards = Regex("\\btowards\\s+(?:upi/)?(.+?)$TERMINATOR", ignoreCase)
+
+    /** Payee patterns, most reliable first. */
+    private val payeePatterns by lazy { listOf(upiPath, payee, creditedName, atPlace, towards, paidName) }
+
     private val reference =
         Regex(
             "\\b(?:upi\\s*ref(?:erence)?(?:\\s*(?:no|number|id))?|ref(?:erence)?\\s*(?:no|number|id)?|" +
                 "txn\\s*id|transaction\\s*id|utr)\\.?\\s*[:\\-]?\\s*([A-Za-z0-9]{$MIN_REFERENCE_LENGTH,})",
             ignoreCase,
         )
+
+    private val upiReference = Regex("\\bupi\\s*[:/]\\s*(?:p2[amp]/)?(\\d{$MIN_REFERENCE_LENGTH,})", ignoreCase)
 
     private val upiMarker = Regex("\\b(?:upi|vpa)\\b", ignoreCase)
     private val cardMarker = Regex("\\bcard\\b", ignoreCase)
@@ -74,7 +98,7 @@ object PaymentNotificationParser {
             (debitedCue.containsMatchIn(text) || !incomingCue.containsMatchIn(text))
 
     private fun readPayment(text: String): ParseOutcome {
-        val match = firstSpendAmount(text) ?: return withoutAmount(text)
+        val match = firstSpendAmount(text) ?: bareDebitAmount.find(text) ?: return withoutAmount(text)
         val money = parseAmount(match.groupValues[1])
         return if (money == null || money.isZero) {
             ParseOutcome.Unparsed(UnparsedReason.InvalidAmount)
@@ -83,7 +107,7 @@ object PaymentNotificationParser {
                 ParsedPayment(
                     amount = money,
                     merchant = merchantIn(text),
-                    referenceCode = reference.find(text)?.groupValues?.get(1),
+                    referenceCode = (reference.find(text) ?: upiReference.find(text))?.groupValues?.get(1),
                     paymentMethod = methodIn(text),
                 ),
             )
@@ -118,12 +142,19 @@ object PaymentNotificationParser {
         return if (whole == null || fraction == null) null else Money.of(whole, fraction)
     }
 
-    private fun merchantIn(text: String): String? {
-        val raw =
-            payee.find(text)?.groupValues?.get(1)
-                ?: atPlace.find(text)?.groupValues?.get(1)
-                ?: paidName.find(text)?.groupValues?.get(1)
-        return raw?.let(::cleanMerchant)
+    /** The first payee candidate that reads as a name; bank SMS often add "SMS BLOCK to 92...", so numbers are skipped. */
+    private fun merchantIn(text: String): String? =
+        payeePatterns
+            .asSequence()
+            .flatMap { pattern -> pattern.findAll(text) }
+            .map { it.groupValues[1] }
+            .mapNotNull { raw -> cleanMerchant(raw)?.takeIf { '@' in raw || !it.startsWithPhoneNumber() } }
+            .firstOrNull()
+
+    /** "9200000001" or "9200000001 to block"; a phone-number VPA (`98...@ybl`) is a real payee and is kept. */
+    private fun String.startsWithPhoneNumber(): Boolean {
+        val first = substringBefore(' ')
+        return first.length >= PHONE_DIGITS_MIN && first.all { it.isDigit() }
     }
 
     private fun cleanMerchant(raw: String): String? {
