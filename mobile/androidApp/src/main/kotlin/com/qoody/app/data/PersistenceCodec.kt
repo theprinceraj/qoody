@@ -77,6 +77,8 @@ data class BackupPayload(
     val settings: SettingsRecord,
     /** Added in backup format 2. */
     val unparsedCaptures: List<UnparsedCaptureRecord> = emptyList(),
+    /** Added in backup format 3: merchant key to category name. */
+    val merchantCategories: Map<String, String> = emptyMap(),
 )
 
 @Serializable
@@ -128,6 +130,10 @@ fun TransactionRecord.toModel(): Transaction =
 
                 categorizationKind == CATEGORIZATION_MANUAL -> {
                     Categorization.Manual
+                }
+
+                categorizationKind == CATEGORIZATION_REMEMBERED -> {
+                    Categorization.Remembered
                 }
 
                 else -> {
@@ -240,10 +246,14 @@ private val Categorization.kind: String
             Categorization.Manual -> CATEGORIZATION_MANUAL
             is Categorization.Model -> CATEGORIZATION_MODEL
             is Categorization.Rule -> CATEGORIZATION_RULE
+            Categorization.Remembered -> CATEGORIZATION_REMEMBERED
         }
 
-/** Version of [BackupPayload]. 2 added dedupe keys and unparsed captures; 1 is still importable. */
-const val BACKUP_FORMAT_VERSION = 2
+/**
+ * Version of [BackupPayload]. 2 added dedupe keys and unparsed captures, 3 remembered merchant
+ * categories; older versions are still importable.
+ */
+const val BACKUP_FORMAT_VERSION = 3
 val SUPPORTED_BACKUP_FORMAT_VERSIONS = 1..BACKUP_FORMAT_VERSION
 
 /** Version of the encryption [BackupEnvelope], independent of the payload inside it. */
@@ -252,3 +262,4 @@ private const val CATEGORIZATION_NONE = "none"
 private const val CATEGORIZATION_MANUAL = "manual"
 private const val CATEGORIZATION_MODEL = "model"
 private const val CATEGORIZATION_RULE = "rule"
+private const val CATEGORIZATION_REMEMBERED = "remembered"

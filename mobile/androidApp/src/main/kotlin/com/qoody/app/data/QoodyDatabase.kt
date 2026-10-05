@@ -44,6 +44,13 @@ data class UnparsedCaptureEntity(
     val dedupeKey: String,
 )
 
+/** A category the user chose for a merchant, keyed by [com.qoody.shared.domain.model.MerchantKey]. */
+@Entity(tableName = "merchant_categories")
+data class MerchantCategoryEntity(
+    @PrimaryKey val merchantKey: String,
+    val category: String,
+)
+
 @Dao
 interface TransactionDao {
     @Query("SELECT * FROM transactions")
@@ -106,6 +113,24 @@ interface UnparsedCaptureDao {
 }
 
 @Dao
+interface MerchantCategoryDao {
+    @Query("SELECT * FROM merchant_categories WHERE merchantKey = :merchantKey")
+    suspend fun get(merchantKey: String): MerchantCategoryEntity?
+
+    @Query("SELECT * FROM merchant_categories")
+    suspend fun getAll(): List<MerchantCategoryEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entry: MerchantCategoryEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(entries: List<MerchantCategoryEntity>)
+
+    @Query("DELETE FROM merchant_categories")
+    suspend fun deleteAll()
+}
+
+@Dao
 interface SettingsDao {
     @Query("SELECT * FROM app_settings WHERE id = :id")
     fun observe(id: Int = SETTINGS_ID): Flow<SettingsEntity?>
@@ -118,10 +143,15 @@ interface SettingsDao {
 }
 
 @Database(
-    entities = [TransactionEntity::class, SettingsEntity::class, UnparsedCaptureEntity::class],
+    entities = [
+        TransactionEntity::class,
+        SettingsEntity::class,
+        UnparsedCaptureEntity::class,
+        MerchantCategoryEntity::class,
+    ],
     version = DATABASE_VERSION,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class QoodyDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -129,7 +159,9 @@ abstract class QoodyDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
 
     abstract fun unparsedCaptureDao(): UnparsedCaptureDao
+
+    abstract fun merchantCategoryDao(): MerchantCategoryDao
 }
 
-const val DATABASE_VERSION = 2
+const val DATABASE_VERSION = 3
 const val SETTINGS_ID = 1

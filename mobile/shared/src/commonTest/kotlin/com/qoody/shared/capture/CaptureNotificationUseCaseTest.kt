@@ -1,6 +1,7 @@
 package com.qoody.shared.capture
 
 import com.qoody.shared.data.InMemoryLedgerRepository
+import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
@@ -22,7 +23,9 @@ import kotlin.time.Instant
 class CaptureNotificationUseCaseTest {
     private val ledger = InMemoryLedgerRepository(fixedDates(), seed = emptyList())
     private val unparsed = InMemoryUnparsedCaptureRepository()
-    private val capture = CaptureNotificationUseCase(ledger, unparsed, unknownMerchant = { UNKNOWN })
+    private val merchantCategories = InMemoryMerchantCategoryRepository()
+    private val capture =
+        CaptureNotificationUseCase(ledger, unparsed, merchantCategories, unknownMerchant = { UNKNOWN })
     private val postedAt = Instant.fromEpochMilliseconds(1_759_650_000_000)
 
     @Test
@@ -43,6 +46,18 @@ class CaptureNotificationUseCaseTest {
                 CapturedNotification("Google Pay", "Payment successful\nPaid ₹340.50 to Swiggy"),
                 saved.notification,
             )
+        }
+
+    @Test
+    fun aRememberedChoiceBeatsTheKeywordRule() =
+        runTest {
+            merchantCategories.remember("SWIGGY", Category.Bills)
+
+            capture(notification("Paid ₹340.50 to Swiggy."))
+
+            val saved = ledger.transactions.first().single()
+            assertEquals(Category.Bills, saved.category)
+            assertEquals(Categorization.Remembered, saved.categorization)
         }
 
     @Test
@@ -192,7 +207,7 @@ class CaptureNotificationUseCaseTest {
     fun theDefaultSmsAppCountsAsAnSmsApp() =
         runTest {
             val withDefaultSms =
-                CaptureNotificationUseCase(ledger, unparsed, unknownMerchant = { UNKNOWN }) { pkg ->
+                CaptureNotificationUseCase(ledger, unparsed, merchantCategories, unknownMerchant = { UNKNOWN }) { pkg ->
                     CapturePolicy.kindOf(pkg) ?: AppKind.Sms.takeIf { pkg == "com.android.mms" }
                 }
 

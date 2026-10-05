@@ -2,6 +2,7 @@ package com.qoody.shared.feature
 
 import com.qoody.shared.ViewModelTest
 import com.qoody.shared.data.InMemoryLedgerRepository
+import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.format.toReceiptCode
 import com.qoody.shared.domain.model.Categorization
@@ -29,9 +30,10 @@ class ReceiptViewModelTest : ViewModelTest() {
     private val coffee = transaction(0, Money.of(4, 50), Category.FoodAndDrink, "Coffee")
     private val groceries = transaction(2, Money.of(95, 50), Category.FoodAndDrink, "Groceries")
     private val ledger = InMemoryLedgerRepository(dates, listOf(coffee, groceries))
+    private val merchantCategories = InMemoryMerchantCategoryRepository()
 
     private fun viewModel(id: TransactionId = coffee.id) =
-        ReceiptViewModel(id, ledger, InMemorySettingsRepository(), dates)
+        ReceiptViewModel(id, ledger, InMemorySettingsRepository(), dates, merchantCategories)
 
     private fun ReceiptViewModel.content() = uiState.latest() as ReceiptUiState.Content
 
@@ -70,6 +72,7 @@ class ReceiptViewModelTest : ViewModelTest() {
             assertEquals(Category.Transport, state.category)
             assertEquals(Categorization.Manual, state.categorization)
             assertFalse(state.isCategoryPickerOpen)
+            assertEquals(Category.Transport, merchantCategories.categoryFor("COFFEE"))
         }
 
     @Test

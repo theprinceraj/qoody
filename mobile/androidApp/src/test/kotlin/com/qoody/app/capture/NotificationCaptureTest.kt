@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import com.qoody.shared.capture.CaptureNotificationUseCase
 import com.qoody.shared.data.InMemoryLedgerRepository
+import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntrySource
@@ -51,6 +52,7 @@ class NotificationCaptureTest {
         CaptureNotificationUseCase(
             ledger,
             unparsed,
+            InMemoryMerchantCategoryRepository(),
             unknownMerchant = { "Unknown merchant" },
             appKind = sources::kindOf,
         )

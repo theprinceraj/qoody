@@ -22,6 +22,7 @@ class BackupService(
         require(password.isNotEmpty())
         val transactions = database.transactionDao().getAll().map { it.toRecord() }
         val unparsed = database.unparsedCaptureDao().getAll().map { it.toRecord() }
+        val merchantCategories = database.merchantCategoryDao().getAll().associate { it.merchantKey to it.category }
         val payload =
             BackupPayload(
                 exportedAtEpochMillis =
@@ -31,6 +32,7 @@ class BackupService(
                 transactions = transactions,
                 settings = settings.settings.first().toRecord(),
                 unparsedCaptures = unparsed,
+                merchantCategories = merchantCategories,
             )
         return encrypt(encodeBackup(payload), password)
     }
@@ -44,12 +46,18 @@ class BackupService(
         require(payload.formatVersion in SUPPORTED_BACKUP_FORMAT_VERSIONS) { "Unsupported backup version" }
         val restored = payload.transactions.map { it.toEntity() }
         val unparsed = payload.unparsedCaptures.map { it.toEntity() }
+        val merchantCategories =
+            payload.merchantCategories.map { (key, category) ->
+                MerchantCategoryEntity(key, category)
+            }
         val settingsEntity = SettingsEntity(payload = encodeSettings(payload.settings.toModel()))
         database.withWriteTransaction {
             database.transactionDao().deleteAll()
             database.transactionDao().upsertAll(restored)
             database.unparsedCaptureDao().deleteAll()
             database.unparsedCaptureDao().insertAll(unparsed)
+            database.merchantCategoryDao().deleteAll()
+            database.merchantCategoryDao().upsertAll(merchantCategories)
             database.settingsDao().upsert(settingsEntity)
         }
     }
