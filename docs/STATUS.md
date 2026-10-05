@@ -15,7 +15,7 @@
 
 ## Next up
 
-1. **Finish the remaining backend pieces:** `NotificationListenerService` that parses payment notifications into transactions; on-device LLM categorisation and real key verification (replace `FakeLlmKeyVerifier`). The persistent repository and backup work is complete and is bound from the Android application module while the shared interfaces remain unchanged.
+1. **Finish the remaining backend pieces** (notification capture is planned in `docs/plans/notification-capture.md`): `NotificationListenerService` that parses payment notifications into transactions; on-device LLM categorisation and real key verification (replace `FakeLlmKeyVerifier`). The persistent repository and backup work is complete and is bound from the Android application module while the shared interfaces remain unchanged.
 2. Replace the placeholder `ProjectLinks.SOURCE_CODE_URL` (`https://github.com`) and confirm `applicationId` (`com.qoody.app`) before any Play upload.
 3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
 4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
@@ -45,6 +45,8 @@
 
 ## Log
 
+- 2026-10-05 — Notification capture step 1 (see `docs/plans/notification-capture.md`): added `shared/.../capture` rule-based `PaymentNotificationParser` (INR/UPI debits, outcome Payment/NotAnExpense/Unparsed) and `MerchantCategoryRules`, with 21 tests. Not wired into the app yet. Plan updated with the user's answers (broad allowlist, no SMS, INR only, "Failed to parse" list in Settings, keep raw text).
+- 2026-10-05 — Wrote the rule-based notification-capture plan (`docs/plans/notification-capture.md`); docs only, no code changed, `verify` not run.
 - 2026-10-05 — Fixed failing GitHub Actions `Website Pages` `build` job: replaced the invalid static-entrypoint check (`web/dist/client/index.html`) with TanStack Start artifact checks (`web/dist/client/assets`, `web/dist/server/index.js`), then ran web typecheck/check/build and `scripts/verify.sh -Target web` locally.
 - 2026-10-05 — Updated the Android GitHub Release workflow to require repository-held signing credentials, verify the signed APK before publishing, and attach its SHA-256 checksum. The release keystore must be created and its four secrets configured before a version tag is pushed.
 
