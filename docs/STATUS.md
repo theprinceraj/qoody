@@ -6,7 +6,8 @@
 
 - **Product (from the Stitch designs):** Qoody is a free, open-source, fully on-device expense ledger. It will read bank/UPI payment *notifications*, extract merchant/amount/category with an on-device LLM (optional bring-your-own-key), and show a running monthly tab. No cloud, no accounts, no analytics.
 - **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, clipboard key paste, notification-access shortcut.
-- **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, Android Keystore-backed API-key storage, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. Notification capture and the LLM key check are still placeholders. The shared tests and screenshot fixtures continue to use in-memory repositories.
+- **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, Android Keystore-backed API-key storage, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. The LLM key check is still a placeholder. The shared tests and screenshot fixtures continue to use in-memory repositories.
+- **Notification capture is implemented (rule-based).** `QoodyNotificationListenerService` reads notifications from 64 verified Indian UPI/bank/wallet/card apps (`CapturePolicy`), `PaymentNotificationParser` extracts INR debits, `MerchantCategoryRules` assigns a category (`Categorization.Rule`), duplicates are dropped by reference or amount+merchant+5-minute bucket, and unreadable debits land in Settings → Failed to parse. The "Sync OK" pill and listener status now mirror Android's real notification-access state (re-read on every resume); the switch opens Android's settings. See `docs/plans/notification-capture.md`.
 - **Website** is still the unmodified TanStack Start starter.
 - Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
 - **Not verified:** running on a real device/emulator (none installed), Cloudflare deploy (disabled in `web.yml`).
@@ -15,8 +16,8 @@
 
 ## Next up
 
-1. **Finish the remaining backend pieces** (notification capture is planned in `docs/plans/notification-capture.md`): `NotificationListenerService` that parses payment notifications into transactions; on-device LLM categorisation and real key verification (replace `FakeLlmKeyVerifier`). The persistent repository and backup work is complete and is bound from the Android application module while the shared interfaces remain unchanged.
-2. Replace the placeholder `ProjectLinks.SOURCE_CODE_URL` (`https://github.com`) and confirm `applicationId` (`com.qoody.app`) before any Play upload.
+1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. Then the LLM work: on-device categorisation and real key verification (replace `FakeLlmKeyVerifier`), blocked on the model choice.
+2. Confirm `applicationId` (`com.qoody.app`) before any Play upload, and run `play-policy-insights` for the notification-listener declaration.
 3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
 4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
 5. Website: landing page, download page, changelog, privacy policy, using the same brand tokens as `docs`/DESIGN.md.
@@ -32,8 +33,9 @@
 - **Calendar button** on Insights jumps back to "This month".
 - **Month progress bar** = spend so far ÷ last month's total (capped at 100%); the design did not define it.
 - **"Monthly Budget Impact"** (receipt) = this amount as a share of the same category's spend that month; there are no budgets yet.
-- **"Sync OK"** pill on Settings shows when the notification listener is enabled, "Paused" otherwise.
-- **Enable notification access** opens Android's notification-access settings and finishes onboarding (the real listener service does not exist yet, so the app can't appear in that list).
+- **"Sync OK"** pill and the listener status mirror Android's notification-access setting (re-read on every resume, never stored or backed up). The listener switch opens Android's notification-access page, because only Android can grant or revoke it.
+- **Enable notification access** opens Android's notification-access settings (Qoody is listed there) and finishes onboarding.
+- **Failed to parse** (Settings): debit-looking notifications from allowlisted apps that had no readable amount; "Add manually" opens the add-expense sheet and removes the entry once saved. Capped at the 50 most recent.
 - Categories were unified across the mixed colours/names in the mocks: Food & Drink, Transport, Shopping, Rent & Bills, Friends, Subscriptions, Uncategorized.
 
 ## Open questions for the user
@@ -45,6 +47,7 @@
 
 ## Log
 
+- 2026-10-05 — Notification capture step 4 + 5: `QoodyNotificationListenerService` (manifest, bind permission, `requestRebind`), `NotificationCaptureHandler` (allowlist before reading text; big text / text / inbox lines; ignores own, ongoing and group-summary notifications), Koin wiring, truthful listener state via `NotificationAccessChecker` on resume, Settings switch opens Android settings, real `SOURCE_CODE_URL`, version 0.2.0 (code 2). 6 Robolectric tests with real `Notification` objects. Release build checked: R8 keeps the service. Permissions audit (android-permissions-security) found nothing to change. `verify -Target mobile` green. Not run on a device.
 - 2026-10-05 — Notification capture step 3 + 3b: `CaptureNotificationUseCase` (allowlist → parse → rule category → dedupe → save / Failed-to-parse), `CapturePolicy` with 64 Indian payment/bank/card apps each verified on Google Play (HTTP 200 + listing title/developer), "Failed to parse" Settings row + list screen (Add manually / Dismiss / Clear all) with screenshot test. Not yet wired to Android (step 4). `verify -Target mobile` green.
 - 2026-10-05 — Notification capture step 2 (persistence): `LedgerRepository.addCaptured` with a unique `dedupeKey` column, race-free id allocation in a write transaction, `unparsed_captures` table + `UnparsedCaptureRepository` (cap 50), `Categorization.Rule` with a receipt label, DB v1→v2 auto-migration (tested on a real v1 file), backup format 2 (v1 still imports). Decisions D16, D17. `verify -Target mobile` green.
 - 2026-10-05 — Notification capture step 1 (see `docs/plans/notification-capture.md`): added `shared/.../capture` rule-based `PaymentNotificationParser` (INR/UPI debits, outcome Payment/NotAnExpense/Unparsed) and `MerchantCategoryRules`, with 21 tests. Not wired into the app yet. Plan updated with the user's answers (broad allowlist, no SMS, INR only, "Failed to parse" list in Settings, keep raw text).

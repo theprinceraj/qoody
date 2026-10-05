@@ -221,23 +221,21 @@ class RoomSettingsRepository(
     private val dao = database.settingsDao()
     private val apiKey = MutableStateFlow(keyStore.read())
 
+    /** Mirrors Android's notification-access state; set on every resume, never stored or backed up. */
+    private val listenerEnabled = MutableStateFlow(false)
+
     override val settings: Flow<AppSettings> =
-        combine(dao.observe(), apiKey) { entity, key ->
-            (entity?.let { decodeSettings(it.payload).toModel() } ?: InMemorySettingsRepository.defaultSettings).copy(
-                llm =
-                    (
-                        entity?.let { decodeSettings(it.payload).toModel() }
-                            ?: InMemorySettingsRepository.defaultSettings
-                    ).llm.copy(apiKey = key),
-            )
+        combine(dao.observe(), apiKey, listenerEnabled) { entity, key, listening ->
+            val stored =
+                entity?.let { decodeSettings(it.payload).toModel() } ?: InMemorySettingsRepository.defaultSettings
+            stored.copy(notificationListenerEnabled = listening, llm = stored.llm.copy(apiKey = key))
         }.distinctUntilChanged()
 
     override suspend fun completeOnboarding() = modify { it.copy(onboardingCompleted = true) }
 
-    override suspend fun setNotificationListenerEnabled(enabled: Boolean) =
-        modify {
-            it.copy(notificationListenerEnabled = enabled)
-        }
+    override suspend fun setNotificationListenerEnabled(enabled: Boolean) {
+        listenerEnabled.value = enabled
+    }
 
     override suspend fun setLlmApiKey(key: String?) {
         keyStore.write(key)

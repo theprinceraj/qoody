@@ -2,8 +2,8 @@ package com.qoody.app
 
 /** Links out of the app. */
 object ProjectLinks {
-    /** Public source repository. TODO: replace with the real repository URL once it exists. */
-    const val SOURCE_CODE_URL = "https://github.com"
+    /** Public source repository. */
+    const val SOURCE_CODE_URL = "https://github.com/theprinceraj/qoody"
 }
 
 /** Settings for the "Export ledger as CSV" file picker. */

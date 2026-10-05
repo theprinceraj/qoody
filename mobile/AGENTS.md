@@ -49,3 +49,7 @@ Not started. To start: add `iosArm64()` and `iosSimulatorArm64()` targets to `sh
 - On Windows, set `JAVA_HOME` to JDK 21 if Gradle cannot find Java (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).
 - First Gradle run downloads ~1 GB and takes 10+ minutes; run long builds in the background rather than with a short timeout.
 - Room 3 uses the `room3 { schemaDirectory(...) }` Gradle DSL and `withWriteTransaction`; the older `room {}` and `runInTransaction` APIs do not apply.
+- Room tests under Robolectric: the bundled SQLite driver has no host natives on the Android classpath; build test databases with `setDriver(AndroidSQLiteDriver())` (`androidx.sqlite:sqlite-framework`, test-only). A migration test can build a real v1 file from `schemas/<db>/1.json` (see `RoomPersistenceTest`) instead of `MigrationTestHelper`, which needs schemas as instrumentation assets.
+- Capture allowlist (`CapturePolicy`): verify each package by loading `https://play.google.com/store/apps/details?id=<pkg>&gl=IN` (HTTP 200 + title/developer). Many plausible guesses 404. Use the listing name from the table, not `PackageManager` labels (package visibility).
+- `strings.xml`: escape apostrophes as `\'`; writing them through shell heredocs tends to drop or double the backslash, so edit with the Edit tool.
+- Detekt `ReturnCount` (max 2) fires on guard-heavy functions; fold guards into one condition or a helper.
