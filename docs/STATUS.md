@@ -35,7 +35,7 @@
 - **"Monthly Budget Impact"** (receipt) = this payment as a share of its category's monthly budget, plus that category's spend for the month against the limit; without a budget it links to "Set a … budget". Hidden for Uncategorized entries.
 - **"Sync OK"** pill and the listener status mirror Android's notification-access setting (re-read on every resume, never stored or backed up). The listener switch opens Android's notification-access page, because only Android can grant or revoke it.
 - **Enable notification access** opens Android's notification-access settings (Qoody is listed there) and finishes onboarding.
-- **Edit entry** (receipt pencil): corrects amount, merchant and date; the time of day is kept.
+- **Edit entry** (receipt pencil): corrects amount, merchant and date; the time of day is kept. A corrected merchant on an Uncategorized entry picks up the remembered or rule-based category.
 - **Excluded entries** (Settings): entries hidden with "Exclude from ledger"; Restore puts them back in the ledger and totals. An excluded receipt shows "Restore to ledger" instead of "Exclude".
 - **Failed to parse** (Settings): debit-looking notifications from allowlisted apps that had no readable amount; "Add manually" opens the add-expense sheet and removes the entry once saved. Capped at the 50 most recent.
 - Categories were unified across the mixed colours/names in the mocks: Food & Drink, Transport, Shopping, Rent & Bills, Friends, Subscriptions, Uncategorized.
@@ -49,6 +49,7 @@
 
 ## Log
 
+- 2026-10-05 — Correcting the merchant of an Uncategorized entry now applies the remembered category or a keyword rule (shared `MerchantCategoriser`, also used by capture). Existing categories are never overwritten. `verify -Target mobile` green.
 - 2026-10-05 — Monthly category budgets (D21): `BudgetRepository` + Room `category_budgets` (DB v4, backup format 4), Settings → Monthly budgets screen (set/change/remove per category, over-budget in red), ledger summary bar and receipt "Monthly Budget Impact" now use real budgets. `ProgressTrack` moved to `ui/components`. `verify -Target mobile` green.
 - 2026-10-05 — Edit entries: receipt pencil opens an "Edit entry" sheet (amount, merchant, date via Material date picker, no future dates; time of day kept). `LedgerRepository.updateDetails`; dedupe key unchanged so a re-posted SMS does not duplicate an edited entry. New `ic_edit` (Material Symbols). `verify -Target mobile` green.
 - 2026-10-05 — Remember category corrections (D20): receipt category changes are stored per merchant (`MerchantCategoryRepository`, Room `merchant_categories`, DB v3) and applied to later captures ahead of keyword rules (`Categorization.Remembered`). Backup format 3. `verify -Target mobile` green.

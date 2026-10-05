@@ -38,10 +38,12 @@ sealed interface CaptureResult {
 class CaptureNotificationUseCase(
     private val ledger: LedgerRepository,
     private val unparsed: UnparsedCaptureRepository,
-    private val merchantCategories: MerchantCategoryRepository,
+    merchantCategories: MerchantCategoryRepository,
     private val unknownMerchant: () -> String,
     private val appKind: (String) -> AppKind? = CapturePolicy::kindOf,
 ) {
+    private val categoriser = MerchantCategoriser(merchantCategories)
+
     suspend operator fun invoke(notification: PaymentNotification): CaptureResult {
         val kind = appKind(notification.packageName) ?: return CaptureResult.UnsupportedApp
         val outcome =
@@ -63,7 +65,7 @@ class CaptureNotificationUseCase(
         kind: AppKind,
     ): CaptureResult {
         val merchant = payment.merchant ?: unknownMerchant()
-        val (category, categorization) = categorise(payment.merchant)
+        val (category, categorization) = categoriser.categorise(payment.merchant)
         val id =
             ledger.addCaptured(
                 NewCapturedTransaction(
@@ -80,17 +82,6 @@ class CaptureNotificationUseCase(
                 ),
             )
         return if (id == null) CaptureResult.Duplicate else CaptureResult.Saved(id)
-    }
-
-    /** The user's earlier choice for this merchant wins over the keyword rules. */
-    private suspend fun categorise(merchant: String?): Pair<Category, Categorization> {
-        val remembered = merchant?.let { merchantCategories.categoryFor(it) }
-        val rule = if (remembered == null) MerchantCategoryRules.categorise(merchant) else null
-        return when {
-            remembered != null -> remembered to Categorization.Remembered
-            rule != null -> rule.category to Categorization.Rule(rule.ruleId)
-            else -> Category.Uncategorized to Categorization.None
-        }
     }
 
     private suspend fun storeUnparsed(

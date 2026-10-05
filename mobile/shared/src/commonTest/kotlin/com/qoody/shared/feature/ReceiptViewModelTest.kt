@@ -10,6 +10,7 @@ import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
@@ -128,6 +129,35 @@ class ReceiptViewModelTest : ViewModelTest() {
             assertEquals("Blue Tokai", saved.merchant)
             assertEquals(coffee.occurredAt - 1.days, saved.occurredAt)
             assertNull(viewModel.content().editor)
+        }
+
+    @Test
+    fun correctingTheMerchantOfAnUncategorizedEntryAppliesItsCategory() =
+        runTest {
+            val unknown = ledger.add(NewExpense("Unknown merchant", Money.of(5), Category.Uncategorized))
+            merchantCategories.remember("Chai Point", Category.FoodAndDrink)
+            val viewModel = viewModel(unknown)
+
+            viewModel.onEditRequested()
+            viewModel.content()
+            viewModel.onEditMerchantChanged("Chai Point")
+            viewModel.onEditSaved()
+
+            val saved = ledger.observe(unknown).first()!!
+            assertEquals(Category.FoodAndDrink, saved.category)
+            assertEquals(Categorization.Remembered, saved.categorization)
+        }
+
+    @Test
+    fun correctingTheMerchantKeepsAnExistingCategory() =
+        runTest {
+            val viewModel = viewModel()
+            viewModel.onEditRequested()
+            viewModel.content()
+            viewModel.onEditMerchantChanged("Uber")
+            viewModel.onEditSaved()
+
+            assertEquals(Category.FoodAndDrink, ledger.observe(coffee.id).first()!!.category)
         }
 
     @Test

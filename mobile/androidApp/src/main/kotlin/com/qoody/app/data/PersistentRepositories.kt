@@ -124,7 +124,13 @@ class RoomLedgerRepository(
     override suspend fun updateDetails(
         id: TransactionId,
         details: EntryDetails,
-    ) = modify(id) { it.copy(merchant = details.merchant, amount = details.amount, occurredAt = details.occurredAt) }
+    ) = modify(id) { transaction ->
+        val corrected =
+            transaction.copy(merchant = details.merchant, amount = details.amount, occurredAt = details.occurredAt)
+        details.recategorised?.let { (category, categorization) ->
+            corrected.copy(category = category, categorization = categorization)
+        } ?: corrected
+    }
 
     override suspend fun exclude(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Excluded) }
 

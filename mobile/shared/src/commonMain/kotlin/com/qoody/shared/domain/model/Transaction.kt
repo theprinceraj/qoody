@@ -75,6 +75,8 @@ data class EntryDetails(
     val merchant: String,
     val amount: Money,
     val occurredAt: Instant,
+    /** A new category to apply along with the correction; `null` keeps the current one. */
+    val recategorised: Pair<Category, Categorization>? = null,
 )
 
 /** What the user enters to add an expense by hand. */
