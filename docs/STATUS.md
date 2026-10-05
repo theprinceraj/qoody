@@ -10,7 +10,7 @@
 - **Website** is still the unmodified TanStack Start starter.
 - Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
 - **Not verified:** running on a real device/emulator (none installed), Cloudflare deploy (disabled in `web.yml`).
-- GitHub workflows now include tag-based Android GitHub Releases and a guarded GitHub Pages deployment. Pages remains blocked until the TanStack Start site produces a static `web/dist/client/index.html`; the current Cloudflare SSR build does not.
+- GitHub workflows now include tag-based Android GitHub Releases and a guarded GitHub Pages deployment. Android releases require four signing secrets and publish a signature-verified APK plus SHA-256 checksum. Pages remains blocked until the TanStack Start site produces a static `web/dist/client/index.html`; the current Cloudflare SSR build does not.
 - **GitHub Actions:** fixed `Website Pages` `build` job failure caused by requiring `web/dist/client/index.html` (TanStack Start build does not emit that file). Workflow now checks for `web/dist/client/assets` and `web/dist/server/index.js`; validated locally with `scripts/verify.sh -Target web`.
 
 ## Next up
@@ -22,6 +22,7 @@
 5. Website: landing page, download page, changelog, privacy policy, using the same brand tokens as `docs`/DESIGN.md.
 6. Git: create a remote, make the first commit (user's call), confirm CI runs green.
 7. Configure the website for static export/prerendering before enabling the Pages deployment workflow.
+8. Create the Android release keystore and configure the required GitHub Actions repository secrets before pushing the first `v*` release tag.
 
 ## UI behaviours worth knowing (where the design was silent)
 
@@ -45,6 +46,8 @@
 ## Log
 
 - 2026-10-05 — Fixed failing GitHub Actions `Website Pages` `build` job: replaced the invalid static-entrypoint check (`web/dist/client/index.html`) with TanStack Start artifact checks (`web/dist/client/assets`, `web/dist/server/index.js`), then ran web typecheck/check/build and `scripts/verify.sh -Target web` locally.
+- 2026-10-05 — Updated the Android GitHub Release workflow to require repository-held signing credentials, verify the signed APK before publishing, and attach its SHA-256 checksum. The release keystore must be created and its four secrets configured before a version tag is pushed.
+
 - 2026-10-05 — Implemented Android Room/SQLite persistence, encrypted API-key storage with Android Keystore, password-protected versioned full-data backup/restore, atomic replacement confirmation, document-picker integration, and disabled Android cloud/device backup for app data. Verified Android unit tests, lint, Spotless, detekt, and release R8 build.
 
 - 2026-10-05 — Built the Android UI from the Stitch designs (design tokens, components, 5 screens, navigation, ViewModels in `shared`, placeholder data layer), 38 shared tests, Robolectric/Roborazzi screenshot tests, detekt MagicNumber enforcement, lint fixes (incl. an API-35-only `removeLast` crash), bundled fonts/icons (OFL/Apache licences in `docs/licenses`).
