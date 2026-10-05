@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -69,6 +70,7 @@ import com.qoody.shared.feature.receipt.ReceiptEvent
 import com.qoody.shared.feature.receipt.ReceiptUiState
 import com.qoody.shared.feature.receipt.ReceiptViewModel
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -108,6 +110,15 @@ fun ReceiptScreen(
         onKeep = viewModel::onKeepEntry,
         onExclude = viewModel::onExcludeFromLedger,
         onRestore = viewModel::onRestoreToLedger,
+        editActions =
+            EntryEditorActions(
+                onOpen = viewModel::onEditRequested,
+                onAmountChange = viewModel::onEditAmountChanged,
+                onMerchantChange = viewModel::onEditMerchantChanged,
+                onDateChange = viewModel::onEditDateChanged,
+                onSave = viewModel::onEditSaved,
+                onDismiss = viewModel::onEditDismissed,
+            ),
     )
 }
 
@@ -126,6 +137,7 @@ fun ReceiptContent(
     onKeep: () -> Unit,
     onExclude: () -> Unit,
     onRestore: () -> Unit,
+    editActions: EntryEditorActions = EntryEditorActions.None,
 ) {
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -157,11 +169,26 @@ fun ReceiptContent(
                             onKeep = onKeep,
                             onExclude = onExclude,
                             onRestore = onRestore,
+                            onEdit = editActions.onOpen,
                         )
                     }
                 }
             }
             SnackbarHost(hostState = snackbarHost, modifier = Modifier.align(Alignment.BottomCenter))
+        }
+    }
+
+    if (state is ReceiptUiState.Content) {
+        state.editor?.let { editor ->
+            EditEntrySheet(
+                editor = editor,
+                currency = state.currency,
+                onAmountChange = editActions.onAmountChange,
+                onMerchantChange = editActions.onMerchantChange,
+                onDateChange = editActions.onDateChange,
+                onSave = editActions.onSave,
+                onDismiss = editActions.onDismiss,
+            )
         }
     }
 
@@ -184,6 +211,7 @@ private fun ReceiptBody(
     onKeep: () -> Unit,
     onExclude: () -> Unit,
     onRestore: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     val formats = rememberDateFormats()
     Column(
@@ -196,7 +224,7 @@ private fun ReceiptBody(
         verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.md),
     ) {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { SheetHandle() }
-        MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory)
+        MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory, onEdit)
         state.notification?.let { NotificationCard(it.appName, it.text, formats.time(state.time)) }
         DetailsCard(state)
         Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
@@ -237,6 +265,7 @@ private fun MainCard(
     onNoteChange: (String) -> Unit,
     onNoteCommit: () -> Unit,
     onChangeCategory: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     QoodyCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(QoodyTheme.spacing.lg)) {
         PerforationRule(modifier = Modifier.padding(bottom = QoodyTheme.spacing.md))
@@ -266,12 +295,24 @@ private fun MainCard(
             )
         }
 
-        Text(
-            text = state.merchant,
-            style = QoodyTheme.typography.headlineMd,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = QoodyTheme.spacing.md),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = QoodyTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = state.merchant,
+                style = QoodyTheme.typography.headlineMd,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onEdit, modifier = Modifier.size(QoodyTheme.sizes.touchTarget)) {
+                QoodyIcon(
+                    R.drawable.ic_edit,
+                    contentDescription = stringResource(R.string.edit_entry_title),
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+            }
+        }
         Row(
             modifier = Modifier.padding(top = QoodyTheme.spacing.xs),
             horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs),
@@ -582,3 +623,18 @@ private fun CategoryPickerSheet(
 /** Chosen by Qoody rather than the user, so the receipt offers to correct it. */
 private val Categorization.isAutomatic: Boolean
     get() = this is Categorization.Model || this is Categorization.Rule || this == Categorization.Remembered
+
+/** Callbacks of the "Edit entry" sheet, bundled to keep the receipt's signature readable. */
+class EntryEditorActions(
+    val onOpen: () -> Unit,
+    val onAmountChange: (String) -> Unit,
+    val onMerchantChange: (String) -> Unit,
+    val onDateChange: (LocalDate) -> Unit,
+    val onSave: () -> Unit,
+    val onDismiss: () -> Unit,
+) {
+    companion object {
+        /** For previews and screenshots that never open the sheet. */
+        val None = EntryEditorActions({}, {}, {}, {}, {}, {})
+    }
+}

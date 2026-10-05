@@ -16,14 +16,20 @@ import com.qoody.shared.feature.receipt.ReceiptEvent
 import com.qoody.shared.feature.receipt.ReceiptUiState
 import com.qoody.shared.feature.receipt.ReceiptViewModel
 import com.qoody.shared.fixedDates
+import com.qoody.shared.testToday
 import com.qoody.shared.transaction
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
 
 class ReceiptViewModelTest : ViewModelTest() {
     private val dates = fixedDates()
@@ -85,6 +91,46 @@ class ReceiptViewModelTest : ViewModelTest() {
 
             assertEquals(ReceiptEvent.Close, viewModel.events.first())
             assertEquals("Morning pour-over", ledger.observe(coffee.id).first()!!.note)
+        }
+
+    @Test
+    fun editingCorrectsAmountMerchantAndDateButKeepsTheTimeOfDay() =
+        runTest {
+            val viewModel = viewModel()
+            viewModel.onEditRequested()
+            val editor = viewModel.content().editor!!
+            assertEquals("4.50", editor.amountInput)
+            assertEquals("Coffee", editor.merchant)
+            assertEquals(testToday, editor.date)
+
+            viewModel.onEditAmountChanged("12.75")
+            viewModel.onEditMerchantChanged("Blue Tokai")
+            viewModel.onEditDateChanged(testToday.minus(1, DateTimeUnit.DAY))
+            viewModel.onEditSaved()
+
+            val saved = ledger.observe(coffee.id).first()!!
+            assertEquals(Money.of(12, 75), saved.amount)
+            assertEquals("Blue Tokai", saved.merchant)
+            assertEquals(coffee.occurredAt - 1.days, saved.occurredAt)
+            assertNull(viewModel.content().editor)
+        }
+
+    @Test
+    fun editorRejectsFutureDatesAndEmptyFields() =
+        runTest {
+            val viewModel = viewModel()
+            viewModel.onEditRequested()
+
+            viewModel.onEditDateChanged(testToday.plus(1, DateTimeUnit.DAY))
+            assertFalse(viewModel.content().editor!!.canSave)
+            viewModel.onEditDateChanged(testToday)
+            viewModel.onEditMerchantChanged(" ")
+            assertFalse(viewModel.content().editor!!.canSave)
+            viewModel.onEditSaved()
+            assertEquals("Coffee", ledger.observe(coffee.id).first()!!.merchant)
+
+            viewModel.onEditDismissed()
+            assertNull(viewModel.content().editor)
         }
 
     @Test

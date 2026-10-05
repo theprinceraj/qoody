@@ -4,6 +4,7 @@ import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.sample.SampleLedger
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.NewCapturedTransaction
@@ -100,6 +101,11 @@ class InMemoryLedgerRepository(
         id: TransactionId,
         note: String,
     ) = modify(id) { it.copy(note = note) }
+
+    override suspend fun updateDetails(
+        id: TransactionId,
+        details: EntryDetails,
+    ) = modify(id) { it.copy(merchant = details.merchant, amount = details.amount, occurredAt = details.occurredAt) }
 
     override suspend fun exclude(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Excluded) }
 

@@ -70,6 +70,13 @@ data class Transaction(
     val source: EntrySource = EntrySource.Notification,
 )
 
+/** The facts of an entry the user can correct on its receipt. */
+data class EntryDetails(
+    val merchant: String,
+    val amount: Money,
+    val occurredAt: Instant,
+)
+
 /** What the user enters to add an expense by hand. */
 data class NewExpense(
     val merchant: String,

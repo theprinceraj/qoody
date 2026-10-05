@@ -170,6 +170,8 @@
     <string name="receipt_keep">Keep entry</string>
     <string name="receipt_exclude">Exclude from ledger</string>
     <string name="receipt_restore">Restore to ledger</string>
+    <string name="edit_entry_title">Edit entry</string>
+    <string name="edit_entry_date_label">Date</string>
     <string name="settings_excluded_title">Excluded entries</string>
     <string name="settings_excluded_none">Nothing excluded</string>
     <plurals name="settings_excluded_count">
