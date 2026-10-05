@@ -38,3 +38,4 @@ Also available: `pnpm exec tanstack doc <library> <path>` and `pnpm exec tanstac
 - `pnpm-workspace.yaml` (not the `pnpm` field in `package.json`) controls which dependencies may run build scripts (`allowBuilds`).
 - Windows PowerShell 5.1 writes UTF-8 *with BOM* via `Set-Content -Encoding utf8`, which breaks `package.json`. Edit JSON with the Edit/Write tools or Node, not PowerShell.
 - Typecheck: `pnpm typecheck` (`tsc --noEmit`).
+- TanStack Start's default `pnpm build` output does **not** include `dist/client/index.html`; CI checks should validate `dist/client/assets` and `dist/server/index.js` instead.

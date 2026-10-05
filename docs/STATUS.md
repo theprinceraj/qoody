@@ -8,9 +8,10 @@
 - **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, clipboard key paste, notification-access shortcut.
 - **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, Android Keystore-backed API-key storage, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. Notification capture and the LLM key check are still placeholders. The shared tests and screenshot fixtures continue to use in-memory repositories.
 - **Website** is still the unmodified TanStack Start starter.
-- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; shared tests; Android unit/screenshot tests, lint, Spotless, detekt, debug APK, and release APK/R8).
-- **Not verified:** running on a real device/emulator (none installed), GitHub Actions (no remote yet), Cloudflare deploy (disabled in `web.yml`).
+- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
+- **Not verified:** running on a real device/emulator (none installed), Cloudflare deploy (disabled in `web.yml`).
 - GitHub workflows now include tag-based Android GitHub Releases and a guarded GitHub Pages deployment. Pages remains blocked until the TanStack Start site produces a static `web/dist/client/index.html`; the current Cloudflare SSR build does not.
+- **GitHub Actions:** fixed `Website Pages` `build` job failure caused by requiring `web/dist/client/index.html` (TanStack Start build does not emit that file). Workflow now checks for `web/dist/client/assets` and `web/dist/server/index.js`; validated locally with `scripts/verify.sh -Target web`.
 
 ## Next up
 
@@ -43,6 +44,7 @@
 
 ## Log
 
+- 2026-10-05 — Fixed failing GitHub Actions `Website Pages` `build` job: replaced the invalid static-entrypoint check (`web/dist/client/index.html`) with TanStack Start artifact checks (`web/dist/client/assets`, `web/dist/server/index.js`), then ran web typecheck/check/build and `scripts/verify.sh -Target web` locally.
 - 2026-10-05 — Implemented Android Room/SQLite persistence, encrypted API-key storage with Android Keystore, password-protected versioned full-data backup/restore, atomic replacement confirmation, document-picker integration, and disabled Android cloud/device backup for app data. Verified Android unit tests, lint, Spotless, detekt, and release R8 build.
 
 - 2026-10-05 — Built the Android UI from the Stitch designs (design tokens, components, 5 screens, navigation, ViewModels in `shared`, placeholder data layer), 38 shared tests, Robolectric/Roborazzi screenshot tests, detekt MagicNumber enforcement, lint fixes (incl. an API-35-only `removeLast` crash), bundled fonts/icons (OFL/Apache licences in `docs/licenses`).
