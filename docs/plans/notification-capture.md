@@ -1,6 +1,6 @@
 # Plan: Notification capture (rule-based)
 
-Status: **proposed**, not started · Owner: next implementing agent · Written 2026-10-05
+Status: **in progress**: step 1 done (parser + rules); open questions answered 2026-10-05 · Owner: next implementing agent · Written 2026-10-05
 
 ## Goal
 
@@ -64,7 +64,7 @@ Platform-independent logic goes in `shared/commonMain`, so a future iOS port reu
 ### Categorisation (rule-based)
 
 - Keyword table mapping merchant substrings to `Category`: Swiggy/Zomato → FoodAndDrink, Uber/Ola/Rapido/IRCTC/metro → Transport, Amazon/Flipkart/Myntra → Shopping, electricity/recharge/rent/broadband → Bills, Netflix/Spotify/Prime/YouTube → Subscriptions, and so on. Names are matched case-insensitively on word boundaries.
-- Person-to-person UPI payments (merchant looks like a personal name or a bare VPA) → `Friends` only if the heuristic is confident; otherwise `Uncategorized`.
+- No `Friends` heuristic in v1: a personal name or bare VPA is indistinguishable from a small merchant, so it stays `Uncategorized`.
 - No match → `Uncategorized` with `Categorization.None`, so the user (or the later LLM) can fix it.
 - **Provenance.** Add a `Categorization.Rule(ruleId)` variant so the UI never claims "AI" for a keyword match. Touches `PersistenceCodec` (new serialised discriminator, must stay backward compatible with stored data and backups), `ReceiptUiState`, `ReceiptScreen` (label string), `SampleLedger`. Record as decision **D16**.
 
@@ -97,9 +97,10 @@ Platform-independent logic goes in `shared/commonMain`, so a future iOS port reu
 
 ## Work breakdown (one PR each, in order; `scripts/verify.ps1 -Target mobile` must pass on each)
 
-1. **Parser + categoriser (shared).** Pure Kotlin, no wiring. Fixture-driven tests: per-app formats, grouping, decimals, credits/refunds/OTP rejected, malformed amounts, unknown formats, merchant clean-up, rule table. Largest test surface; no risk to the running app.
-2. **Persistence.** `addCaptured`, `dedupeKey` column, DB 1→2 migration + migration test, race-free id allocation, `Categorization.Rule` + codec + receipt label, backup compatibility. Add decisions D16 (rule provenance) and D17 (dedupe key).
-3. **Use case (shared).** `CaptureNotificationUseCase` and `CapturePolicy`, tested with in-memory repositories, covering dedupe and the not-allowlisted/not-a-debit paths. Add `addCaptured` to `InMemoryLedgerRepository`.
+1. **Parser + categoriser (shared). DONE** (branch `feat/notification-parser`). Pure Kotlin, no wiring. Fixture-driven tests: per-app formats, grouping, decimals, credits/refunds/OTP rejected, malformed amounts, unknown formats, merchant clean-up, rule table. Largest test surface; no risk to the running app.
+2. **Persistence.** `addCaptured`, `dedupeKey` column, `unparsed_captures` table, DB 1→2 migration + migration test, race-free id allocation, `Categorization.Rule` + codec + receipt label, backup compatibility. Add decisions D16 (rule provenance) and D17 (dedupe key).
+3. **Use case (shared).** `CaptureNotificationUseCase` and `CapturePolicy` (broad verified allowlist), tested with in-memory repositories, covering dedupe, the not-allowlisted/not-a-debit paths, and routing `Unparsed` to the new repository. Add `addCaptured` to `InMemoryLedgerRepository`.
+3b. **Failed-to-parse list.** `unparsed_captures` table + repository (persistence part lands with step 2's migration), Settings row, list screen, screenshot test, backup inclusion.
 4. **Android service.** Manifest, service, Koin binding, `NotificationAccessChecker`, truthful enabled state, Robolectric tests that build real `Notification` objects and drive `onNotificationPosted`. Run `:androidApp:assembleRelease` and check R8 (service class is referenced from the manifest; no reflection added).
 5. **Docs and cleanup.** `docs/STATUS.md`, `docs/ARCHITECTURE.md` (capture data flow), `mobile/AGENTS.md` gotchas, remove the "listener does not exist yet" notes in STATUS.
 
@@ -108,7 +109,7 @@ Steps 1–3 can land without touching the manifest, so the app's behaviour does 
 ## Acceptance criteria
 
 - With the app installed and access granted, a synthetic UPI debit notification from an allowlisted app appears in the Ledger within seconds, with correct amount, merchant, category and reference, and "Original notification" populated on the receipt.
-- Credits, refunds, OTPs, promos, failed/pending payments and non-allowlisted apps create nothing.
+- Credits, refunds, OTPs, promos, failed/pending payments, non-INR and non-allowlisted apps create nothing. A debit-looking notification that cannot be read appears under Settings → Failed to parse.
 - The same payment announced twice (bank + UPI app, or a re-posted notification) yields one entry.
 - Qoody appears in Settings → Notification access; the "Sync OK" pill matches Android's real state, including after the user revokes access.
 - Upgrading from DB v1 keeps all existing transactions; a pre-migration backup still imports.
@@ -127,13 +128,22 @@ Steps 1–3 can land without touching the manifest, so the app's behaviour does 
 | Race between UI writes and the service | Single write transaction / autogenerated ids (step 2) |
 | Locale and currency: notifications may be non-INR while the setting is USD | v1 accepts INR notifications only and ignores others (open question 3) |
 
-## Open questions for the user
+## Decisions from the user (2026-10-05)
 
-1. **Which apps are supported by default?** Proposed candidates: Google Pay, PhonePe, Paytm, BHIM, and the major bank apps. Package names **must be looked up and verified at implementation time**, not guessed. Should the user be able to toggle apps in Settings ("Manage apps" already exists as a row)? Proposed: ship a fixed allowlist in v1, all on; a per-app toggle in a follow-up.
-2. **Bank SMS?** Many debit alerts arrive only as SMS, through a messaging app's notification. Allowlisting a messaging app means reading every message notification. Proposed: not in v1; reconsider with a stricter sender-ID filter.
-3. **Non-INR notifications?** Proposed: INR only in v1, others ignored. Amounts are stored currency-less, so mixing currencies would silently corrupt totals.
-4. **Unparsed notifications from allowlisted apps:** drop silently (proposed, most private) or keep a "needs review" inbox?
-5. **Retention of raw notification text:** keep forever with the entry (proposed, matches the existing receipt UI) or offer a purge option?
+1. **Allowlist: support as many Indian payment and bank apps as possible.** Ship a large built-in list (UPI apps, bank apps, wallets, card apps). Every package name must be verified against Google Play at implementation time, not recalled from memory; record the list and how each was checked in `CapturePolicy`. Expect to keep extending it; the table is data, not logic.
+2. **Bank SMS: not in v1.**
+3. **Non-INR: ignored in v1.**
+4. **Unparsed notifications are shown in Settings, under a "Failed to parse" entry.** This reverses the earlier "drop silently" proposal, so these notifications **are stored** (see below).
+5. **Raw notification text is kept** with the entry.
+
+### Failed-to-parse list (new scope from decision 4)
+
+- The parser already separates `NotAnExpense` (discarded, never stored) from `Unparsed(reason)` (looks like a debit but unreadable). Only `Unparsed` is stored.
+- New Room table `unparsed_captures` (same 1 → 2 migration as `dedupeKey`): id, package, app name, title, text, postedAt, reason, dedupe key (so a re-posted notification does not add a second row).
+- New `UnparsedCaptureRepository` (shared interface; Room impl in `androidApp`): `captures: Flow<List<UnparsedCapture>>`, `add`, `dismiss(id)`, `clear()`.
+- Settings gets a "Failed to parse" row with a count, opening a list screen. Each item shows the app, time and original text, with **Add manually** (opens the add-expense sheet prefilled with the amount/merchant if any) and **Dismiss**. Needs a Stitch-style visual pass against `DESIGN.md` and a `ScreenshotTest` render; all copy in `strings.xml`.
+- Privacy: same rules as accepted transactions (allowlisted apps only, on-device, never logged). The list is included in the encrypted backup/export (backup format version bump) and removed by "delete all data" if that exists.
+- Retention: capped at a fixed number of most recent entries so it cannot grow without bound.
 
 ## References
 
