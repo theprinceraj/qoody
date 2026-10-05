@@ -1,9 +1,19 @@
 package com.qoody.shared.capture
 
+/** What kind of app posted a notification; SMS apps get an extra filter (see [SmsMessageFilter]). */
+enum class AppKind {
+    /** A bank, UPI, wallet or card app: everything it posts is about the user's own money. */
+    Payment,
+
+    /** An SMS app: bank alerts arrive here, but so do personal messages. */
+    Sms,
+}
+
 /** An app whose notifications Qoody reads. [name] is its Google Play listing name at verification time. */
 data class SupportedApp(
     val packageName: String,
     val name: String,
+    val kind: AppKind = AppKind.Payment,
 )
 
 /**
@@ -15,7 +25,11 @@ data class SupportedApp(
  * developer matching the bank or company). Never add a package from memory: verify it the same way
  * and keep the listing name. This is data, not logic; extend it freely.
  *
- * Deliberately excluded: messaging apps (WhatsApp: chat text would be parsed), telecom/shopping apps
+ * In India most UPI debit alerts arrive as bank SMS, so SMS apps are included too; their notifications
+ * pass [SmsMessageFilter] first. The phone's default SMS app is added at runtime by the platform layer,
+ * which covers preinstalled apps that are not on Play (Samsung Messages, `com.android.mms`).
+ *
+ * Deliberately excluded: chat apps (WhatsApp: chat text would be parsed), telecom/shopping apps
  * without payments, investment apps (an SIP debit is not spending), and the global Amazon app
  * (`com.amazon.mShop.android.shopping`; the India app with Amazon Pay is listed instead).
  */
@@ -85,6 +99,10 @@ object CapturePolicy {
             SupportedApp("in.hsbc.hsbcindia", "HSBC India"),
             SupportedApp("air.app.scb.breeze.android.main.in.prod", "SC Mobile India"),
             SupportedApp("com.citi.citimobile", "Citi Mobile"),
+            // SMS apps (bank alerts)
+            SupportedApp("com.google.android.apps.messaging", "Google Messages", AppKind.Sms),
+            SupportedApp("com.truecaller", "Truecaller", AppKind.Sms),
+            SupportedApp("com.jio.messages", "Jio Messages", AppKind.Sms),
             // Credit cards
             SupportedApp("com.ge.capital.konysbiapp", "SBI Card"),
             SupportedApp("com.creditcard.onecard", "OneCard"),
@@ -93,7 +111,7 @@ object CapturePolicy {
 
     private val byPackage: Map<String, SupportedApp> = supportedApps.associateBy { it.packageName }
 
-    fun isSupported(packageName: String): Boolean = packageName in byPackage
+    fun kindOf(packageName: String): AppKind? = byPackage[packageName]?.kind
 
     /**
      * The listing name of a supported app. Used instead of asking the platform for the app's label,

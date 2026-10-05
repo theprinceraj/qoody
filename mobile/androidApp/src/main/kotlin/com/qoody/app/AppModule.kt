@@ -1,6 +1,7 @@
 package com.qoody.app
 
 import com.qoody.app.capture.AndroidNotificationAccessChecker
+import com.qoody.app.capture.CaptureSources
 import com.qoody.app.capture.NotificationAccessChecker
 import com.qoody.app.capture.NotificationCaptureHandler
 import com.qoody.app.data.BackupService
@@ -30,9 +31,11 @@ fun appModule(database: QoodyDatabase) =
                 ledger = get(),
                 unparsed = get(),
                 unknownMerchant = { androidContext().getString(R.string.capture_unknown_merchant) },
+                appKind = get<CaptureSources>()::kindOf,
             )
         }
-        single { NotificationCaptureHandler(get(), androidContext().packageName) }
+        single { CaptureSources(androidContext()) }
+        single { NotificationCaptureHandler(get(), androidContext().packageName, get()) }
         single<NotificationAccessChecker> { AndroidNotificationAccessChecker(androidContext()) }
     }
 
