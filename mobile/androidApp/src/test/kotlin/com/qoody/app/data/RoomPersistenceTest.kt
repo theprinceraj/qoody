@@ -129,6 +129,23 @@ class RoomPersistenceTest {
         }
 
     @Test
+    fun budgetsAreStoredRemovedAndBackedUp() =
+        runTest {
+            val budgets = RoomBudgetRepository(database)
+            budgets.setBudget(Category.FoodAndDrink, Money(500_000))
+            budgets.setBudget(Category.Transport, Money(200_000))
+            budgets.setBudget(Category.Transport, null)
+            assertEquals(mapOf(Category.FoodAndDrink to Money(500_000)), budgets.budgets.first())
+
+            val backup = BackupService(database, InMemorySettingsRepository())
+            val exported = backup.export(PASSWORD.toCharArray())
+            database.categoryBudgetDao().deleteAll()
+            backup.import(exported, PASSWORD.toCharArray())
+
+            assertEquals(mapOf(Category.FoodAndDrink to Money(500_000)), budgets.budgets.first())
+        }
+
+    @Test
     fun excludedEntriesCanBeRestored() =
         runTest {
             val ledger = RoomLedgerRepository(database, dates)

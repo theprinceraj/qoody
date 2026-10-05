@@ -2,16 +2,19 @@ package com.qoody.shared.di
 
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
+import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
+import com.qoody.shared.feature.budgets.BudgetsViewModel
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.insights.InsightsViewModel
@@ -35,17 +38,19 @@ val sharedModule =
         single<SettingsRepository> { InMemorySettingsRepository() }
         single<UnparsedCaptureRepository> { InMemoryUnparsedCaptureRepository() }
         single<MerchantCategoryRepository> { InMemoryMerchantCategoryRepository() }
+        single<BudgetRepository> { InMemoryBudgetRepository() }
         single<LlmKeyVerifier> { FakeLlmKeyVerifier() }
 
         viewModel { RootViewModel(get()) }
         viewModel { OnboardingViewModel(get()) }
-        viewModel { LedgerViewModel(get(), get(), get()) }
+        viewModel { LedgerViewModel(get(), get(), get(), get()) }
         viewModel { AddExpenseViewModel(get(), get()) }
         viewModel { InsightsViewModel(get(), get(), get()) }
         viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
+        viewModel { BudgetsViewModel(get(), get(), get(), get()) }
         viewModel { (transactionId: Long) ->
-            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get())
+            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get())
         }
     }

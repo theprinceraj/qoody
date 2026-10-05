@@ -79,6 +79,8 @@ data class BackupPayload(
     val unparsedCaptures: List<UnparsedCaptureRecord> = emptyList(),
     /** Added in backup format 3: merchant key to category name. */
     val merchantCategories: Map<String, String> = emptyMap(),
+    /** Added in backup format 4: category name to monthly limit in minor units. */
+    val budgets: Map<String, Long> = emptyMap(),
 )
 
 @Serializable
@@ -251,9 +253,9 @@ private val Categorization.kind: String
 
 /**
  * Version of [BackupPayload]. 2 added dedupe keys and unparsed captures, 3 remembered merchant
- * categories; older versions are still importable.
+ * categories, 4 category budgets; older versions are still importable.
  */
-const val BACKUP_FORMAT_VERSION = 3
+const val BACKUP_FORMAT_VERSION = 4
 val SUPPORTED_BACKUP_FORMAT_VERSIONS = 1..BACKUP_FORMAT_VERSION
 
 /** Version of the encryption [BackupEnvelope], independent of the payload inside it. */

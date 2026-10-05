@@ -1,6 +1,7 @@
 package com.qoody.shared.feature
 
 import com.qoody.shared.ViewModelTest
+import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.Category
@@ -22,12 +23,14 @@ import kotlin.test.assertTrue
 
 class LedgerViewModelTest : ViewModelTest() {
     private val dates = fixedDates()
+    private val budgets = InMemoryBudgetRepository()
 
     private fun viewModel(vararg transactions: Transaction) =
         LedgerViewModel(
             InMemoryLedgerRepository(dates, transactions.toList()),
             InMemorySettingsRepository(),
             dates,
+            budgets,
         )
 
     private fun LedgerViewModel.content() = uiState.latest() as LedgerUiState.Content
@@ -65,7 +68,22 @@ class LedgerViewModelTest : ViewModelTest() {
             assertEquals(TrendDirection.Lower, trend.direction)
             assertEquals(Money.of(300), trend.previousSpent)
             assertEquals(554, trend.change.value)
-            assertEquals(446, summary.progress.value)
+            assertNull(summary.budget)
+        }
+
+    @Test
+    fun budgetSummaryCountsOnlyBudgetedCategoriesThisMonth() =
+        runTest {
+            budgets.setBudget(Category.FoodAndDrink, Money.of(20))
+            budgets.setBudget(Category.Subscriptions, Money.of(20))
+
+            val budget = viewModel(*everything).content().summary.budget!!
+
+            // Coffee + Zomato + Spotify; shoes (no budget) and last month's lunch are left out.
+            assertEquals(Money.of(33, 69), budget.spent)
+            assertEquals(Money.of(40), budget.limit)
+            assertEquals(842, budget.used!!.value)
+            assertFalse(budget.isOver)
         }
 
     @Test
@@ -73,7 +91,7 @@ class LedgerViewModelTest : ViewModelTest() {
         runTest {
             val summary = viewModel(coffee, zomato).content().summary
             assertNull(summary.trend)
-            assertEquals(0, summary.progress.value)
+            assertNull(summary.budget)
         }
 
     @Test

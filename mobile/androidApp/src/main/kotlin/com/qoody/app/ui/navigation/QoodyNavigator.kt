@@ -39,6 +39,10 @@ class QoodyNavigator(
         backStack.add(ReceiptKey(id.value))
     }
 
+    fun openBudgets() {
+        backStack.add(BudgetsKey)
+    }
+
     fun openExcludedEntries() {
         backStack.add(ExcludedEntriesKey)
     }

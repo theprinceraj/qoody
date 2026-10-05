@@ -23,6 +23,10 @@ data object InsightsKey : TabKey
 @Serializable
 data object SettingsKey : TabKey
 
+/** Monthly category budgets, opened from Settings, the ledger summary or a receipt. */
+@Serializable
+data object BudgetsKey : NavKey
+
 /** Entries excluded from the ledger, opened from Settings. */
 @Serializable
 data object ExcludedEntriesKey : NavKey

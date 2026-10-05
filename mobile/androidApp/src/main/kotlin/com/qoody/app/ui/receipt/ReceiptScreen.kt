@@ -45,6 +45,7 @@ import com.qoody.app.ui.components.LoadingIndicator
 import com.qoody.app.ui.components.PaperButton
 import com.qoody.app.ui.components.PerforationRule
 import com.qoody.app.ui.components.PrimaryButton
+import com.qoody.app.ui.components.ProgressTrack
 import com.qoody.app.ui.components.QoodyCard
 import com.qoody.app.ui.components.QoodyDetailTopBar
 import com.qoody.app.ui.components.QoodyIcon
@@ -66,6 +67,7 @@ import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
+import com.qoody.shared.feature.receipt.BudgetImpact
 import com.qoody.shared.feature.receipt.ReceiptEvent
 import com.qoody.shared.feature.receipt.ReceiptUiState
 import com.qoody.shared.feature.receipt.ReceiptViewModel
@@ -80,6 +82,7 @@ fun ReceiptScreen(
     transactionId: Long,
     onBack: () -> Unit,
     onProfileClick: () -> Unit,
+    onOpenBudgets: () -> Unit = {},
     viewModel: ReceiptViewModel = koinViewModel(key = transactionId.toString()) { parametersOf(transactionId) },
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,6 +113,7 @@ fun ReceiptScreen(
         onKeep = viewModel::onKeepEntry,
         onExclude = viewModel::onExcludeFromLedger,
         onRestore = viewModel::onRestoreToLedger,
+        onOpenBudgets = onOpenBudgets,
         editActions =
             EntryEditorActions(
                 onOpen = viewModel::onEditRequested,
@@ -138,6 +142,7 @@ fun ReceiptContent(
     onExclude: () -> Unit,
     onRestore: () -> Unit,
     editActions: EntryEditorActions = EntryEditorActions.None,
+    onOpenBudgets: () -> Unit = {},
 ) {
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -170,6 +175,7 @@ fun ReceiptContent(
                             onExclude = onExclude,
                             onRestore = onRestore,
                             onEdit = editActions.onOpen,
+                            onOpenBudgets = onOpenBudgets,
                         )
                     }
                 }
@@ -212,6 +218,7 @@ private fun ReceiptBody(
     onExclude: () -> Unit,
     onRestore: () -> Unit,
     onEdit: () -> Unit,
+    onOpenBudgets: () -> Unit,
 ) {
     val formats = rememberDateFormats()
     Column(
@@ -226,7 +233,7 @@ private fun ReceiptBody(
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { SheetHandle() }
         MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory, onEdit)
         state.notification?.let { NotificationCard(it.appName, it.text, formats.time(state.time)) }
-        DetailsCard(state)
+        DetailsCard(state, onOpenBudgets)
         Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
             PaperButton(
                 text = stringResource(R.string.receipt_split),
@@ -553,7 +560,10 @@ private fun NotificationCard(
 }
 
 @Composable
-private fun DetailsCard(state: ReceiptUiState.Content) {
+private fun DetailsCard(
+    state: ReceiptUiState.Content,
+    onOpenBudgets: () -> Unit,
+) {
     QoodyCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(QoodyTheme.spacing.md)) {
         state.paymentMethod?.let {
             DetailRow(
@@ -563,17 +573,72 @@ private fun DetailsCard(state: ReceiptUiState.Content) {
             )
         }
         state.referenceCode?.let { DetailRow(stringResource(R.string.receipt_reference_code), it, monospace = true) }
-        DetailRow(
-            label = stringResource(R.string.receipt_budget_impact),
-            value =
-                stringResource(
-                    R.string.receipt_budget_impact_value,
-                    PercentFormatter.formatTenths(state.categoryShare.share),
-                    stringResource(state.categoryShare.category.nameRes),
-                ),
-            monospace = false,
-        )
+        state.budgetImpact?.let { BudgetImpactRows(it, state, onOpenBudgets) }
     }
+}
+
+/** This payment's share of its category budget and the month's progress, or a link to set one. */
+@Composable
+private fun BudgetImpactRows(
+    impact: BudgetImpact,
+    state: ReceiptUiState.Content,
+    onOpenBudgets: () -> Unit,
+) {
+    val categoryName = stringResource(impact.category.nameRes)
+    val share = impact.paymentShare(state.amount)
+    val limit = impact.month.limit
+    val used = impact.month.used
+    if (share == null || limit == null || used == null) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button, onClick = onOpenBudgets)
+                    .padding(vertical = QoodyTheme.spacing.sm),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.receipt_budget_impact),
+                style = QoodyTheme.typography.bodySm,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+            Text(
+                text = stringResource(R.string.receipt_set_budget, categoryName),
+                style = QoodyTheme.typography.bodySmMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = QoodyTheme.spacing.md),
+            )
+        }
+        return
+    }
+    DetailRow(
+        label = stringResource(R.string.receipt_budget_impact),
+        value =
+            stringResource(
+                R.string.receipt_budget_impact_value,
+                PercentFormatter.formatTenths(share),
+                categoryName,
+            ),
+        monospace = false,
+    )
+    val colors = MaterialTheme.colorScheme
+    val accent = if (impact.month.isOver) colors.error else colors.primaryContainer
+    Text(
+        text =
+            stringResource(
+                R.string.receipt_budget_month,
+                MoneyFormatter.format(impact.month.spent, state.currency),
+                MoneyFormatter.format(limit, state.currency),
+            ),
+        style = QoodyTheme.typography.bodySm,
+        color = if (impact.month.isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
+    )
+    ProgressTrack(
+        fraction = used.fraction,
+        color = accent,
+        modifier = Modifier.padding(top = QoodyTheme.spacing.xs, bottom = QoodyTheme.spacing.sm),
+    )
 }
 
 @Composable

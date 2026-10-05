@@ -51,6 +51,13 @@ data class MerchantCategoryEntity(
     val category: String,
 )
 
+/** A category's monthly limit in minor units. */
+@Entity(tableName = "category_budgets")
+data class CategoryBudgetEntity(
+    @PrimaryKey val category: String,
+    val limitMinor: Long,
+)
+
 @Dao
 interface TransactionDao {
     @Query("SELECT * FROM transactions")
@@ -131,6 +138,27 @@ interface MerchantCategoryDao {
 }
 
 @Dao
+interface CategoryBudgetDao {
+    @Query("SELECT * FROM category_budgets")
+    fun observeAll(): Flow<List<CategoryBudgetEntity>>
+
+    @Query("SELECT * FROM category_budgets")
+    suspend fun getAll(): List<CategoryBudgetEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(budget: CategoryBudgetEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(budgets: List<CategoryBudgetEntity>)
+
+    @Query("DELETE FROM category_budgets WHERE category = :category")
+    suspend fun delete(category: String)
+
+    @Query("DELETE FROM category_budgets")
+    suspend fun deleteAll()
+}
+
+@Dao
 interface SettingsDao {
     @Query("SELECT * FROM app_settings WHERE id = :id")
     fun observe(id: Int = SETTINGS_ID): Flow<SettingsEntity?>
@@ -148,10 +176,15 @@ interface SettingsDao {
         SettingsEntity::class,
         UnparsedCaptureEntity::class,
         MerchantCategoryEntity::class,
+        CategoryBudgetEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4),
+    ],
 )
 abstract class QoodyDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
@@ -161,7 +194,9 @@ abstract class QoodyDatabase : RoomDatabase() {
     abstract fun unparsedCaptureDao(): UnparsedCaptureDao
 
     abstract fun merchantCategoryDao(): MerchantCategoryDao
+
+    abstract fun categoryBudgetDao(): CategoryBudgetDao
 }
 
-const val DATABASE_VERSION = 3
+const val DATABASE_VERSION = 4
 const val SETTINGS_ID = 1

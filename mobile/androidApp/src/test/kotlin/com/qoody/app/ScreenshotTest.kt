@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.qoody.app.ui.budgets.BudgetsContent
 import com.qoody.app.ui.capture.UnparsedCapturesContent
 import com.qoody.app.ui.excluded.ExcludedEntriesContent
 import com.qoody.app.ui.insights.InsightsContent
@@ -19,11 +20,16 @@ import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
+import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
+import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewUnparsedCapture
+import com.qoody.shared.feature.budgets.BudgetsUiState
+import com.qoody.shared.feature.budgets.BudgetsViewModel
 import com.qoody.shared.feature.capture.UnparsedCapturesUiState
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
 import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
@@ -122,7 +128,14 @@ class ScreenshotTest {
 
     @Test
     fun ledger() {
-        val state = LedgerViewModel(ledger, settings, dates).uiState.await { it is LedgerUiState.Content }
+        val budgets =
+            InMemoryBudgetRepository(
+                mapOf(
+                    Category.FoodAndDrink to Money.of(150),
+                    Category.Transport to Money.of(400),
+                ),
+            )
+        val state = LedgerViewModel(ledger, settings, dates, budgets).uiState.await { it is LedgerUiState.Content }
         capture("ledger", TALL_PAGE) {
             LedgerContent(
                 state = state,
@@ -148,7 +161,15 @@ class ScreenshotTest {
     @Test
     fun receipt() {
         val newest = runBlocking { ledger.transactions.first().first() }
-        val viewModel = ReceiptViewModel(newest.id, ledger, settings, dates, InMemoryMerchantCategoryRepository())
+        val viewModel =
+            ReceiptViewModel(
+                newest.id,
+                ledger,
+                settings,
+                dates,
+                InMemoryMerchantCategoryRepository(),
+                InMemoryBudgetRepository(mapOf(newest.category to Money.of(150))),
+            )
         val state = viewModel.uiState.await { it is ReceiptUiState.Content }
         capture("receipt", TALL_PAGE) {
             ReceiptContent(
@@ -229,6 +250,19 @@ class ScreenshotTest {
             }
         capture("excluded-entries") {
             ExcludedEntriesContent(state = state, onBack = {}, onProfileClick = {}, onOpenReceipt = {}, onRestore = {})
+        }
+    }
+
+    @Test
+    fun budgets() {
+        val budgets =
+            InMemoryBudgetRepository(
+                mapOf(Category.FoodAndDrink to Money.of(150), Category.Transport to Money.of(400)),
+            )
+        val state =
+            BudgetsViewModel(budgets, ledger, settings, dates).uiState.await { it is BudgetsUiState.Content }
+        capture("budgets", TALL_PAGE) {
+            BudgetsContent(state = state, onBack = {}, onProfileClick = {}, onEdit = {})
         }
     }
 

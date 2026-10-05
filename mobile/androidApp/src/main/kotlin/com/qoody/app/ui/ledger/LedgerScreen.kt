@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -49,6 +50,7 @@ import com.qoody.app.ui.components.EmptyState
 import com.qoody.app.ui.components.FilterPill
 import com.qoody.app.ui.components.LoadingIndicator
 import com.qoody.app.ui.components.PrimaryButton
+import com.qoody.app.ui.components.ProgressTrack
 import com.qoody.app.ui.components.QoodyCard
 import com.qoody.app.ui.components.QoodyIcon
 import com.qoody.app.ui.components.QoodyTextField
@@ -66,6 +68,7 @@ import com.qoody.app.ui.theme.chipLabelRes
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.format.SignStyle
+import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.TransactionId
@@ -84,6 +87,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LedgerScreen(
     onOpenReceipt: (TransactionId) -> Unit,
     onProfileClick: () -> Unit,
+    onOpenBudgets: () -> Unit = {},
     startWithSearch: Boolean,
     viewModel: LedgerViewModel = koinViewModel(),
 ) {
@@ -101,6 +105,7 @@ fun LedgerScreen(
         onCategorySelected = viewModel::onCategorySelected,
         onRowClick = onOpenReceipt,
         onAddExpenseClick = { showAddExpense = true },
+        onOpenBudgets = onOpenBudgets,
     )
 
     if (showAddExpense) AddExpenseSheet(onDismiss = { showAddExpense = false })
@@ -116,6 +121,7 @@ fun LedgerContent(
     onCategorySelected: (Category?) -> Unit,
     onRowClick: (TransactionId) -> Unit,
     onAddExpenseClick: () -> Unit,
+    onOpenBudgets: () -> Unit = {},
 ) {
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -133,6 +139,7 @@ fun LedgerContent(
                             onSearchClose = onSearchClose,
                             onCategorySelected = onCategorySelected,
                             onRowClick = onRowClick,
+                            onOpenBudgets = onOpenBudgets,
                         )
                     }
                 }
@@ -157,6 +164,7 @@ private fun LedgerList(
     onSearchClose: () -> Unit,
     onCategorySelected: (Category?) -> Unit,
     onRowClick: (TransactionId) -> Unit,
+    onOpenBudgets: () -> Unit,
 ) {
     val formats = rememberDateFormats()
     LazyColumn(
@@ -172,7 +180,7 @@ private fun LedgerList(
         if (state.search.isActive) {
             item(key = SEARCH_KEY) { SearchField(state.search, onSearchQueryChange, onSearchClose) }
         }
-        item(key = SUMMARY_KEY) { SummaryCard(state.summary, state.currency, formats) }
+        item(key = SUMMARY_KEY) { SummaryCard(state.summary, state.currency, formats, onOpenBudgets) }
         item(key = FILTERS_KEY) {
             CategoryFilters(
                 selected = state.selectedCategory,
@@ -239,6 +247,7 @@ private fun SummaryCard(
     summary: MonthSummary,
     currency: Currency,
     formats: DateFormats,
+    onOpenBudgets: () -> Unit,
 ) {
     QoodyCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -318,42 +327,69 @@ private fun SummaryCard(
                 }
             }
         }
-        ProgressTrack(
-            fraction = summary.progress.fraction,
-            modifier = Modifier.padding(top = QoodyTheme.spacing.md),
+        BudgetSummary(summary.budget, currency, onOpenBudgets)
+    }
+}
+
+/** Budgeted spending against the sum of all budgets, or an invitation to set one. */
+@Composable
+private fun BudgetSummary(
+    budget: BudgetProgress?,
+    currency: Currency,
+    onOpenBudgets: () -> Unit,
+) {
+    val limit = budget?.limit
+    val used = budget?.used
+    if (limit == null || used == null) {
+        Text(
+            text = stringResource(R.string.ledger_set_budget),
+            style = QoodyTheme.typography.bodySmMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier =
+                Modifier
+                    .padding(top = QoodyTheme.spacing.sm)
+                    .heightIn(min = QoodyTheme.sizes.touchTarget)
+                    .clickable(role = Role.Button, onClick = onOpenBudgets)
+                    .wrapContentHeight(),
+        )
+        return
+    }
+    val accent = if (budget.isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primaryContainer
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = QoodyTheme.spacing.md)
+                .clickable(role = Role.Button, onClick = onOpenBudgets),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text =
+                stringResource(
+                    R.string.ledger_budget_line,
+                    MoneyFormatter.format(budget.spent, currency),
+                    MoneyFormatter.format(limit, currency),
+                ),
+            style = QoodyTheme.typography.bodySm,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        Text(
+            text = PercentFormatter.formatWhole(used),
+            style = QoodyTheme.typography.bodySmMedium,
+            color = if (budget.isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         )
     }
+    ProgressTrack(
+        fraction = used.fraction,
+        color = accent,
+        modifier = Modifier.padding(top = QoodyTheme.spacing.sm),
+    )
 }
 
 @Composable
 private fun TrendText(text: String) {
     Text(text = text, style = QoodyTheme.typography.bodySm, color = MaterialTheme.colorScheme.secondary)
-}
-
-/** A thin pill-shaped bar showing how far this month's spending has come against last month's. */
-@Composable
-private fun ProgressTrack(
-    fraction: Float,
-    modifier: Modifier = Modifier,
-) {
-    val animated by animateFloatAsState(fraction, tween(QoodyTheme.motion.chartMillis))
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .heightIn(min = QoodyTheme.sizes.progressTrack)
-                .clip(QoodyTheme.shapes.pill)
-                .background(MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth(animated)
-                    .heightIn(min = QoodyTheme.sizes.progressTrack)
-                    .clip(QoodyTheme.shapes.pill)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-        )
-    }
 }
 
 @Composable

@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.qoody.app.ui.budgets.BudgetsScreen
 import com.qoody.app.ui.capture.UnparsedCapturesScreen
 import com.qoody.app.ui.components.QoodyBottomBar
 import com.qoody.app.ui.excluded.ExcludedEntriesScreen
@@ -74,6 +75,7 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                         LedgerScreen(
                             onOpenReceipt = { id: TransactionId -> navigator.openReceipt(id) },
                             onProfileClick = openSettings,
+                            onOpenBudgets = navigator::openBudgets,
                             startWithSearch = key.openSearch,
                         )
                     }
@@ -86,7 +88,11 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                             onOpenNotificationAccessSettings = onOpenNotificationAccessSettings,
                             onOpenUnparsedCaptures = navigator::openUnparsedCaptures,
                             onOpenExcludedEntries = navigator::openExcludedEntries,
+                            onOpenBudgets = navigator::openBudgets,
                         )
+                    }
+                    entry<BudgetsKey> {
+                        BudgetsScreen(onBack = navigator::pop, onProfileClick = openSettings)
                     }
                     entry<ExcludedEntriesKey> {
                         ExcludedEntriesScreen(
@@ -103,6 +109,7 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                             transactionId = key.transactionId,
                             onBack = navigator::pop,
                             onProfileClick = openSettings,
+                            onOpenBudgets = navigator::openBudgets,
                         )
                     }
                 },
