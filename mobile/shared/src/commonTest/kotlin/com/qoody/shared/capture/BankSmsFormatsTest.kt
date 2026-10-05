@@ -121,6 +121,53 @@ class BankSmsFormatsTest {
     }
 
     @Test
+    fun barodaDrFromAndCrToVpa() {
+        val parsed =
+            payment(
+                "Rs.42.00 Dr. from A/C XXXXXX1111 and Cr. to teashop0042-1@oksbi. Ref:512345678910. " +
+                    "AvlBal:Rs900.00(2026:10:05 09:00:00). Not you? Call 18000000/0000-BOB",
+            )
+        assertEquals(Money.of(42), parsed.amount)
+        assertEquals("Teashop", parsed.merchant)
+        assertEquals("512345678910", parsed.referenceCode)
+        assertEquals("UPI", parsed.paymentMethod)
+    }
+
+    @Test
+    fun centralBankUpiDebitedByWithoutPayee() {
+        val parsed =
+            payment(
+                "A/c XX2222 debited by Rs. 451.00 via UPI with Ref No. 512345678911 Total Bal  Rs. 900.00 " +
+                    "Clr Bal  Rs. 900.00. -CBoI",
+            )
+        assertEquals(Money.of(451), parsed.amount)
+        assertEquals(null, parsed.merchant)
+        assertEquals("512345678911", parsed.referenceCode)
+    }
+
+    @Test
+    fun centralBankNeftToAccountThenName() {
+        val parsed =
+            payment(
+                "Ac 5XX3333 debited for NEFT Ref CBINN00000000000000001 Rs.12500.00 to Ac ABCDXX to A B TRADERS. " +
+                    "Bal:Rs.90000.00 CR. Call 18000000 if txn not done by you-CBoI",
+            )
+        assertEquals(Money.of(12500), parsed.amount)
+        assertEquals("A B Traders", parsed.merchant)
+        assertEquals("CBINN00000000000000001", parsed.referenceCode)
+    }
+
+    @Test
+    fun centralBankCreditIsNotAnExpense() {
+        assertEquals(
+            ParseOutcome.NotAnExpense,
+            PaymentNotificationParser.parse(
+                "A/c XX2222 credited by Rs. 242.00 on 05102026 via UPI from A SENDER via Ref No. 512345678912. -CBoI",
+            ),
+        )
+    }
+
+    @Test
     fun creditSmsIsNotAnExpense() {
         assertEquals(
             ParseOutcome.NotAnExpense,

@@ -25,10 +25,12 @@ object PaymentNotificationParser {
     private val debitCue =
         Regex(
             "\\b(?:debited|paid|payment of|sent|spent|purchase|withdrawn|txn of|transaction of|charged|" +
-                "transferred|trf|debit of)\\b",
+                "transferred|trf|debit of|dr\\.?\\s+from)\\b",
             ignoreCase,
         )
-    private val debitedCue = Regex("\\bdebited\\b", ignoreCase)
+
+    /** "debited", or Bank of Baroda's "Dr. from A/C"; outranks a "credited to <payee>" in the same message. */
+    private val debitedCue = Regex("\\b(?:debited|dr\\.?\\s+from)\\b", ignoreCase)
     private val hardReject =
         Regex(
             "\\b(?:refund(?:ed)?|revers(?:ed|al)|failed|failure|declined|unsuccessful|otp|requested|requests?|" +
@@ -55,7 +57,7 @@ object PaymentNotificationParser {
             "call|sms)\\b|[,;(\\n]|\\.(?:\\s|$)|$)"
     private val payee =
         Regex(
-            "\\bto\\s+(?:vpa\\s+)?(?!your\\b|you\\b|a/c|account\\b|be\\b|the\\b)(.+?)$TERMINATOR",
+            "\\bto\\s+(?:vpa\\s+)?(?!your\\b|you\\b|a/c|ac\\b|account\\b|be\\b|the\\b)(.+?)$TERMINATOR",
             ignoreCase,
         )
     private val atPlace = Regex("\\bat\\s+(?!\\d)(.+?)$TERMINATOR", ignoreCase)
@@ -84,7 +86,8 @@ object PaymentNotificationParser {
 
     private val upiReference = Regex("\\bupi\\s*[:/]\\s*(?:p2[amp]/)?(\\d{$MIN_REFERENCE_LENGTH,})", ignoreCase)
 
-    private val upiMarker = Regex("\\b(?:upi|vpa)\\b", ignoreCase)
+    /** The word UPI/VPA, or a UPI handle such as `name@oksbi`. */
+    private val upiMarker = Regex("\\b(?:upi|vpa)\\b|[\\w.\\-]+@[a-z]{2,}\\b", ignoreCase)
     private val cardMarker = Regex("\\bcard\\b", ignoreCase)
     private val netBankingMarker = Regex("\\b(?:net ?banking|neft|imps|rtgs)\\b", ignoreCase)
 
@@ -165,12 +168,16 @@ object PaymentNotificationParser {
         return titleCaseIfShouting(readable)
     }
 
-    /** `swiggy.food@icici` becomes `Swiggy food`; a phone-number VPA keeps its digits. */
+    /** `swiggy.food@icici` becomes `swiggy food`, `shop0011-1@fbl` becomes `shop`; a phone-number VPA keeps its digits. */
     private fun nameFromVpa(vpa: String): String {
         val local = vpa.substringBefore('@')
         if (local.count { it.isDigit() } >= PHONE_DIGITS_MIN) return local
-        return local.replace('.', ' ').replace('_', ' ').replace('-', ' ')
+        val withoutNumericTail = local.replace(vpaNumericTail, "").ifEmpty { local }
+        return withoutNumericTail.replace('.', ' ').replace('_', ' ').replace('-', ' ')
     }
+
+    /** Digits and separators that UPI apps append to make a handle unique ("name0011-1"). */
+    private val vpaNumericTail = Regex("[\\d._-]+$")
 
     private fun titleCaseIfShouting(value: String): String {
         val letters = value.filter { it.isLetter() }
