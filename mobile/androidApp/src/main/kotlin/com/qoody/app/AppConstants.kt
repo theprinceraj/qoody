@@ -11,3 +11,8 @@ object LedgerExport {
     const val MIME_TYPE = "text/csv"
     const val DEFAULT_FILE_NAME = "qoody-ledger.csv"
 }
+
+object BackupExport {
+    const val MIME_TYPE = "application/octet-stream"
+    const val DEFAULT_FILE_NAME = "qoody-backup.qoody"
+}

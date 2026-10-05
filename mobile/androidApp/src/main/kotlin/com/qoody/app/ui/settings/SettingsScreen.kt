@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
@@ -26,6 +28,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +48,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qoody.app.BackupExport
 import com.qoody.app.BuildConfig
 import com.qoody.app.LedgerExport
 import com.qoody.app.ProjectLinks
 import com.qoody.app.R
+import com.qoody.app.data.BackupService
 import com.qoody.app.ui.components.BadgePill
 import com.qoody.app.ui.components.Dot
 import com.qoody.app.ui.components.FieldStyle
@@ -78,6 +83,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 /** Everything configurable: automation, the optional LLM key, appearance, privacy and export. */
 @Composable
@@ -92,11 +98,17 @@ fun SettingsScreen(
     val snackbarHost = remember { SnackbarHostState() }
     val clipboard = LocalClipboard.current
     val uriHandler = LocalUriHandler.current
+    val backupService: BackupService = koinInject()
+    var backupAction by remember { mutableStateOf<BackupAction?>(null) }
+    var backupPassword by remember { mutableStateOf("") }
+    var showImportWarning by remember { mutableStateOf(false) }
 
     val clipboardEmpty = stringResource(R.string.settings_clipboard_empty)
     val noBrowser = stringResource(R.string.settings_no_browser)
     val exportDone = stringResource(R.string.settings_export_done)
     val exportFailed = stringResource(R.string.settings_export_failed)
+    val backupDone = stringResource(R.string.settings_backup_done)
+    val backupFailed = stringResource(R.string.settings_backup_failed)
 
     val exportLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(LedgerExport.MIME_TYPE)) { uri: Uri? ->
@@ -104,6 +116,35 @@ fun SettingsScreen(
                 scope.launch {
                     val written = writeCsv(context, uri, viewModel.buildCsvExport())
                     snackbarHost.showSnackbar(if (written) exportDone else exportFailed)
+                }
+            }
+        }
+
+    val backupExportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BackupExport.MIME_TYPE)) { uri: Uri? ->
+            if (uri != null) {
+                scope.launch {
+                    val result = runCatching { backupService.export(backupPassword.toCharArray()) }
+                    val written = result.getOrNull()?.let { writeBytes(context, uri, it) } == true
+                    backupPassword = ""
+                    backupAction = null
+                    snackbarHost.showSnackbar(if (written) backupDone else backupFailed)
+                }
+            }
+        }
+    val backupImportLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            if (uri != null) {
+                scope.launch {
+                    val imported =
+                        runCatching {
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                backupService.import(input.readBytes(), backupPassword.toCharArray())
+                            } ?: error("Could not read backup")
+                        }.isSuccess
+                    backupPassword = ""
+                    backupAction = null
+                    snackbarHost.showSnackbar(if (imported) backupDone else backupFailed)
                 }
             }
         }
@@ -141,8 +182,87 @@ fun SettingsScreen(
                 .onFailure { scope.launch { snackbarHost.showSnackbar(noBrowser) } }
         },
         onExport = { exportLauncher.launch(LedgerExport.DEFAULT_FILE_NAME) },
+        onExportFull = { backupAction = BackupAction.Export },
+        onImportFull = { backupAction = BackupAction.Import },
     )
+
+    backupAction?.let { action ->
+        AlertDialog(
+            onDismissRequest = {
+                backupPassword = ""
+                backupAction = null
+                showImportWarning = false
+            },
+            title = {
+                Text(
+                    stringResource(
+                        if (action ==
+                            BackupAction.Export
+                        ) {
+                            R.string.settings_backup_export_title
+                        } else {
+                            R.string.settings_backup_import_title
+                        },
+                    ),
+                )
+            },
+            text = {
+                Column {
+                    Text(stringResource(R.string.settings_backup_password_body))
+                    QoodyTextField(
+                        value = backupPassword,
+                        onValueChange = { backupPassword = it },
+                        placeholder = stringResource(R.string.settings_backup_password_label),
+                        visualTransformation = PasswordVisualTransformation(),
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = backupPassword.isNotBlank(),
+                    onClick = {
+                        if (action == BackupAction.Export) {
+                            backupExportLauncher.launch(BackupExport.DEFAULT_FILE_NAME)
+                        } else {
+                            showImportWarning = true
+                        }
+                    },
+                ) { Text(stringResource(R.string.settings_backup_continue)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    backupPassword = ""
+                    backupAction = null
+                    showImportWarning = false
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+    if (showImportWarning) {
+        AlertDialog(
+            onDismissRequest = { showImportWarning = false },
+            title = { Text(stringResource(R.string.settings_backup_replace_title)) },
+            text = { Text(stringResource(R.string.settings_backup_replace_body)) },
+            confirmButton = {
+                Button(onClick = {
+                    showImportWarning = false
+                    backupImportLauncher.launch(arrayOf(BackupExport.MIME_TYPE))
+                }) {
+                    Text(stringResource(R.string.settings_backup_replace_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showImportWarning = false },
+                ) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
 }
+
+private enum class BackupAction { Export, Import }
 
 /** Writes [csv] to the document the user chose. Returns whether it succeeded. */
 private suspend fun writeCsv(
@@ -153,6 +273,17 @@ private suspend fun writeCsv(
     withContext(Dispatchers.IO) {
         runCatching {
             context.contentResolver.openOutputStream(uri)?.use { it.write(csv.toByteArray()) } != null
+        }.getOrDefault(false)
+    }
+
+private suspend fun writeBytes(
+    context: Context,
+    uri: Uri,
+    bytes: ByteArray,
+): Boolean =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } != null
         }.getOrDefault(false)
     }
 
@@ -172,6 +303,8 @@ fun SettingsContent(
     onHapticsToggled: (Boolean) -> Unit,
     onOpenSource: () -> Unit,
     onExport: () -> Unit,
+    onExportFull: () -> Unit,
+    onImportFull: () -> Unit,
 ) {
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -197,7 +330,7 @@ fun SettingsContent(
                             item { AutomationSection(state, onNotificationToggled, onManageApps) }
                             item { IntelligenceSection(state, onPasteKey, onToggleKeyVisibility, onTestKey) }
                             item { InterfaceSection(state, onThemeSelected, onCurrencySelected, onHapticsToggled) }
-                            item { PrivacySection(onOpenSource, onExport) }
+                            item { PrivacySection(onOpenSource, onExport, onExportFull, onImportFull) }
                             item { Footer() }
                         }
                     }
@@ -653,6 +786,8 @@ private val AppTheme.labelRes: Int
 private fun PrivacySection(
     onOpenSource: () -> Unit,
     onExport: () -> Unit,
+    onExportFull: () -> Unit,
+    onImportFull: () -> Unit,
 ) {
     Section(title = stringResource(R.string.settings_section_privacy)) {
         Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
@@ -678,6 +813,32 @@ private fun PrivacySection(
                 ) {
                     QoodyIcon(
                         R.drawable.ic_arrow_downward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+                HairlineDivider()
+                SettingRow(
+                    icon = R.drawable.ic_lock,
+                    title = stringResource(R.string.settings_backup_export_title),
+                    subtitle = stringResource(R.string.settings_backup_export_subtitle),
+                    onClick = onExportFull,
+                ) {
+                    QoodyIcon(
+                        R.drawable.ic_arrow_downward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+                HairlineDivider()
+                SettingRow(
+                    icon = R.drawable.ic_file_download,
+                    title = stringResource(R.string.settings_backup_import_title),
+                    subtitle = stringResource(R.string.settings_backup_import_subtitle),
+                    onClick = onImportFull,
+                ) {
+                    QoodyIcon(
+                        R.drawable.ic_arrow_forward,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary,
                     )

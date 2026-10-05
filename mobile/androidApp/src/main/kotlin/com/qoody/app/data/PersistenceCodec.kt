@@ -1,0 +1,177 @@
+package com.qoody.app.data
+
+import com.qoody.shared.domain.model.AppSettings
+import com.qoody.shared.domain.model.AppTheme
+import com.qoody.shared.domain.model.CapturedNotification
+import com.qoody.shared.domain.model.Categorization
+import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.Currency
+import com.qoody.shared.domain.model.EntrySource
+import com.qoody.shared.domain.model.EntryStatus
+import com.qoody.shared.domain.model.LlmSettings
+import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.Permille
+import com.qoody.shared.domain.model.Transaction
+import com.qoody.shared.domain.model.TransactionId
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlin.time.Instant
+
+private val json = Json { ignoreUnknownKeys = true }
+
+@Serializable
+data class TransactionRecord(
+    val id: Long,
+    val merchant: String,
+    val amount: Long,
+    val occurredAt: Long,
+    val category: String,
+    val categorizationKind: String,
+    val modelName: String? = null,
+    val confidence: Int? = null,
+    val paymentApp: String,
+    val note: String,
+    val tag: String? = null,
+    val paymentMethod: String? = null,
+    val referenceCode: String? = null,
+    val notificationAppName: String? = null,
+    val notificationText: String? = null,
+    val status: String,
+    val source: String,
+)
+
+@Serializable
+data class SettingsRecord(
+    val onboardingCompleted: Boolean,
+    val notificationListenerEnabled: Boolean,
+    val monitoredAppCount: Int,
+    val modelLabel: String,
+    val localFallbackReady: Boolean,
+    val currency: String,
+    val theme: String,
+    val hapticsEnabled: Boolean,
+)
+
+@Serializable
+data class BackupPayload(
+    val formatVersion: Int = BACKUP_FORMAT_VERSION,
+    val exportedAtEpochMillis: Long,
+    val transactions: List<TransactionRecord>,
+    val settings: SettingsRecord,
+)
+
+@Serializable
+data class BackupEnvelope(
+    val formatVersion: Int = BACKUP_FORMAT_VERSION,
+    val salt: String,
+    val iv: String,
+    val ciphertext: String,
+)
+
+fun Transaction.toRecord(): TransactionRecord =
+    TransactionRecord(
+        id = id.value,
+        merchant = merchant,
+        amount = amount.minorUnits,
+        occurredAt = occurredAt.toEpochMilliseconds(),
+        category = category.name,
+        categorizationKind = categorization.kind,
+        modelName = (categorization as? Categorization.Model)?.modelName,
+        confidence = (categorization as? Categorization.Model)?.confidence?.value,
+        paymentApp = paymentApp,
+        note = note,
+        tag = tag,
+        paymentMethod = paymentMethod,
+        referenceCode = referenceCode,
+        notificationAppName = notification?.appName,
+        notificationText = notification?.text,
+        status = status.name,
+        source = source.name,
+    )
+
+fun TransactionRecord.toModel(): Transaction =
+    Transaction(
+        id = TransactionId(id),
+        merchant = merchant,
+        amount = Money(amount),
+        occurredAt = Instant.fromEpochMilliseconds(occurredAt),
+        category = enumValueOfOrDefault(category, Category.Uncategorized),
+        categorization =
+            if (categorizationKind == CATEGORIZATION_MODEL && modelName != null && confidence != null) {
+                Categorization.Model(modelName, Permille(confidence))
+            } else if (categorizationKind == CATEGORIZATION_MANUAL) {
+                Categorization.Manual
+            } else {
+                Categorization.None
+            },
+        paymentApp = paymentApp,
+        note = note,
+        tag = tag,
+        paymentMethod = paymentMethod,
+        referenceCode = referenceCode,
+        notification =
+            if (notificationAppName != null && notificationText != null) {
+                CapturedNotification(notificationAppName, notificationText)
+            } else {
+                null
+            },
+        status = enumValueOfOrDefault(status, EntryStatus.Settled),
+        source = enumValueOfOrDefault(source, EntrySource.Manual),
+    )
+
+fun AppSettings.toRecord(): SettingsRecord =
+    SettingsRecord(
+        onboardingCompleted = onboardingCompleted,
+        notificationListenerEnabled = false,
+        monitoredAppCount = monitoredAppCount,
+        modelLabel = llm.modelLabel,
+        localFallbackReady = llm.localFallbackReady,
+        currency = currency.name,
+        theme = theme.name,
+        hapticsEnabled = hapticsEnabled,
+    )
+
+fun SettingsRecord.toModel(): AppSettings =
+    AppSettings(
+        onboardingCompleted = onboardingCompleted,
+        notificationListenerEnabled = false,
+        monitoredAppCount = monitoredAppCount,
+        llm = LlmSettings(apiKey = null, modelLabel = modelLabel, localFallbackReady = localFallbackReady),
+        currency = enumValueOfOrDefault(currency, Currency.Usd),
+        theme = enumValueOfOrDefault(theme, AppTheme.WarmPaper),
+        hapticsEnabled = hapticsEnabled,
+    )
+
+fun encodeTransaction(transaction: Transaction): String = json.encodeToString(transaction.toRecord())
+
+fun decodeTransaction(payload: String): Transaction = json.decodeFromString<TransactionRecord>(payload).toModel()
+
+fun encodeSettings(settings: AppSettings): String = json.encodeToString(settings.toRecord())
+
+fun decodeSettings(payload: String): SettingsRecord = json.decodeFromString(payload)
+
+fun encodeBackup(payload: BackupPayload): ByteArray = json.encodeToString(payload).encodeToByteArray()
+
+fun decodeBackup(bytes: ByteArray): BackupPayload = json.decodeFromString(bytes.decodeToString())
+
+fun encodeEnvelope(envelope: BackupEnvelope): ByteArray = json.encodeToString(envelope).encodeToByteArray()
+
+fun decodeEnvelope(bytes: ByteArray): BackupEnvelope = json.decodeFromString(bytes.decodeToString())
+
+private inline fun <reified T : Enum<T>> enumValueOfOrDefault(
+    value: String,
+    default: T,
+): T = runCatching { enumValueOf<T>(value) }.getOrDefault(default)
+
+private val Categorization.kind: String
+    get() =
+        when (this) {
+            Categorization.None -> CATEGORIZATION_NONE
+            Categorization.Manual -> CATEGORIZATION_MANUAL
+            is Categorization.Model -> CATEGORIZATION_MODEL
+        }
+
+const val BACKUP_FORMAT_VERSION = 1
+private const val CATEGORIZATION_NONE = "none"
+private const val CATEGORIZATION_MANUAL = "manual"
+private const val CATEGORIZATION_MODEL = "model"

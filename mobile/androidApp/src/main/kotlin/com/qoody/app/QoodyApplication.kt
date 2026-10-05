@@ -10,7 +10,7 @@ class QoodyApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@QoodyApplication)
-            modules(sharedModule)
+            modules(sharedModule, createAppModule(this@QoodyApplication))
         }
     }
 }
