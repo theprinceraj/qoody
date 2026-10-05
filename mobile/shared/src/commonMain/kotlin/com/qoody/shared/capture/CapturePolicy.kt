@@ -91,7 +91,13 @@ object CapturePolicy {
             SupportedApp("com.rbl.rblmycard", "RBL MyCard"),
         )
 
-    private val packages: Set<String> = supportedApps.mapTo(mutableSetOf()) { it.packageName }
+    private val byPackage: Map<String, SupportedApp> = supportedApps.associateBy { it.packageName }
 
-    fun isSupported(packageName: String): Boolean = packageName in packages
+    fun isSupported(packageName: String): Boolean = packageName in byPackage
+
+    /**
+     * The listing name of a supported app. Used instead of asking the platform for the app's label,
+     * which would need package-visibility permissions.
+     */
+    fun appName(packageName: String): String? = byPackage[packageName]?.name
 }

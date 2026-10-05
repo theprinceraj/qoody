@@ -155,7 +155,8 @@ fun SettingsScreen(
         snackbarHost = snackbarHost,
         onSearchClick = onSearchClick,
         onProfileClick = {},
-        onNotificationToggled = viewModel::onNotificationListenerToggled,
+        // Only Android can grant or revoke notification access; the switch opens its settings page.
+        onNotificationToggled = { onOpenNotificationAccessSettings() },
         onManageApps = onOpenNotificationAccessSettings,
         onOpenUnparsedCaptures = onOpenUnparsedCaptures,
         onPasteKey = {

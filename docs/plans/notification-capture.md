@@ -1,6 +1,6 @@
 # Plan: Notification capture (rule-based)
 
-Status: **in progress**: steps 1–3b done (parser, persistence, use case, Failed-to-parse list); open questions answered 2026-10-05 · Owner: next implementing agent · Written 2026-10-05
+Status: **in progress**: steps 1–5 done; only the real-device pass remains; open questions answered 2026-10-05 · Owner: next implementing agent · Written 2026-10-05
 
 ## Goal
 
@@ -101,8 +101,8 @@ Platform-independent logic goes in `shared/commonMain`, so a future iOS port reu
 2. **Persistence. DONE** (branch `feat/capture-persistence`; Room auto-migration instead of a hand-written one, see D17). `addCaptured`, `dedupeKey` column, `unparsed_captures` table, DB 1→2 migration + migration test, race-free id allocation, `Categorization.Rule` + codec + receipt label, backup compatibility. Add decisions D16 (rule provenance) and D17 (dedupe key).
 3. **Use case (shared). DONE** (branch `feat/capture-use-case`). `CaptureNotificationUseCase` and `CapturePolicy` (broad verified allowlist), tested with in-memory repositories, covering dedupe, the not-allowlisted/not-a-debit paths, and routing `Unparsed` to the new repository. Add `addCaptured` to `InMemoryLedgerRepository`.
 3b. **Failed-to-parse list. DONE** (same branch). `unparsed_captures` table + repository (persistence part lands with step 2's migration), Settings row, list screen, screenshot test, backup inclusion.
-4. **Android service.** Manifest, service, Koin binding, `NotificationAccessChecker`, truthful enabled state, Robolectric tests that build real `Notification` objects and drive `onNotificationPosted`. Run `:androidApp:assembleRelease` and check R8 (service class is referenced from the manifest; no reflection added).
-5. **Docs and cleanup.** `docs/STATUS.md`, `docs/ARCHITECTURE.md` (capture data flow), `mobile/AGENTS.md` gotchas, remove the "listener does not exist yet" notes in STATUS.
+4. **Android service. DONE** (branch `feat/capture-service`; real-device pass still outstanding). Manifest, service, Koin binding, `NotificationAccessChecker`, truthful enabled state, Robolectric tests that build real `Notification` objects and drive `onNotificationPosted`. Run `:androidApp:assembleRelease` and check R8 (service class is referenced from the manifest; no reflection added).
+5. **Docs and cleanup. DONE** (same branch). `docs/STATUS.md`, `docs/ARCHITECTURE.md` (capture data flow), `mobile/AGENTS.md` gotchas, remove the "listener does not exist yet" notes in STATUS.
 
 Steps 1–3 can land without touching the manifest, so the app's behaviour does not change until step 4.
 
