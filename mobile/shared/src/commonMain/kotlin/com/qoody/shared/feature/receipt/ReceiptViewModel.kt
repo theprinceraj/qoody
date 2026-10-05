@@ -16,12 +16,14 @@ import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.LedgerRepository
+import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,6 +41,7 @@ class ReceiptViewModel(
     private val ledger: LedgerRepository,
     settings: SettingsRepository,
     private val dates: DateProvider,
+    private val merchantCategories: MerchantCategoryRepository,
 ) : ViewModel() {
     private val noteDraft = MutableStateFlow<String?>(null)
     private val isCategoryPickerOpen = MutableStateFlow(false)
@@ -73,9 +76,13 @@ class ReceiptViewModel(
 
     fun onCategoryPickerDismissed() = isCategoryPickerOpen.update { false }
 
+    /** Also remembers the choice, so this merchant's future captures get the same category. */
     fun onCategorySelected(category: Category) {
         isCategoryPickerOpen.value = false
-        viewModelScope.launch { ledger.updateCategory(id, category) }
+        viewModelScope.launch {
+            ledger.updateCategory(id, category)
+            ledger.observe(id).first()?.let { merchantCategories.remember(it.merchant, category) }
+        }
     }
 
     fun onKeepEntry() {

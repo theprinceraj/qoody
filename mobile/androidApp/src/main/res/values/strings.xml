@@ -136,6 +136,7 @@
     <string name="receipt_change">Change</string>
     <string name="receipt_model_confidence">%1$s %2$s</string>
     <string name="receipt_matched_rule">Matched “%1$s”</string>
+    <string name="receipt_remembered">Your earlier choice</string>
     <string name="capture_unknown_merchant">Unknown merchant</string>
     <string name="capture_sms_app_name">SMS</string>
     <string name="settings_unparsed_title">Failed to parse</string>

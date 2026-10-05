@@ -44,6 +44,17 @@ interface LedgerRepository {
     suspend fun restore(id: TransactionId)
 }
 
+/** Categories the user chose for merchants, applied to that merchant's future captures. */
+interface MerchantCategoryRepository {
+    /** The category last chosen for [merchant], or `null` when the user never chose one. */
+    suspend fun categoryFor(merchant: String): Category?
+
+    suspend fun remember(
+        merchant: String,
+        category: Category,
+    )
+}
+
 /** Notifications that looked like payments but could not be read. */
 interface UnparsedCaptureRepository {
     /** Newest first. */

@@ -27,6 +27,9 @@ sealed interface Categorization {
     data class Rule(
         val ruleId: String,
     ) : Categorization
+
+    /** The user chose this category for the same merchant before, and Qoody remembered it. */
+    data object Remembered : Categorization
 }
 
 /** Where a transaction came from. */

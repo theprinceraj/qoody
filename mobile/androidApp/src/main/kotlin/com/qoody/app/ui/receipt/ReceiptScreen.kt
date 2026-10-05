@@ -362,7 +362,7 @@ private fun CategoryPanel(
             CategoryPill(state.category)
             CategorizationBadge(state.categorization)
         }
-        if (state.categorization is Categorization.Model || state.categorization is Categorization.Rule) {
+        if (state.categorization.isAutomatic) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -406,6 +406,10 @@ private fun CategorizationBadge(categorization: Categorization) {
 
             is Categorization.Rule -> {
                 stringResource(R.string.receipt_matched_rule, categorization.ruleId)
+            }
+
+            Categorization.Remembered -> {
+                stringResource(R.string.receipt_remembered)
             }
         }
     Row(
@@ -574,3 +578,7 @@ private fun CategoryPickerSheet(
         }
     }
 }
+
+/** Chosen by Qoody rather than the user, so the receipt offers to correct it. */
+private val Categorization.isAutomatic: Boolean
+    get() = this is Categorization.Model || this is Categorization.Rule || this == Categorization.Remembered

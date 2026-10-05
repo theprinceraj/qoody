@@ -7,6 +7,7 @@ import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.LedgerRepository
+import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 
 /** What happened to one notification. */
@@ -37,6 +38,7 @@ sealed interface CaptureResult {
 class CaptureNotificationUseCase(
     private val ledger: LedgerRepository,
     private val unparsed: UnparsedCaptureRepository,
+    private val merchantCategories: MerchantCategoryRepository,
     private val unknownMerchant: () -> String,
     private val appKind: (String) -> AppKind? = CapturePolicy::kindOf,
 ) {
@@ -61,15 +63,15 @@ class CaptureNotificationUseCase(
         kind: AppKind,
     ): CaptureResult {
         val merchant = payment.merchant ?: unknownMerchant()
-        val rule = payment.merchant?.let(MerchantCategoryRules::categorise)
+        val (category, categorization) = categorise(payment.merchant)
         val id =
             ledger.addCaptured(
                 NewCapturedTransaction(
                     merchant = merchant,
                     amount = payment.amount,
                     occurredAt = notification.postedAt,
-                    category = rule?.category ?: Category.Uncategorized,
-                    categorization = rule?.let { Categorization.Rule(it.ruleId) } ?: Categorization.None,
+                    category = category,
+                    categorization = categorization,
                     paymentApp = paymentApp(notification, kind),
                     paymentMethod = payment.paymentMethod,
                     referenceCode = payment.referenceCode,
@@ -78,6 +80,17 @@ class CaptureNotificationUseCase(
                 ),
             )
         return if (id == null) CaptureResult.Duplicate else CaptureResult.Saved(id)
+    }
+
+    /** The user's earlier choice for this merchant wins over the keyword rules. */
+    private suspend fun categorise(merchant: String?): Pair<Category, Categorization> {
+        val remembered = merchant?.let { merchantCategories.categoryFor(it) }
+        val rule = if (remembered == null) MerchantCategoryRules.categorise(merchant) else null
+        return when {
+            remembered != null -> remembered to Categorization.Remembered
+            rule != null -> rule.category to Categorization.Rule(rule.ruleId)
+            else -> Category.Uncategorized to Categorization.None
+        }
     }
 
     private suspend fun storeUnparsed(

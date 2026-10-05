@@ -20,6 +20,7 @@ import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryLedgerRepository
+import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.NewUnparsedCapture
@@ -147,7 +148,7 @@ class ScreenshotTest {
     @Test
     fun receipt() {
         val newest = runBlocking { ledger.transactions.first().first() }
-        val viewModel = ReceiptViewModel(newest.id, ledger, settings, dates)
+        val viewModel = ReceiptViewModel(newest.id, ledger, settings, dates, InMemoryMerchantCategoryRepository())
         val state = viewModel.uiState.await { it is ReceiptUiState.Content }
         capture("receipt", TALL_PAGE) {
             ReceiptContent(

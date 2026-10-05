@@ -12,6 +12,7 @@ import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
+import com.qoody.shared.domain.model.MerchantKey
 import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.NewUnparsedCapture
@@ -19,6 +20,7 @@ import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.model.UnparsedCapture
 import com.qoody.shared.domain.repository.LedgerRepository
+import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import kotlinx.coroutines.flow.Flow
@@ -156,6 +158,23 @@ class RoomUnparsedCaptureRepository(
     override suspend fun dismiss(id: Long) = dao.delete(id)
 
     override suspend fun clear() = dao.deleteAll()
+}
+
+class RoomMerchantCategoryRepository(
+    database: QoodyDatabase,
+) : MerchantCategoryRepository {
+    private val dao = database.merchantCategoryDao()
+
+    override suspend fun categoryFor(merchant: String): Category? =
+        dao.get(MerchantKey.of(merchant))?.let { entity -> Category.entries.firstOrNull { it.name == entity.category } }
+
+    override suspend fun remember(
+        merchant: String,
+        category: Category,
+    ) {
+        val key = MerchantKey.of(merchant)
+        if (key.isNotEmpty()) dao.upsert(MerchantCategoryEntity(key, category.name))
+    }
 }
 
 class EncryptedKeyStore(

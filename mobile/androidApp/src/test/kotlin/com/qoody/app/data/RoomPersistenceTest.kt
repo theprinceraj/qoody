@@ -93,6 +93,23 @@ class RoomPersistenceTest {
         }
 
     @Test
+    fun merchantCategoriesAreRememberedAndBackedUp() =
+        runTest {
+            val memory = RoomMerchantCategoryRepository(database)
+            memory.remember("Blue Tokai", Category.FoodAndDrink)
+            memory.remember("BLUE TOKAI.", Category.Shopping)
+            assertEquals(Category.Shopping, memory.categoryFor("blue tokai"))
+
+            val backup = BackupService(database, InMemorySettingsRepository())
+            val exported = backup.export(PASSWORD.toCharArray())
+            database.merchantCategoryDao().deleteAll()
+            assertNull(memory.categoryFor("Blue Tokai"))
+
+            backup.import(exported, PASSWORD.toCharArray())
+            assertEquals(Category.Shopping, memory.categoryFor("Blue Tokai"))
+        }
+
+    @Test
     fun excludedEntriesCanBeRestored() =
         runTest {
             val ledger = RoomLedgerRepository(database, dates)

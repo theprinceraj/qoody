@@ -3,11 +3,13 @@ package com.qoody.shared.di
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryLedgerRepository
+import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.LlmKeyVerifier
+import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
@@ -32,6 +34,7 @@ val sharedModule =
         single<LedgerRepository> { InMemoryLedgerRepository(get()) }
         single<SettingsRepository> { InMemorySettingsRepository() }
         single<UnparsedCaptureRepository> { InMemoryUnparsedCaptureRepository() }
+        single<MerchantCategoryRepository> { InMemoryMerchantCategoryRepository() }
         single<LlmKeyVerifier> { FakeLlmKeyVerifier() }
 
         viewModel { RootViewModel(get()) }
@@ -42,5 +45,7 @@ val sharedModule =
         viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
-        viewModel { (transactionId: Long) -> ReceiptViewModel(TransactionId(transactionId), get(), get(), get()) }
+        viewModel { (transactionId: Long) ->
+            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get())
+        }
     }

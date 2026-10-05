@@ -52,6 +52,22 @@ class PersistenceCodecTest {
     }
 
     @Test
+    fun rememberedCategorizationRoundTrips() {
+        val transaction =
+            Transaction(
+                id = TransactionId(2),
+                merchant = "Cafe",
+                amount = Money(450),
+                occurredAt = Instant.fromEpochMilliseconds(0),
+                category = Category.FoodAndDrink,
+                categorization = Categorization.Remembered,
+                paymentApp = "Test Pay",
+            )
+
+        assertEquals(transaction, decodeTransaction(encodeTransaction(transaction)))
+    }
+
+    @Test
     fun backupSettingsNeverContainApiKey() {
         val settings = com.qoody.shared.data.InMemorySettingsRepository.defaultSettings
         val encoded = encodeSettings(settings.copy(llm = settings.llm.copy(apiKey = "secret")))
