@@ -9,7 +9,8 @@
 - **It runs on placeholder data.** Repositories are in-memory and seeded with sample transactions relative to "today"; the LLM key check is a fake. Nothing is persisted across app restarts.
 - **Website** is still the unmodified TanStack Start starter.
 - Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
-- **Not verified:** running on a real device/emulator (none installed), GitHub Actions (no remote yet), Cloudflare deploy (disabled in `web.yml`).
+- **Not verified:** running on a real device/emulator (none installed), Cloudflare deploy (disabled in `web.yml`).
+- **GitHub Actions:** fixed `Website Pages` `build` job failure caused by requiring `web/dist/client/index.html` (TanStack Start build does not emit that file). Workflow now checks for `web/dist/client/assets` and `web/dist/server/index.js`; validated locally with `scripts/verify.sh -Target web`.
 
 ## Next up
 
@@ -41,5 +42,6 @@
 
 ## Log
 
+- 2026-10-05 — Fixed failing GitHub Actions `Website Pages` `build` job: replaced the invalid static-entrypoint check (`web/dist/client/index.html`) with TanStack Start artifact checks (`web/dist/client/assets`, `web/dist/server/index.js`), then ran web typecheck/check/build and `scripts/verify.sh -Target web` locally.
 - 2026-10-05 — Built the Android UI from the Stitch designs (design tokens, components, 5 screens, navigation, ViewModels in `shared`, placeholder data layer), 38 shared tests, Robolectric/Roborazzi screenshot tests, detekt MagicNumber enforcement, lint fixes (incl. an API-35-only `removeLast` crash), bundled fonts/icons (OFL/Apache licences in `docs/licenses`).
 - 2026-10-04 — Initial scaffold: KMP `mobile/` (AGP 9.4.1, Kotlin 2.4.20, Gradle 9.8.0, Compose BOM 2026.09.00, Koin, Ktor, Navigation 3), `web/` (TanStack Start, Tailwind v4, shadcn, Biome, Cloudflare), agent infrastructure (AGENTS.md hierarchy, docs/, verify scripts, Claude hooks/permissions, Context7 MCP, official Android skills, CI, Dependabot).

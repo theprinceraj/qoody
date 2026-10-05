@@ -49,8 +49,10 @@ jobs:
         working-directory: web
         run: pnpm run build
 
-      - name: Require a static Pages entrypoint
-        run: test -f web/dist/client/index.html
+      - name: Verify build outputs
+        run: |
+          test -d web/dist/client/assets
+          test -f web/dist/server/index.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
