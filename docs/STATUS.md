@@ -6,19 +6,21 @@
 
 - **Product (from the Stitch designs):** Qoody is a free, open-source, fully on-device expense ledger. It will read bank/UPI payment *notifications*, extract merchant/amount/category with an on-device LLM (optional bring-your-own-key), and show a running monthly tab. No cloud, no accounts, no analytics.
 - **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, clipboard key paste, notification-access shortcut.
-- **It runs on placeholder data.** Repositories are in-memory and seeded with sample transactions relative to "today"; the LLM key check is a fake. Nothing is persisted across app restarts.
+- **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, Android Keystore-backed API-key storage, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. Notification capture and the LLM key check are still placeholders. The shared tests and screenshot fixtures continue to use in-memory repositories.
 - **Website** is still the unmodified TanStack Start starter.
-- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
+- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; shared tests; Android unit/screenshot tests, lint, Spotless, detekt, debug APK, and release APK/R8).
 - **Not verified:** running on a real device/emulator (none installed), GitHub Actions (no remote yet), Cloudflare deploy (disabled in `web.yml`).
+- GitHub workflows now include tag-based Android GitHub Releases and a guarded GitHub Pages deployment. Pages remains blocked until the TanStack Start site produces a static `web/dist/client/index.html`; the current Cloudflare SSR build does not.
 
 ## Next up
 
-1. **Backend behind the existing interfaces** (UI will not change): Room/SQLite persistence for `LedgerRepository` + `SettingsRepository`; API key in encrypted storage (Android Keystore); `NotificationListenerService` that parses payment notifications into transactions; on-device LLM categorisation + real key verification (replace `FakeLlmKeyVerifier`). Bind them in `shared/.../di/SharedModule.kt`.
+1. **Finish the remaining backend pieces:** `NotificationListenerService` that parses payment notifications into transactions; on-device LLM categorisation and real key verification (replace `FakeLlmKeyVerifier`). The persistent repository and backup work is complete and is bound from the Android application module while the shared interfaces remain unchanged.
 2. Replace the placeholder `ProjectLinks.SOURCE_CODE_URL` (`https://github.com`) and confirm `applicationId` (`com.qoody.app`) before any Play upload.
 3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
 4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
 5. Website: landing page, download page, changelog, privacy policy, using the same brand tokens as `docs`/DESIGN.md.
 6. Git: create a remote, make the first commit (user's call), confirm CI runs green.
+7. Configure the website for static export/prerendering before enabling the Pages deployment workflow.
 
 ## UI behaviours worth knowing (where the design was silent)
 
@@ -40,6 +42,8 @@
 - Which on-device LLM runtime/model (the mocks mention "Jev v1.2")? Needed before the categorisation backend.
 
 ## Log
+
+- 2026-10-05 — Implemented Android Room/SQLite persistence, encrypted API-key storage with Android Keystore, password-protected versioned full-data backup/restore, atomic replacement confirmation, document-picker integration, and disabled Android cloud/device backup for app data. Verified Android unit tests, lint, Spotless, detekt, and release R8 build.
 
 - 2026-10-05 — Built the Android UI from the Stitch designs (design tokens, components, 5 screens, navigation, ViewModels in `shared`, placeholder data layer), 38 shared tests, Robolectric/Roborazzi screenshot tests, detekt MagicNumber enforcement, lint fixes (incl. an API-35-only `removeLast` crash), bundled fonts/icons (OFL/Apache licences in `docs/licenses`).
 - 2026-10-04 — Initial scaffold: KMP `mobile/` (AGP 9.4.1, Kotlin 2.4.20, Gradle 9.8.0, Compose BOM 2026.09.00, Koin, Ktor, Navigation 3), `web/` (TanStack Start, Tailwind v4, shadcn, Biome, Cloudflare), agent infrastructure (AGENTS.md hierarchy, docs/, verify scripts, Claude hooks/permissions, Context7 MCP, official Android skills, CI, Dependabot).

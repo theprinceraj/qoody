@@ -180,6 +180,8 @@ class ScreenshotTest {
                 onHapticsToggled = {},
                 onOpenSource = {},
                 onExport = {},
+                onExportFull = {},
+                onImportFull = {},
             )
         }
     }

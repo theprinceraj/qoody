@@ -204,6 +204,19 @@
     <string name="settings_tagline">Free &amp; Open Source Bookkeeping</string>
     <string name="settings_export_done">Ledger exported.</string>
     <string name="settings_export_failed">Couldn\'t write the file.</string>
+    <string name="settings_backup_export_title">Export Full Backup</string>
+    <string name="settings_backup_export_subtitle">Encrypted ledger and settings</string>
+    <string name="settings_backup_import_title">Import Full Backup</string>
+    <string name="settings_backup_import_subtitle">Replace this device\'s local data</string>
+    <string name="settings_backup_password_body">Choose a password for this backup. You will need it to restore your data.</string>
+    <string name="settings_backup_password_label">Backup password</string>
+    <string name="settings_backup_continue">Continue</string>
+    <string name="settings_backup_done">Backup operation completed.</string>
+    <string name="settings_backup_failed">Couldn\'t complete the backup operation.</string>
+    <string name="settings_backup_replace_title">Replace local data?</string>
+    <string name="settings_backup_replace_body">Importing this backup will replace the ledger and supported settings currently stored on this device. This cannot be undone.</string>
+    <string name="settings_backup_replace_confirm">Choose backup</string>
+    <string name="cancel">Cancel</string>
     <string name="settings_clipboard_empty">Nothing to paste: the clipboard is empty.</string>
     <string name="settings_no_browser">No app available to open this link.</string>
 </resources>

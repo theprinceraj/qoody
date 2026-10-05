@@ -48,3 +48,4 @@ Not started. To start: add `iosArm64()` and `iosSimulatorArm64()` targets to `sh
 - AGP 9 + KMP: the shared module must use `com.android.kotlin.multiplatform.library`; the app must be a separate `com.android.application` module. They cannot be combined in one module.
 - On Windows, set `JAVA_HOME` to JDK 21 if Gradle cannot find Java (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).
 - First Gradle run downloads ~1 GB and takes 10+ minutes; run long builds in the background rather than with a short timeout.
+- Room 3 uses the `room3 { schemaDirectory(...) }` Gradle DSL and `withWriteTransaction`; the older `room {}` and `runInTransaction` APIs do not apply.

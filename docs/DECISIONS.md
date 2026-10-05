@@ -39,3 +39,8 @@ Screens are rendered to PNG in JVM tests (Robolectric native graphics + Roborazz
 
 **D12 — Fonts and icons are bundled, not downloaded** · 2026-10-05 · accepted
 DM Sans, Plus Jakarta Sans and JetBrains Mono (SIL OFL; licences in `docs/licenses`) ship as variable fonts in `res/font`; Material Symbols (Apache 2.0) ship as vector drawables. No Google Fonts provider/GMS dependency, works offline (the app is on-device by promise).
+
+**D13 â€” Local-only persistence with user-controlled encrypted backups** Â· 2026-10-05 Â· accepted
+Context: Qoody handles sensitive financial data and should remain accountless and cloudless. Decision: persist the ledger and settings on-device using Room/SQLite; provide versioned full-data export and import through the platform document picker; support encrypted exports; never include the LLM/API key by default. Consequences: there is no server-side recovery or sync, users must retain their export file, imports need schema validation/migrations and explicit overwrite/merge handling, and Android backup behavior must be reviewed to avoid unintended cloud copies.
+**D14 — GitHub delivery workflows** · 2026-10-05 · accepted
+Context: Android releases need downloadable APKs and the website may eventually use GitHub Pages. Decision: publish an unsigned Android release APK from `v*` tags to GitHub Releases; build and deploy the website through GitHub Pages only when the build contains a static `web/dist/client/index.html`. Consequences: signed APK distribution remains a later secret/configuration task, and the current TanStack Start SSR/Cloudflare build intentionally blocks Pages deployment until static export/prerendering is configured.
