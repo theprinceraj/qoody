@@ -8,9 +8,12 @@ import com.qoody.shared.core.localDate
 import com.qoody.shared.core.spentBetween
 import com.qoody.shared.core.startOfMonth
 import com.qoody.shared.core.stateInViewModel
+import com.qoody.shared.domain.format.MoneyFormatter
+import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.format.toReceiptCode
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
+import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
@@ -18,6 +21,7 @@ import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
+import com.qoody.shared.feature.ledger.MERCHANT_MAX_LENGTH
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +31,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 /** One-off instructions from the ViewModel to the screen. */
@@ -45,6 +52,7 @@ class ReceiptViewModel(
 ) : ViewModel() {
     private val noteDraft = MutableStateFlow<String?>(null)
     private val isCategoryPickerOpen = MutableStateFlow(false)
+    private val editor = MutableStateFlow<EntryEditor?>(null)
     private val eventChannel = Channel<ReceiptEvent>(Channel.BUFFERED)
 
     val events: Flow<ReceiptEvent> = eventChannel.receiveAsFlow()
@@ -54,15 +62,21 @@ class ReceiptViewModel(
             ledger.observe(id),
             ledger.transactions,
             settings.settings,
-            noteDraft,
-            isCategoryPickerOpen,
-        ) { transaction, settled, appSettings, draft, pickerOpen ->
+            combine(noteDraft, isCategoryPickerOpen, editor, ::Overlays),
+        ) { transaction, settled, appSettings, overlays ->
             if (transaction == null) {
                 ReceiptUiState.NotFound
             } else {
-                content(transaction, settled, appSettings.currency, draft, pickerOpen)
+                content(transaction, settled, appSettings.currency, overlays)
             }
         }.stateInViewModel(viewModelScope, ReceiptUiState.Loading)
+
+    /** Screen-only state layered over the stored transaction. */
+    private data class Overlays(
+        val noteDraft: String?,
+        val isCategoryPickerOpen: Boolean,
+        val editor: EntryEditor?,
+    )
 
     fun onNoteChanged(text: String) = noteDraft.update { text }
 
@@ -82,6 +96,46 @@ class ReceiptViewModel(
         viewModelScope.launch {
             ledger.updateCategory(id, category)
             ledger.observe(id).first()?.let { merchantCategories.remember(it.merchant, category) }
+        }
+    }
+
+    fun onEditRequested() {
+        viewModelScope.launch {
+            val transaction = ledger.observe(id).first() ?: return@launch
+            editor.value =
+                EntryEditor(
+                    amountInput = MoneyInput.sanitize(MoneyFormatter.formatPlain(transaction.amount)),
+                    merchant = transaction.merchant,
+                    date = transaction.localDate(dates.zone),
+                    maxDate = dates.today(),
+                )
+        }
+    }
+
+    fun onEditAmountChanged(raw: String) = editor.update { it?.copy(amountInput = MoneyInput.sanitize(raw)) }
+
+    fun onEditMerchantChanged(raw: String) = editor.update { it?.copy(merchant = raw.take(MERCHANT_MAX_LENGTH)) }
+
+    fun onEditDateChanged(date: LocalDate) = editor.update { it?.copy(date = date) }
+
+    fun onEditDismissed() = editor.update { null }
+
+    /** Saves the corrected details; the time of day is kept when only the date changes. */
+    fun onEditSaved() {
+        val draft = editor.value?.takeIf { it.canSave } ?: return
+        val amount = MoneyInput.parse(draft.amountInput) ?: return
+        viewModelScope.launch {
+            val transaction = ledger.observe(id).first() ?: return@launch
+            val time = transaction.occurredAt.toLocalDateTime(dates.zone).time
+            ledger.updateDetails(
+                id,
+                EntryDetails(
+                    merchant = draft.merchant.trim(),
+                    amount = amount,
+                    occurredAt = draft.date.atTime(time).toInstant(dates.zone),
+                ),
+            )
+            editor.value = null
         }
     }
 
@@ -110,8 +164,7 @@ class ReceiptViewModel(
         transaction: Transaction,
         settled: List<Transaction>,
         currency: Currency,
-        draft: String?,
-        pickerOpen: Boolean,
+        overlays: Overlays,
     ): ReceiptUiState.Content {
         val zone = dates.zone
         val local = transaction.occurredAt.toLocalDateTime(zone)
@@ -127,12 +180,13 @@ class ReceiptViewModel(
             source = transaction.source,
             category = transaction.category,
             categorization = transaction.categorization,
-            note = draft ?: transaction.note,
+            note = overlays.noteDraft ?: transaction.note,
             notification = transaction.notification,
             paymentMethod = transaction.paymentMethod,
             referenceCode = transaction.referenceCode,
             categoryShare = categoryShare(transaction, settled, zone),
-            isCategoryPickerOpen = pickerOpen,
+            isCategoryPickerOpen = overlays.isCategoryPickerOpen,
+            editor = overlays.editor,
         )
     }
 

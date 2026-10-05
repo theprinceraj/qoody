@@ -35,6 +35,7 @@
 - **"Monthly Budget Impact"** (receipt) = this amount as a share of the same category's spend that month; there are no budgets yet.
 - **"Sync OK"** pill and the listener status mirror Android's notification-access setting (re-read on every resume, never stored or backed up). The listener switch opens Android's notification-access page, because only Android can grant or revoke it.
 - **Enable notification access** opens Android's notification-access settings (Qoody is listed there) and finishes onboarding.
+- **Edit entry** (receipt pencil): corrects amount, merchant and date; the time of day is kept.
 - **Excluded entries** (Settings): entries hidden with "Exclude from ledger"; Restore puts them back in the ledger and totals. An excluded receipt shows "Restore to ledger" instead of "Exclude".
 - **Failed to parse** (Settings): debit-looking notifications from allowlisted apps that had no readable amount; "Add manually" opens the add-expense sheet and removes the entry once saved. Capped at the 50 most recent.
 - Categories were unified across the mixed colours/names in the mocks: Food & Drink, Transport, Shopping, Rent & Bills, Friends, Subscriptions, Uncategorized.
@@ -48,6 +49,7 @@
 
 ## Log
 
+- 2026-10-05 — Edit entries: receipt pencil opens an "Edit entry" sheet (amount, merchant, date via Material date picker, no future dates; time of day kept). `LedgerRepository.updateDetails`; dedupe key unchanged so a re-posted SMS does not duplicate an edited entry. New `ic_edit` (Material Symbols). `verify -Target mobile` green.
 - 2026-10-05 — Remember category corrections (D20): receipt category changes are stored per merchant (`MerchantCategoryRepository`, Room `merchant_categories`, DB v3) and applied to later captures ahead of keyword rules (`Categorization.Remembered`). Backup format 3. `verify -Target mobile` green.
 - 2026-10-05 — v0.3.2: excluded entries can be restored. User confirmed on device that SMS capture now works (v0.3.1) but had no way back after "Exclude from ledger". Added `LedgerRepository.excluded`/`restore`, Settings → Excluded entries (list with Restore; tap opens the receipt), and "Restore to ledger" on an excluded receipt. Tests: Room + in-memory restore, receipt and list ViewModels, screenshot. `verify -Target mobile` green.
 - 2026-10-05 — v0.3.1: v0.3.0 still missed the user's real SMS. Bank of Baroda writes "Rs.35.00 Dr. from A/C ... and Cr. to <vpa>" (no "debited"), so the parser rejected it; Central Bank NEFT "to Ac XXXX to NAME" produced a garbled payee. Parser now treats "Dr. from" as a debit, skips "to Ac", trims numeric tails from VPA names (`shop0011-1@fbl` → Shop) and marks UPI handles as UPI. Fixtures are synthetic copies of the formats (no real messages committed). The Central Bank UPI debit format already parsed in 0.3.0, so if it still is not captured on the device, inspect the Google Messages notification with `adb shell dumpsys notification --noredact`.

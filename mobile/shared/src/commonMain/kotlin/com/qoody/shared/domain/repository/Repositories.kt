@@ -4,6 +4,7 @@ import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
+import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.NewUnparsedCapture
@@ -35,6 +36,12 @@ interface LedgerRepository {
     suspend fun updateNote(
         id: TransactionId,
         note: String,
+    )
+
+    /** Corrects the merchant, amount or time of an entry, for example a bank SMS with no payee. */
+    suspend fun updateDetails(
+        id: TransactionId,
+        details: EntryDetails,
     )
 
     /** Removes the entry from the ledger and every total without deleting it. */

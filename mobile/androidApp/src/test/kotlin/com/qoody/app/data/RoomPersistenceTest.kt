@@ -10,6 +10,7 @@ import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewCapturedTransaction
@@ -107,6 +108,24 @@ class RoomPersistenceTest {
 
             backup.import(exported, PASSWORD.toCharArray())
             assertEquals(Category.Shopping, memory.categoryFor("Blue Tokai"))
+        }
+
+    @Test
+    fun entryDetailsCanBeCorrected() =
+        runTest {
+            val ledger = RoomLedgerRepository(database, dates)
+            val id = ledger.addCaptured(capture("ref-edit"))!!
+
+            ledger.updateDetails(
+                id,
+                EntryDetails("Swiggy Instamart", Money(30_000), Instant.fromEpochMilliseconds(9_000)),
+            )
+
+            val stored = ledger.observe(id).first()!!
+            assertEquals("Swiggy Instamart", stored.merchant)
+            assertEquals(Money(30_000), stored.amount)
+            assertEquals(Instant.fromEpochMilliseconds(9_000), stored.occurredAt)
+            assertNull(ledger.addCaptured(capture("ref-edit")))
         }
 
     @Test
