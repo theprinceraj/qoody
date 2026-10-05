@@ -348,7 +348,7 @@ private fun CategoryPanel(
             CategoryPill(state.category)
             CategorizationBadge(state.categorization)
         }
-        if (state.categorization is Categorization.Model) {
+        if (state.categorization is Categorization.Model || state.categorization is Categorization.Rule) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -369,7 +369,7 @@ private fun CategoryPanel(
     }
 }
 
-/** Who chose the category: the on-device model (with its confidence) or the user. */
+/** Who chose the category: the on-device model (with its confidence), a keyword rule, or the user. */
 @Composable
 private fun CategorizationBadge(categorization: Categorization) {
     val text =
@@ -388,6 +388,10 @@ private fun CategorizationBadge(categorization: Categorization) {
                     categorization.modelName,
                     PercentFormatter.formatTenths(categorization.confidence),
                 )
+            }
+
+            is Categorization.Rule -> {
+                stringResource(R.string.receipt_matched_rule, categorization.ruleId)
             }
         }
     Row(

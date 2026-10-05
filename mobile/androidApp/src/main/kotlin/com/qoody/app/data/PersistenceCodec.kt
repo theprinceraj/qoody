@@ -1,5 +1,6 @@
 package com.qoody.app.data
 
+import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.CapturedNotification
@@ -10,9 +11,11 @@ import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.LlmSettings
 import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.domain.model.UnparsedCapture
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
@@ -29,6 +32,7 @@ data class TransactionRecord(
     val categorizationKind: String,
     val modelName: String? = null,
     val confidence: Int? = null,
+    val ruleId: String? = null,
     val paymentApp: String,
     val note: String,
     val tag: String? = null,
@@ -38,6 +42,19 @@ data class TransactionRecord(
     val notificationText: String? = null,
     val status: String,
     val source: String,
+    /** Added in backup format 2; absent in older backups and for manual entries. */
+    val dedupeKey: String? = null,
+)
+
+@Serializable
+data class UnparsedCaptureRecord(
+    val packageName: String,
+    val appName: String,
+    val title: String,
+    val text: String,
+    val postedAt: Long,
+    val reason: String,
+    val dedupeKey: String,
 )
 
 @Serializable
@@ -58,11 +75,13 @@ data class BackupPayload(
     val exportedAtEpochMillis: Long,
     val transactions: List<TransactionRecord>,
     val settings: SettingsRecord,
+    /** Added in backup format 2. */
+    val unparsedCaptures: List<UnparsedCaptureRecord> = emptyList(),
 )
 
 @Serializable
 data class BackupEnvelope(
-    val formatVersion: Int = BACKUP_FORMAT_VERSION,
+    val formatVersion: Int = ENVELOPE_FORMAT_VERSION,
     val salt: String,
     val iv: String,
     val ciphertext: String,
@@ -78,6 +97,7 @@ fun Transaction.toRecord(): TransactionRecord =
         categorizationKind = categorization.kind,
         modelName = (categorization as? Categorization.Model)?.modelName,
         confidence = (categorization as? Categorization.Model)?.confidence?.value,
+        ruleId = (categorization as? Categorization.Rule)?.ruleId,
         paymentApp = paymentApp,
         note = note,
         tag = tag,
@@ -97,12 +117,22 @@ fun TransactionRecord.toModel(): Transaction =
         occurredAt = Instant.fromEpochMilliseconds(occurredAt),
         category = enumValueOfOrDefault(category, Category.Uncategorized),
         categorization =
-            if (categorizationKind == CATEGORIZATION_MODEL && modelName != null && confidence != null) {
-                Categorization.Model(modelName, Permille(confidence))
-            } else if (categorizationKind == CATEGORIZATION_MANUAL) {
-                Categorization.Manual
-            } else {
-                Categorization.None
+            when {
+                categorizationKind == CATEGORIZATION_MODEL && modelName != null && confidence != null -> {
+                    Categorization.Model(modelName, Permille(confidence))
+                }
+
+                categorizationKind == CATEGORIZATION_RULE && ruleId != null -> {
+                    Categorization.Rule(ruleId)
+                }
+
+                categorizationKind == CATEGORIZATION_MANUAL -> {
+                    Categorization.Manual
+                }
+
+                else -> {
+                    Categorization.None
+                }
             },
         paymentApp = paymentApp,
         note = note,
@@ -117,6 +147,46 @@ fun TransactionRecord.toModel(): Transaction =
             },
         status = enumValueOfOrDefault(status, EntryStatus.Settled),
         source = enumValueOfOrDefault(source, EntrySource.Manual),
+    )
+
+fun TransactionEntity.toRecord(): TransactionRecord = decodeTransaction(payload).toRecord().copy(dedupeKey = dedupeKey)
+
+fun TransactionRecord.toEntity(): TransactionEntity = TransactionEntity(id, encodeTransaction(toModel()), dedupeKey)
+
+fun UnparsedCaptureEntity.toModel(): UnparsedCapture =
+    UnparsedCapture(
+        id = id,
+        packageName = packageName,
+        appName = appName,
+        title = title,
+        text = text,
+        postedAt = Instant.fromEpochMilliseconds(postedAt),
+        reason = enumValueOfOrDefault(reason, UnparsedReason.NoAmount),
+    )
+
+fun NewUnparsedCapture.toEntity(): UnparsedCaptureEntity =
+    UnparsedCaptureEntity(
+        packageName = packageName,
+        appName = appName,
+        title = title,
+        text = text,
+        postedAt = postedAt.toEpochMilliseconds(),
+        reason = reason.name,
+        dedupeKey = dedupeKey,
+    )
+
+fun UnparsedCaptureEntity.toRecord(): UnparsedCaptureRecord =
+    UnparsedCaptureRecord(packageName, appName, title, text, postedAt, reason, dedupeKey)
+
+fun UnparsedCaptureRecord.toEntity(): UnparsedCaptureEntity =
+    UnparsedCaptureEntity(
+        packageName = packageName,
+        appName = appName,
+        title = title,
+        text = text,
+        postedAt = postedAt,
+        reason = reason,
+        dedupeKey = dedupeKey,
     )
 
 fun AppSettings.toRecord(): SettingsRecord =
@@ -169,9 +239,16 @@ private val Categorization.kind: String
             Categorization.None -> CATEGORIZATION_NONE
             Categorization.Manual -> CATEGORIZATION_MANUAL
             is Categorization.Model -> CATEGORIZATION_MODEL
+            is Categorization.Rule -> CATEGORIZATION_RULE
         }
 
-const val BACKUP_FORMAT_VERSION = 1
+/** Version of [BackupPayload]. 2 added dedupe keys and unparsed captures; 1 is still importable. */
+const val BACKUP_FORMAT_VERSION = 2
+val SUPPORTED_BACKUP_FORMAT_VERSIONS = 1..BACKUP_FORMAT_VERSION
+
+/** Version of the encryption [BackupEnvelope], independent of the payload inside it. */
+const val ENVELOPE_FORMAT_VERSION = 1
 private const val CATEGORIZATION_NONE = "none"
 private const val CATEGORIZATION_MANUAL = "manual"
 private const val CATEGORIZATION_MODEL = "model"
+private const val CATEGORIZATION_RULE = "rule"

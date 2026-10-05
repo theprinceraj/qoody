@@ -6,6 +6,7 @@ import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
+import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
@@ -24,6 +25,7 @@ class InMemoryLedgerRepository(
     seed: List<Transaction> = SampleLedger.build(dates.today(), dates.zone),
 ) : LedgerRepository {
     private val all = MutableStateFlow(seed)
+    private val dedupeKeys = mutableSetOf<String>()
 
     override val transactions: Flow<List<Transaction>> =
         all.map { list ->
@@ -35,7 +37,7 @@ class InMemoryLedgerRepository(
     override fun observe(id: TransactionId): Flow<Transaction?> = all.map { list -> list.firstOrNull { it.id == id } }
 
     override suspend fun add(expense: NewExpense): TransactionId {
-        val id = TransactionId((all.value.maxOfOrNull { it.id.value } ?: SampleLedger.FIRST_ID) + 1)
+        val id = nextId()
         val transaction =
             Transaction(
                 id = id,
@@ -57,6 +59,30 @@ class InMemoryLedgerRepository(
         all.update { it + transaction }
         return id
     }
+
+    override suspend fun addCaptured(capture: NewCapturedTransaction): TransactionId? {
+        if (!dedupeKeys.add(capture.dedupeKey)) return null
+        val id = nextId()
+        all.update {
+            it +
+                Transaction(
+                    id = id,
+                    merchant = capture.merchant,
+                    amount = capture.amount,
+                    occurredAt = capture.occurredAt,
+                    category = capture.category,
+                    categorization = capture.categorization,
+                    paymentApp = capture.paymentApp,
+                    paymentMethod = capture.paymentMethod,
+                    referenceCode = capture.referenceCode,
+                    notification = capture.notification,
+                    source = EntrySource.Notification,
+                )
+        }
+        return id
+    }
+
+    private fun nextId() = TransactionId((all.value.maxOfOrNull { it.id.value } ?: SampleLedger.FIRST_ID) + 1)
 
     override suspend fun updateCategory(
         id: TransactionId,

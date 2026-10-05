@@ -2,16 +2,25 @@ package com.qoody.app.data
 
 import android.content.Context
 import android.util.Base64
+import androidx.room3.withWriteTransaction
+import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
+import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
+import com.qoody.shared.domain.model.EntrySource
+import com.qoody.shared.domain.model.EntryStatus
+import com.qoody.shared.domain.model.NewCapturedTransaction
 import com.qoody.shared.domain.model.NewExpense
+import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
+import com.qoody.shared.domain.model.UnparsedCapture
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.SettingsRepository
+import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -27,15 +36,15 @@ import javax.crypto.spec.GCMParameterSpec
 
 class RoomLedgerRepository(
     private val database: QoodyDatabase,
+    private val dates: DateProvider,
 ) : LedgerRepository {
     private val dao = database.transactionDao()
 
     override val transactions: Flow<List<Transaction>> =
         dao.observeAll().map { entities ->
             entities
-                .map {
-                    decodeTransaction(it.payload)
-                }.filter { it.status.name == SETTLED_STATUS }
+                .map { decodeTransaction(it.payload) }
+                .filter { it.status == EntryStatus.Settled }
                 .sortedByDescending { it.occurredAt }
         }
 
@@ -44,59 +53,99 @@ class RoomLedgerRepository(
             it?.let { decodeTransaction(it.payload) }
         }
 
-    override suspend fun add(expense: NewExpense): TransactionId {
-        val id = TransactionId((dao.getAll().maxOfOrNull { it.id } ?: 0L) + 1L)
-        val transaction =
-            Transaction(
-                id = id,
-                merchant = expense.merchant,
-                amount = expense.amount,
-                occurredAt =
-                    kotlin.time.Clock.System
-                        .now(),
-                category = expense.category,
-                categorization =
-                    if (expense.category == Category.Uncategorized) {
-                        com.qoody.shared.domain.model.Categorization.None
-                    } else {
-                        com.qoody.shared.domain.model.Categorization.Manual
-                    },
-                paymentApp = MANUAL_ENTRY_SOURCE,
-                source = com.qoody.shared.domain.model.EntrySource.Manual,
-            )
-        dao.upsert(TransactionEntity(id.value, encodeTransaction(transaction)))
-        return id
-    }
+    override suspend fun add(expense: NewExpense): TransactionId =
+        database.withWriteTransaction {
+            val id = nextId()
+            val transaction =
+                Transaction(
+                    id = id,
+                    merchant = expense.merchant,
+                    amount = expense.amount,
+                    occurredAt = dates.now(),
+                    category = expense.category,
+                    categorization =
+                        if (expense.category == Category.Uncategorized) {
+                            Categorization.None
+                        } else {
+                            Categorization.Manual
+                        },
+                    paymentApp = MANUAL_ENTRY_SOURCE,
+                    source = EntrySource.Manual,
+                )
+            dao.upsert(TransactionEntity(id.value, encodeTransaction(transaction)))
+            id
+        }
+
+    override suspend fun addCaptured(capture: NewCapturedTransaction): TransactionId? =
+        database.withWriteTransaction {
+            if (dao.hasDedupeKey(capture.dedupeKey)) return@withWriteTransaction null
+            val id = nextId()
+            val transaction =
+                Transaction(
+                    id = id,
+                    merchant = capture.merchant,
+                    amount = capture.amount,
+                    occurredAt = capture.occurredAt,
+                    category = capture.category,
+                    categorization = capture.categorization,
+                    paymentApp = capture.paymentApp,
+                    paymentMethod = capture.paymentMethod,
+                    referenceCode = capture.referenceCode,
+                    notification = capture.notification,
+                    source = EntrySource.Notification,
+                )
+            dao.upsert(TransactionEntity(id.value, encodeTransaction(transaction), capture.dedupeKey))
+            id
+        }
 
     override suspend fun updateCategory(
         id: TransactionId,
         category: Category,
-    ) = modify(id) {
-        it.copy(category = category, categorization = com.qoody.shared.domain.model.Categorization.Manual)
-    }
+    ) = modify(id) { it.copy(category = category, categorization = Categorization.Manual) }
 
     override suspend fun updateNote(
         id: TransactionId,
         note: String,
     ) = modify(id) { it.copy(note = note) }
 
-    override suspend fun exclude(id: TransactionId) =
-        modify(id) {
-            it.copy(status = com.qoody.shared.domain.model.EntryStatus.Excluded)
-        }
+    override suspend fun exclude(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Excluded) }
+
+    /** Only call inside a write transaction, so two writers cannot take the same id. */
+    private suspend fun nextId() = TransactionId((dao.maxId() ?: 0L) + 1L)
 
     private suspend fun modify(
         id: TransactionId,
         change: (Transaction) -> Transaction,
     ) {
-        val current = dao.getAll().firstOrNull { it.id == id.value } ?: return
-        dao.upsert(current.copy(payload = encodeTransaction(change(decodeTransaction(current.payload)))))
+        database.withWriteTransaction {
+            val current = dao.get(id.value) ?: return@withWriteTransaction
+            dao.upsert(current.copy(payload = encodeTransaction(change(decodeTransaction(current.payload)))))
+        }
     }
 
     private companion object {
         const val MANUAL_ENTRY_SOURCE = "Manual"
-        const val SETTLED_STATUS = "Settled"
     }
+}
+
+class RoomUnparsedCaptureRepository(
+    private val database: QoodyDatabase,
+) : UnparsedCaptureRepository {
+    private val dao = database.unparsedCaptureDao()
+
+    override val captures: Flow<List<UnparsedCapture>> = dao.observeAll().map { list -> list.map { it.toModel() } }
+
+    override suspend fun add(capture: NewUnparsedCapture) {
+        database.withWriteTransaction {
+            if (dao.hasDedupeKey(capture.dedupeKey)) return@withWriteTransaction
+            dao.insert(capture.toEntity())
+            dao.trimTo(UnparsedCaptureRepository.MAX_ENTRIES)
+        }
+    }
+
+    override suspend fun dismiss(id: Long) = dao.delete(id)
+
+    override suspend fun clear() = dao.deleteAll()
 }
 
 class EncryptedKeyStore(
@@ -206,5 +255,3 @@ class RoomSettingsRepository(
         dao.upsert(SettingsEntity(payload = encodeSettings(change(current))))
     }
 }
-
-private const val SETTLED_STATUS_UNUSED = "Settled"

@@ -1,6 +1,7 @@
 package com.qoody.app.data
 
 import android.util.Base64
+import androidx.annotation.VisibleForTesting
 import androidx.room3.withWriteTransaction
 import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -19,7 +20,8 @@ class BackupService(
 ) {
     suspend fun export(password: CharArray): ByteArray {
         require(password.isNotEmpty())
-        val transactions = database.transactionDao().getAll().map { decodeTransaction(it.payload).toRecord() }
+        val transactions = database.transactionDao().getAll().map { it.toRecord() }
+        val unparsed = database.unparsedCaptureDao().getAll().map { it.toRecord() }
         val payload =
             BackupPayload(
                 exportedAtEpochMillis =
@@ -28,6 +30,7 @@ class BackupService(
                         .toEpochMilliseconds(),
                 transactions = transactions,
                 settings = settings.settings.first().toRecord(),
+                unparsedCaptures = unparsed,
             )
         return encrypt(encodeBackup(payload), password)
     }
@@ -38,17 +41,22 @@ class BackupService(
     ) {
         require(password.isNotEmpty())
         val payload = decodeBackup(decrypt(bytes, password))
-        require(payload.formatVersion == BACKUP_FORMAT_VERSION) { "Unsupported backup version" }
-        val restored = payload.transactions.map { TransactionEntity(it.id, encodeTransaction(it.toModel())) }
+        require(payload.formatVersion in SUPPORTED_BACKUP_FORMAT_VERSIONS) { "Unsupported backup version" }
+        val restored = payload.transactions.map { it.toEntity() }
+        val unparsed = payload.unparsedCaptures.map { it.toEntity() }
         val settingsEntity = SettingsEntity(payload = encodeSettings(payload.settings.toModel()))
         database.withWriteTransaction {
             database.transactionDao().deleteAll()
             database.transactionDao().upsertAll(restored)
+            database.unparsedCaptureDao().deleteAll()
+            database.unparsedCaptureDao().insertAll(unparsed)
             database.settingsDao().upsert(settingsEntity)
         }
     }
 
-    private fun encrypt(
+    /** Encrypts an already-encoded [BackupPayload]; visible so tests can build backups of older formats. */
+    @VisibleForTesting
+    internal fun encrypt(
         plain: ByteArray,
         password: CharArray,
     ): ByteArray {
@@ -72,7 +80,7 @@ class BackupService(
     ): ByteArray {
         try {
             val envelope = decodeEnvelope(bytes)
-            require(envelope.formatVersion == BACKUP_FORMAT_VERSION) { "Unsupported backup version" }
+            require(envelope.formatVersion == ENVELOPE_FORMAT_VERSION) { "Unsupported backup version" }
             val salt = Base64.decode(envelope.salt, Base64.NO_WRAP)
             val iv = Base64.decode(envelope.iv, Base64.NO_WRAP)
             val cipher = Cipher.getInstance(TRANSFORMATION)

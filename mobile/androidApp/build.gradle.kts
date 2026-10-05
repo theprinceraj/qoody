@@ -78,6 +78,7 @@ dependencies {
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.sqlite.framework)
     testImplementation(platform(libs.androidx.compose.bom))
 
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

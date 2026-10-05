@@ -4,10 +4,12 @@ import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
+import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.SettingsRepository
+import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import com.qoody.shared.feature.insights.InsightsViewModel
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
 import com.qoody.shared.feature.ledger.LedgerViewModel
@@ -27,6 +29,7 @@ val sharedModule =
         single { DateProvider() }
         single<LedgerRepository> { InMemoryLedgerRepository(get()) }
         single<SettingsRepository> { InMemorySettingsRepository() }
+        single<UnparsedCaptureRepository> { InMemoryUnparsedCaptureRepository() }
         single<LlmKeyVerifier> { FakeLlmKeyVerifier() }
 
         viewModel { RootViewModel(get()) }
