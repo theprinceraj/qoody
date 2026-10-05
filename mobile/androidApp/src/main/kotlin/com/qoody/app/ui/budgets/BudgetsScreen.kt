@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
@@ -133,7 +134,13 @@ private fun BudgetCard(
     val detailColor = if (progress.isOver) colors.error else colors.secondary
     val figureColor = if (progress.isOver) colors.error else colors.onSurface
     val barColor = if (progress.isOver) colors.error else colors.primaryContainer
-    QoodyCard(modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)) {
+    QoodyCard(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(QoodyTheme.shapes.card)
+                .clickable(role = Role.Button, onClick = onClick),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -176,7 +183,7 @@ private fun BudgetCard(
 
 /** "₹1,240.00 of ₹2,000.00" with a budget, or "₹1,240.00 spent · no budget" without. */
 @Composable
-fun budgetLine(
+private fun budgetLine(
     spent: Money,
     limit: Money?,
     currency: Currency,
