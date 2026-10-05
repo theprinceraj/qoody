@@ -48,6 +48,14 @@ class RoomLedgerRepository(
                 .sortedByDescending { it.occurredAt }
         }
 
+    override val excluded: Flow<List<Transaction>> =
+        dao.observeAll().map { entities ->
+            entities
+                .map { decodeTransaction(it.payload) }
+                .filter { it.status == EntryStatus.Excluded }
+                .sortedByDescending { it.occurredAt }
+        }
+
     override fun observe(id: TransactionId): Flow<Transaction?> =
         dao.observe(id.value).map {
             it?.let { decodeTransaction(it.payload) }
@@ -109,6 +117,8 @@ class RoomLedgerRepository(
     ) = modify(id) { it.copy(note = note) }
 
     override suspend fun exclude(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Excluded) }
+
+    override suspend fun restore(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Settled) }
 
     /** Only call inside a write transaction, so two writers cannot take the same id. */
     private suspend fun nextId() = TransactionId((dao.maxId() ?: 0L) + 1L)

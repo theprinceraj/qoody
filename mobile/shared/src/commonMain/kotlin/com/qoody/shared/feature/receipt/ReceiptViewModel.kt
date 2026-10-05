@@ -92,6 +92,13 @@ class ReceiptViewModel(
         }
     }
 
+    fun onRestoreToLedger() {
+        viewModelScope.launch {
+            ledger.restore(id)
+            eventChannel.send(ReceiptEvent.Close)
+        }
+    }
+
     private fun content(
         transaction: Transaction,
         settled: List<Transaction>,

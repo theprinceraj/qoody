@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.qoody.app.ui.capture.UnparsedCapturesContent
+import com.qoody.app.ui.excluded.ExcludedEntriesContent
 import com.qoody.app.ui.insights.InsightsContent
 import com.qoody.app.ui.ledger.LedgerContent
 import com.qoody.app.ui.onboarding.OnboardingContent
@@ -24,6 +25,8 @@ import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.feature.capture.UnparsedCapturesUiState
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
+import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
+import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.insights.InsightsUiState
 import com.qoody.shared.feature.insights.InsightsViewModel
 import com.qoody.shared.feature.ledger.LedgerUiState
@@ -160,6 +163,7 @@ class ScreenshotTest {
                 onSplit = {},
                 onKeep = {},
                 onExclude = {},
+                onRestore = {},
             )
         }
     }
@@ -181,6 +185,7 @@ class ScreenshotTest {
                 onNotificationToggled = {},
                 onManageApps = {},
                 onOpenUnparsedCaptures = {},
+                onOpenExcludedEntries = {},
                 onPasteKey = {},
                 onToggleKeyVisibility = {},
                 onTestKey = {},
@@ -210,6 +215,19 @@ class ScreenshotTest {
                 onDismiss = {},
                 onClearAll = {},
             )
+        }
+    }
+
+    @Test
+    fun excludedEntries() {
+        val newest = runBlocking { ledger.transactions.first().first() }
+        runBlocking { ledger.exclude(newest.id) }
+        val state =
+            ExcludedEntriesViewModel(ledger, settings, dates).uiState.await {
+                it is ExcludedEntriesUiState.Content && it.entries.isNotEmpty()
+            }
+        capture("excluded-entries") {
+            ExcludedEntriesContent(state = state, onBack = {}, onProfileClick = {}, onOpenReceipt = {}, onRestore = {})
         }
     }
 

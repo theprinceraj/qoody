@@ -168,6 +168,19 @@
     <string name="receipt_split">Split expense</string>
     <string name="receipt_keep">Keep entry</string>
     <string name="receipt_exclude">Exclude from ledger</string>
+    <string name="receipt_restore">Restore to ledger</string>
+    <string name="settings_excluded_title">Excluded entries</string>
+    <string name="settings_excluded_none">Nothing excluded</string>
+    <plurals name="settings_excluded_count">
+        <item quantity="one">%1$d entry hidden from your ledger</item>
+        <item quantity="other">%1$d entries hidden from your ledger</item>
+    </plurals>
+    <string name="excluded_title">Excluded entries</string>
+    <string name="excluded_intro">These payments are hidden from the ledger and every total. Restore one to count it again.</string>
+    <string name="excluded_empty_title">Nothing excluded</string>
+    <string name="excluded_empty_body">Entries you exclude from the ledger will show up here.</string>
+    <string name="excluded_row_subtitle">%1$s · %2$s · %3$s</string>
+    <string name="excluded_restore">Restore</string>
     <string name="receipt_split_unavailable">Splitting expenses isn\'t available yet.</string>
     <string name="receipt_not_found">This receipt no longer exists.</string>
     <string name="category_picker_title">Choose a category</string>

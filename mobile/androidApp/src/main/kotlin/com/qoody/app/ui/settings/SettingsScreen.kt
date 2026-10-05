@@ -91,6 +91,7 @@ fun SettingsScreen(
     onSearchClick: () -> Unit,
     onOpenNotificationAccessSettings: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
+    onOpenExcludedEntries: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -159,6 +160,7 @@ fun SettingsScreen(
         onNotificationToggled = { onOpenNotificationAccessSettings() },
         onManageApps = onOpenNotificationAccessSettings,
         onOpenUnparsedCaptures = onOpenUnparsedCaptures,
+        onOpenExcludedEntries = onOpenExcludedEntries,
         onPasteKey = {
             scope.launch {
                 val pasted =
@@ -299,6 +301,7 @@ fun SettingsContent(
     onNotificationToggled: (Boolean) -> Unit,
     onManageApps: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
+    onOpenExcludedEntries: () -> Unit,
     onPasteKey: () -> Unit,
     onToggleKeyVisibility: () -> Unit,
     onTestKey: () -> Unit,
@@ -337,6 +340,7 @@ fun SettingsContent(
                                     onNotificationToggled,
                                     onManageApps,
                                     onOpenUnparsedCaptures,
+                                    onOpenExcludedEntries,
                                 )
                             }
                             item { IntelligenceSection(state, onPasteKey, onToggleKeyVisibility, onTestKey) }
@@ -421,6 +425,7 @@ private fun AutomationSection(
     onToggled: (Boolean) -> Unit,
     onManageApps: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
+    onOpenExcludedEntries: () -> Unit,
 ) {
     val enabled = state.settings.notificationListenerEnabled
     val listenerLabel = if (enabled) R.string.settings_listener_active else R.string.settings_listener_paused
@@ -526,6 +531,28 @@ private fun AutomationSection(
                         )
                     },
                 onClick = onOpenUnparsedCaptures,
+            ) {
+                QoodyIcon(
+                    R.drawable.ic_arrow_forward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+            }
+            HairlineDivider()
+            SettingRow(
+                icon = R.drawable.ic_visibility_off,
+                title = stringResource(R.string.settings_excluded_title),
+                subtitle =
+                    if (state.excludedCount == 0) {
+                        stringResource(R.string.settings_excluded_none)
+                    } else {
+                        pluralStringResource(
+                            R.plurals.settings_excluded_count,
+                            state.excludedCount,
+                            state.excludedCount,
+                        )
+                    },
+                onClick = onOpenExcludedEntries,
             ) {
                 QoodyIcon(
                     R.drawable.ic_arrow_forward,

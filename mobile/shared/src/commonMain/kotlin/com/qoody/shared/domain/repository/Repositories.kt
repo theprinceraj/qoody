@@ -16,6 +16,9 @@ interface LedgerRepository {
     /** Settled transactions, newest first. Excluded entries are never emitted here. */
     val transactions: Flow<List<Transaction>>
 
+    /** Entries the user excluded from the ledger, newest first. */
+    val excluded: Flow<List<Transaction>>
+
     /** A single transaction in any status, or `null` when it does not exist. */
     fun observe(id: TransactionId): Flow<Transaction?>
 
@@ -36,6 +39,9 @@ interface LedgerRepository {
 
     /** Removes the entry from the ledger and every total without deleting it. */
     suspend fun exclude(id: TransactionId)
+
+    /** Puts an excluded entry back into the ledger and its totals. */
+    suspend fun restore(id: TransactionId)
 }
 
 /** Notifications that looked like payments but could not be read. */

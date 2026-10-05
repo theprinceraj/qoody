@@ -23,6 +23,10 @@ data object InsightsKey : TabKey
 @Serializable
 data object SettingsKey : TabKey
 
+/** Entries excluded from the ledger, opened from Settings. */
+@Serializable
+data object ExcludedEntriesKey : NavKey
+
 /** The "Failed to parse" list, opened from Settings. */
 @Serializable
 data object UnparsedCapturesKey : NavKey

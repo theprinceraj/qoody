@@ -93,6 +93,21 @@ class RoomPersistenceTest {
         }
 
     @Test
+    fun excludedEntriesCanBeRestored() =
+        runTest {
+            val ledger = RoomLedgerRepository(database, dates)
+            val id = ledger.add(NewExpense("Cafe", Money(450), Category.FoodAndDrink))
+
+            ledger.exclude(id)
+            assertEquals(listOf(id), ledger.excluded.first().map { it.id })
+            assertEquals(emptyList<Transaction>(), ledger.transactions.first())
+
+            ledger.restore(id)
+            assertEquals(listOf(id), ledger.transactions.first().map { it.id })
+            assertEquals(emptyList<Transaction>(), ledger.excluded.first())
+        }
+
+    @Test
     fun unparsedCapturesDedupeAndKeepOnlyTheMostRecent() =
         runTest {
             val repository = RoomUnparsedCaptureRepository(database)
