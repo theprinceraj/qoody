@@ -117,6 +117,15 @@ class InMemoryLedgerRepository(
 
     override suspend fun restore(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Settled) }
 
+    override suspend fun recategorise(
+        from: Category,
+        to: Category,
+    ) {
+        all.update { list ->
+            list.map { if (it.category == from) it.copy(category = to, categorization = Categorization.None) else it }
+        }
+    }
+
     private fun modify(
         id: TransactionId,
         change: (Transaction) -> Transaction,

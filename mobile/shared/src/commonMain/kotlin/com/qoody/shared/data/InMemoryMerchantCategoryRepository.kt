@@ -17,4 +17,8 @@ class InMemoryMerchantCategoryRepository : MerchantCategoryRepository {
         val key = MerchantKey.of(merchant)
         if (key.isNotEmpty()) categories[key] = category
     }
+
+    override suspend fun forget(category: Category) {
+        categories.values.removeAll { it == category }
+    }
 }

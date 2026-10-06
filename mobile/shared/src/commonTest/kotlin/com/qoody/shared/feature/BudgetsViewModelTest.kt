@@ -2,14 +2,16 @@ package com.qoody.shared.feature
 
 import com.qoody.shared.ViewModelTest
 import com.qoody.shared.data.InMemoryBudgetRepository
+import com.qoody.shared.data.InMemoryCategoryRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
-import com.qoody.shared.feature.budgets.BudgetableCategories
 import com.qoody.shared.feature.budgets.BudgetsUiState
 import com.qoody.shared.feature.budgets.BudgetsViewModel
+import com.qoody.shared.feature.budgets.budgetableCategories
 import com.qoody.shared.fixedDates
 import com.qoody.shared.transaction
 import kotlinx.coroutines.flow.first
@@ -40,7 +42,9 @@ class BudgetsViewModelTest : ViewModelTest() {
                 Category.Transport to Money.of(60),
             ),
         )
-    private val viewModel by lazy { BudgetsViewModel(budgets, ledger, dates) }
+    private val pets = CustomCategory(id = 1, name = "Pets", emoji = "🐾")
+    private val categories = InMemoryCategoryRepository(listOf(pets))
+    private val viewModel by lazy { BudgetsViewModel(budgets, ledger, categories, dates) }
 
     private fun content() = viewModel.uiState.latest() as BudgetsUiState.Content
 
@@ -49,7 +53,8 @@ class BudgetsViewModelTest : ViewModelTest() {
     @Test
     fun showsThisMonthsSpendAgainstEachLimit() =
         runTest {
-            assertEquals(BudgetableCategories, content().rows.map { it.category })
+            assertEquals(budgetableCategories(listOf(pets)), content().rows.map { it.category })
+            assertTrue(pets.category in content().rows.map { it.category })
             assertEquals(Money.of(50), row(Category.FoodAndDrink).spent)
             assertEquals(Permille(250), row(Category.FoodAndDrink).used)
             assertFalse(row(Category.FoodAndDrink).isOver)

@@ -11,8 +11,10 @@ import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.repository.BudgetRepository
+import com.qoody.shared.domain.repository.CategoryRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,11 +49,13 @@ sealed interface BudgetsUiState {
 }
 
 /** Categories a budget can be set for; "Uncategorized" is a to-do pile, not a spending goal. */
-val BudgetableCategories: List<Category> = Category.entries.filter { it != Category.Uncategorized }
+fun budgetableCategories(custom: List<CustomCategory>): List<Category> =
+    Category.all(custom).filter { it != Category.Uncategorized }
 
 class BudgetsViewModel(
     private val budgets: BudgetRepository,
     ledger: LedgerRepository,
+    categories: CategoryRepository,
     private val dates: DateProvider,
 ) : ViewModel() {
     private val editor = MutableStateFlow<BudgetEditor?>(null)
@@ -60,14 +64,15 @@ class BudgetsViewModel(
         combine(
             budgets.budgets,
             ledger.transactions,
+            categories.custom,
             editor,
-        ) { limits, transactions, open ->
+        ) { limits, transactions, custom, open ->
             val today = dates.today()
             val month = today.startOfMonth()..today.endOfMonth()
             BudgetsUiState.Content(
                 month = today.month,
                 rows =
-                    BudgetableCategories.map { category ->
+                    budgetableCategories(custom).map { category ->
                         val spent = transactions.filter { it.category == category }.spentBetween(month, dates.zone)
                         BudgetRow(category, BudgetProgress(spent, limits[category]))
                     },
