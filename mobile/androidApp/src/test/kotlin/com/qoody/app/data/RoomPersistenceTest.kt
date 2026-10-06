@@ -10,6 +10,7 @@ import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.Money
@@ -144,6 +145,40 @@ class RoomPersistenceTest {
             backup.import(exported, PASSWORD.toCharArray())
 
             assertEquals(mapOf(Category.FoodAndDrink to Money(500_000)), budgets.budgets.first())
+        }
+
+    @Test
+    fun customCategoriesWorkAcrossEntriesBudgetsMemoriesAndBackups() =
+        runTest {
+            val categories = RoomCategoryRepository(database)
+            val ledger = RoomLedgerRepository(database, dates)
+            val budgets = RoomBudgetRepository(database)
+            val memory = RoomMerchantCategoryRepository(database)
+            val pets = categories.create("Pets", "🐾")
+            val entry = ledger.add(NewExpense("Vet", Money(90_000), pets.category))
+            budgets.setBudget(pets.category, Money(200_000))
+            memory.remember("Vet", pets.category)
+            categories.update(pets.copy(name = "Pet care"))
+
+            assertEquals(listOf(CustomCategory(pets.id, "Pet care", "🐾")), categories.custom.first())
+            assertEquals(pets.category, ledger.observe(entry).first()?.category)
+            assertEquals(mapOf(pets.category to Money(200_000)), budgets.budgets.first())
+            assertEquals(pets.category, memory.categoryFor("Vet"))
+
+            val backup = BackupService(database, InMemorySettingsRepository())
+            val exported = backup.export(PASSWORD.toCharArray())
+            database.customCategoryDao().deleteAll()
+            backup.import(exported, PASSWORD.toCharArray())
+            assertEquals(listOf(CustomCategory(pets.id, "Pet care", "🐾")), categories.custom.first())
+
+            ledger.recategorise(from = pets.category, to = Category.Uncategorized)
+            memory.forget(pets.category)
+            categories.delete(pets.id)
+            val moved = ledger.observe(entry).first()!!
+            assertEquals(Category.Uncategorized, moved.category)
+            assertEquals(Categorization.None, moved.categorization)
+            assertNull(memory.categoryFor("Vet"))
+            assertEquals(emptyList<CustomCategory>(), categories.custom.first())
         }
 
     @Test

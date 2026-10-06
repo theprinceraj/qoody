@@ -6,6 +6,7 @@ import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.Money
@@ -76,6 +77,15 @@ data class BackupPayload(
     val merchantCategories: Map<String, String> = emptyMap(),
     /** Added in backup format 4: category name to monthly limit in minor units. */
     val budgets: Map<String, Long> = emptyMap(),
+    /** Added in backup format 7: the user's own categories. */
+    val customCategories: List<CustomCategoryRecord> = emptyList(),
+)
+
+@Serializable
+data class CustomCategoryRecord(
+    val id: Long,
+    val name: String,
+    val emoji: String,
 )
 
 @Serializable
@@ -92,7 +102,7 @@ fun Transaction.toRecord(): TransactionRecord =
         merchant = merchant,
         amount = amount.minorUnits,
         occurredAt = occurredAt.toEpochMilliseconds(),
-        category = category.name,
+        category = category.key,
         categorizationKind = categorization.kind,
         modelName = (categorization as? Categorization.Model)?.modelName,
         confidence = (categorization as? Categorization.Model)?.confidence?.value,
@@ -114,7 +124,7 @@ fun TransactionRecord.toModel(): Transaction =
         merchant = merchant,
         amount = Money(amount),
         occurredAt = Instant.fromEpochMilliseconds(occurredAt),
-        category = enumValueOfOrDefault(category, Category.Uncategorized),
+        category = Category.fromKey(category) ?: Category.Uncategorized,
         categorization =
             when {
                 categorizationKind == CATEGORIZATION_MODEL && modelName != null && confidence != null -> {
@@ -210,6 +220,14 @@ fun SettingsRecord.toModel(): AppSettings =
         hapticsEnabled = hapticsEnabled,
     )
 
+fun CustomCategoryEntity.toModel(): CustomCategory = CustomCategory(id, name, emoji)
+
+fun CustomCategory.toEntity(): CustomCategoryEntity = CustomCategoryEntity(id, name, emoji)
+
+fun CustomCategoryEntity.toRecord(): CustomCategoryRecord = CustomCategoryRecord(id, name, emoji)
+
+fun CustomCategoryRecord.toEntity(): CustomCategoryEntity = CustomCategoryEntity(id, name, emoji)
+
 fun encodeTransaction(transaction: Transaction): String = json.encodeToString(transaction.toRecord())
 
 fun decodeTransaction(payload: String): Transaction = json.decodeFromString<TransactionRecord>(payload).toModel()
@@ -244,9 +262,10 @@ private val Categorization.kind: String
 /**
  * Version of [BackupPayload]. 2 added dedupe keys and unparsed captures, 3 remembered merchant
  * categories, 4 category budgets, 5 dropped the language-model settings, 6 dropped the currency
- * (Qoody is rupees only); older versions are still importable (their extra settings fields are ignored).
+ * (Qoody is rupees only), 7 custom categories; older versions are still importable (their extra
+ * settings fields are ignored).
  */
-const val BACKUP_FORMAT_VERSION = 6
+const val BACKUP_FORMAT_VERSION = 7
 val SUPPORTED_BACKUP_FORMAT_VERSIONS = 1..BACKUP_FORMAT_VERSION
 
 /** Version of the encryption [BackupEnvelope], independent of the payload inside it. */

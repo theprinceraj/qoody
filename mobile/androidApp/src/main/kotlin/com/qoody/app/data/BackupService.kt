@@ -24,6 +24,7 @@ class BackupService(
         val unparsed = database.unparsedCaptureDao().getAll().map { it.toRecord() }
         val merchantCategories = database.merchantCategoryDao().getAll().associate { it.merchantKey to it.category }
         val budgets = database.categoryBudgetDao().getAll().associate { it.category to it.limitMinor }
+        val customCategories = database.customCategoryDao().getAll().map { it.toRecord() }
         val payload =
             BackupPayload(
                 exportedAtEpochMillis =
@@ -35,6 +36,7 @@ class BackupService(
                 unparsedCaptures = unparsed,
                 merchantCategories = merchantCategories,
                 budgets = budgets,
+                customCategories = customCategories,
             )
         return encrypt(encodeBackup(payload), password)
     }
@@ -53,6 +55,7 @@ class BackupService(
                 MerchantCategoryEntity(key, category)
             }
         val budgets = payload.budgets.map { (category, limit) -> CategoryBudgetEntity(category, limit) }
+        val customCategories = payload.customCategories.map { it.toEntity() }
         val settingsEntity = SettingsEntity(payload = encodeSettings(payload.settings.toModel()))
         database.withWriteTransaction {
             database.transactionDao().deleteAll()
@@ -63,6 +66,8 @@ class BackupService(
             database.merchantCategoryDao().upsertAll(merchantCategories)
             database.categoryBudgetDao().deleteAll()
             database.categoryBudgetDao().upsertAll(budgets)
+            database.customCategoryDao().deleteAll()
+            database.customCategoryDao().upsertAll(customCategories)
             database.settingsDao().upsert(settingsEntity)
         }
     }
