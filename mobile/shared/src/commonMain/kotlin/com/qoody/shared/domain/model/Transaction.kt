@@ -84,6 +84,8 @@ data class NewExpense(
     val merchant: String,
     val amount: Money,
     val category: Category,
+    /** When it was paid; `null` means now. */
+    val occurredAt: Instant? = null,
 )
 
 /** An expense read from a payment notification, ready to be stored. */

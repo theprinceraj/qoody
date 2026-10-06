@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qoody.app.R
 import com.qoody.app.ui.components.CategoryPill
+import com.qoody.app.ui.components.EntryDateField
 import com.qoody.app.ui.components.PrimaryButton
 import com.qoody.app.ui.components.QoodyModalSheet
 import com.qoody.app.ui.components.QoodyTextField
@@ -30,6 +31,7 @@ import com.qoody.shared.domain.model.Money
 import com.qoody.shared.feature.ledger.AddExpenseEvent
 import com.qoody.shared.feature.ledger.AddExpenseUiState
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
+import kotlinx.datetime.LocalDate
 import org.koin.androidx.compose.koinViewModel
 
 /** Bottom sheet for typing in a payment by hand. [onSaved] runs instead of [onDismiss] after a save. */
@@ -55,6 +57,7 @@ fun AddExpenseSheet(
             onAmountChange = viewModel::onAmountChanged,
             onMerchantChange = viewModel::onMerchantChanged,
             onCategorySelected = viewModel::onCategorySelected,
+            onDateChange = viewModel::onDateChanged,
             onSave = viewModel::onSave,
         )
     }
@@ -66,6 +69,7 @@ private fun AddExpenseForm(
     onAmountChange: (String) -> Unit,
     onMerchantChange: (String) -> Unit,
     onCategorySelected: (Category) -> Unit,
+    onDateChange: (LocalDate) -> Unit,
     onSave: () -> Unit,
 ) {
     Text(
@@ -118,6 +122,10 @@ private fun AddExpenseForm(
             }
         }
     }
+
+    val date = state.date
+    val maxDate = state.maxDate
+    if (date != null && maxDate != null) EntryDateField(date = date, maxDate = maxDate, onDateChange = onDateChange)
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         PrimaryButton(

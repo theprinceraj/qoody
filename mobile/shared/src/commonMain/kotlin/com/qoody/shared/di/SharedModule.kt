@@ -43,7 +43,7 @@ val sharedModule =
         viewModel { RootViewModel(get()) }
         viewModel { OnboardingViewModel(get()) }
         viewModel { LedgerViewModel(get(), get(), get(), get()) }
-        viewModel { AddExpenseViewModel(get(), get()) }
+        viewModel { AddExpenseViewModel(get(), get(), get()) }
         viewModel { InsightsViewModel(get(), get(), get()) }
         viewModel { SettingsViewModel(get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
