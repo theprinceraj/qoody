@@ -5,7 +5,6 @@ import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
 import com.qoody.shared.domain.model.Money
@@ -44,7 +43,6 @@ sealed interface ReceiptUiState {
         val code: String,
         val merchant: String,
         val amount: Money,
-        val currency: Currency,
         val date: LocalDate,
         val time: LocalTime,
         val paymentApp: String,

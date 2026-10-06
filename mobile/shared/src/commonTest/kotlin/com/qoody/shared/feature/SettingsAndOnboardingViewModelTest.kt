@@ -7,7 +7,6 @@ import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.feature.ledger.AddExpenseEvent
@@ -84,12 +83,10 @@ class SettingsViewModelTest : ViewModelTest() {
     @Test
     fun togglesAndPreferencesArePersisted() =
         runTest {
-            viewModel.onCurrencySelected(Currency.Inr)
             viewModel.onHapticsToggled(false)
             viewModel.onNotificationListenerToggled(true)
 
             val state = content()
-            assertEquals(Currency.Inr, state.settings.currency)
             assertFalse(state.settings.hapticsEnabled)
             assertTrue(state.settings.notificationListenerEnabled)
         }
@@ -109,7 +106,7 @@ class AddExpenseViewModelTest : ViewModelTest() {
     private val ledger = InMemoryLedgerRepository(dates, emptyList())
 
     // Lazy: a ViewModel must be created after the test installs the Main dispatcher.
-    private val viewModel by lazy { AddExpenseViewModel(ledger, InMemorySettingsRepository(), dates) }
+    private val viewModel by lazy { AddExpenseViewModel(ledger, dates) }
 
     @Test
     fun canSaveOnlyWithAPositiveAmountAndAMerchant() =

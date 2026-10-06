@@ -2,7 +2,6 @@ package com.qoody.shared.data
 
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +20,6 @@ class InMemorySettingsRepository(
     override suspend fun setNotificationListenerEnabled(enabled: Boolean) =
         state.update { it.copy(notificationListenerEnabled = enabled) }
 
-    override suspend fun setCurrency(currency: Currency) = state.update { it.copy(currency = currency) }
-
     override suspend fun setTheme(theme: AppTheme) = state.update { it.copy(theme = theme) }
 
     override suspend fun setHapticsEnabled(enabled: Boolean) = state.update { it.copy(hapticsEnabled = enabled) }
@@ -35,7 +32,6 @@ class InMemorySettingsRepository(
                 onboardingCompleted = false,
                 notificationListenerEnabled = false,
                 monitoredAppCount = SAMPLE_MONITORED_APP_COUNT,
-                currency = Currency.Usd,
                 theme = AppTheme.WarmPaper,
                 hapticsEnabled = true,
             )

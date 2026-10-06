@@ -6,15 +6,13 @@ import com.qoody.shared.core.DateProvider
 import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.NewExpense
 import com.qoody.shared.domain.repository.LedgerRepository
-import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,7 +28,6 @@ data class AddExpenseUiState(
     val amountInput: String = "",
     val merchant: String = "",
     val category: Category = Category.Uncategorized,
-    val currency: Currency = Currency.Usd,
     /** The day the payment was made; today unless the user picks another. */
     val date: LocalDate? = null,
     /** The latest selectable day: entries never lie in the future. */
@@ -44,7 +41,6 @@ sealed interface AddExpenseEvent {
 
 class AddExpenseViewModel(
     private val ledger: LedgerRepository,
-    settings: SettingsRepository,
     private val dates: DateProvider,
 ) : ViewModel() {
     private data class Draft(
@@ -61,17 +57,17 @@ class AddExpenseViewModel(
     val events: Flow<AddExpenseEvent> = eventChannel.receiveAsFlow()
 
     val uiState: StateFlow<AddExpenseUiState> =
-        combine(draft, settings.settings) { draft, appSettings ->
-            AddExpenseUiState(
-                amountInput = draft.amountInput,
-                merchant = draft.merchant,
-                category = draft.category,
-                currency = appSettings.currency,
-                date = draft.date ?: dates.today(),
-                maxDate = dates.today(),
-                canSave = MoneyInput.parse(draft.amountInput) != null && draft.merchant.isNotBlank(),
-            )
-        }.stateInViewModel(viewModelScope, AddExpenseUiState())
+        draft
+            .map { draft ->
+                AddExpenseUiState(
+                    amountInput = draft.amountInput,
+                    merchant = draft.merchant,
+                    category = draft.category,
+                    date = draft.date ?: dates.today(),
+                    maxDate = dates.today(),
+                    canSave = MoneyInput.parse(draft.amountInput) != null && draft.merchant.isNotBlank(),
+                )
+            }.stateInViewModel(viewModelScope, AddExpenseUiState())
 
     fun onAmountChanged(raw: String) = draft.update { it.copy(amountInput = MoneyInput.sanitize(raw)) }
 

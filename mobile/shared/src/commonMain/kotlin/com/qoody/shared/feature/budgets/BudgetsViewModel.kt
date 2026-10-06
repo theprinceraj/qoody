@@ -11,11 +11,9 @@ import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
-import com.qoody.shared.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -42,7 +40,6 @@ sealed interface BudgetsUiState {
     data object Loading : BudgetsUiState
 
     data class Content(
-        val currency: Currency,
         val month: Month,
         val rows: List<BudgetRow>,
         val editor: BudgetEditor?,
@@ -55,7 +52,6 @@ val BudgetableCategories: List<Category> = Category.entries.filter { it != Categ
 class BudgetsViewModel(
     private val budgets: BudgetRepository,
     ledger: LedgerRepository,
-    settings: SettingsRepository,
     private val dates: DateProvider,
 ) : ViewModel() {
     private val editor = MutableStateFlow<BudgetEditor?>(null)
@@ -64,13 +60,11 @@ class BudgetsViewModel(
         combine(
             budgets.budgets,
             ledger.transactions,
-            settings.settings,
             editor,
-        ) { limits, transactions, appSettings, open ->
+        ) { limits, transactions, open ->
             val today = dates.today()
             val month = today.startOfMonth()..today.endOfMonth()
             BudgetsUiState.Content(
-                currency = appSettings.currency,
                 month = today.month,
                 rows =
                     BudgetableCategories.map { category ->

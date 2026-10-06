@@ -70,7 +70,6 @@ import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.format.SignStyle
 import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.feature.ledger.DayGroup
 import com.qoody.shared.feature.ledger.DayLabel
@@ -177,7 +176,7 @@ private fun LedgerList(
         if (state.search.isActive) {
             item(key = SEARCH_KEY) { SearchField(state.search, onSearchQueryChange, onSearchClose) }
         }
-        item(key = SUMMARY_KEY) { SummaryCard(state.summary, state.currency, formats, onOpenBudgets) }
+        item(key = SUMMARY_KEY) { SummaryCard(state.summary, formats, onOpenBudgets) }
         item(key = FILTERS_KEY) {
             CategoryFilters(
                 selected = state.selectedCategory,
@@ -200,7 +199,7 @@ private fun LedgerList(
             }
         }
         items(items = state.dayGroups, key = { it.date.toString() }) { group ->
-            DayGroupCard(group, state.currency, state.hapticsEnabled, formats, onRowClick)
+            DayGroupCard(group, state.hapticsEnabled, formats, onRowClick)
         }
     }
 }
@@ -242,7 +241,6 @@ private fun SearchField(
 @Composable
 private fun SummaryCard(
     summary: MonthSummary,
-    currency: Currency,
     formats: DateFormats,
     onOpenBudgets: () -> Unit,
 ) {
@@ -268,7 +266,7 @@ private fun SummaryCard(
             verticalAlignment = Alignment.Bottom,
         ) {
             Text(
-                text = currency.symbol,
+                text = MoneyFormatter.SYMBOL,
                 style = QoodyTheme.typography.numericHero.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.primaryContainer,
             )
@@ -284,7 +282,7 @@ private fun SummaryCard(
                 horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val previous = MoneyFormatter.format(trend.previousSpent, currency)
+                val previous = MoneyFormatter.format(trend.previousSpent)
                 when (trend.direction) {
                     TrendDirection.Same -> {
                         TrendText(stringResource(R.string.ledger_trend_same, previous))
@@ -324,7 +322,7 @@ private fun SummaryCard(
                 }
             }
         }
-        BudgetSummary(summary.budget, currency, onOpenBudgets)
+        BudgetSummary(summary.budget, onOpenBudgets)
     }
 }
 
@@ -332,7 +330,6 @@ private fun SummaryCard(
 @Composable
 private fun BudgetSummary(
     budget: BudgetProgress?,
-    currency: Currency,
     onOpenBudgets: () -> Unit,
 ) {
     val limit = budget?.limit
@@ -365,8 +362,8 @@ private fun BudgetSummary(
             text =
                 stringResource(
                     R.string.ledger_budget_line,
-                    MoneyFormatter.format(budget.spent, currency),
-                    MoneyFormatter.format(limit, currency),
+                    MoneyFormatter.format(budget.spent),
+                    MoneyFormatter.format(limit),
                 ),
             style = QoodyTheme.typography.bodySm,
             color = MaterialTheme.colorScheme.secondary,
@@ -416,7 +413,6 @@ private fun CategoryFilters(
 @Composable
 private fun DayGroupCard(
     group: DayGroup,
-    currency: Currency,
     hapticsEnabled: Boolean,
     formats: DateFormats,
     onRowClick: (TransactionId) -> Unit,
@@ -429,13 +425,13 @@ private fun DayGroupCard(
         ) {
             SectionLabel(text = dayHeading(group, formats))
             Text(
-                text = MoneyFormatter.format(group.total, currency, SignStyle.Outflow),
+                text = MoneyFormatter.format(group.total, SignStyle.Outflow),
                 style = QoodyTheme.typography.numericMd,
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
         group.rows.forEach { row ->
-            LedgerRowItem(row, currency, hapticsEnabled, formats, onClick = { onRowClick(row.id) })
+            LedgerRowItem(row, hapticsEnabled, formats, onClick = { onRowClick(row.id) })
         }
     }
 }
@@ -454,7 +450,6 @@ private fun dayHeading(
 @Composable
 private fun LedgerRowItem(
     row: LedgerRow,
-    currency: Currency,
     hapticsEnabled: Boolean,
     formats: DateFormats,
     onClick: () -> Unit,
@@ -504,7 +499,7 @@ private fun LedgerRowItem(
             }
         }
         Text(
-            text = MoneyFormatter.format(row.amount, currency, SignStyle.Outflow),
+            text = MoneyFormatter.format(row.amount, SignStyle.Outflow),
             style = QoodyTheme.typography.numericMd,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = QoodyTheme.spacing.cozy),

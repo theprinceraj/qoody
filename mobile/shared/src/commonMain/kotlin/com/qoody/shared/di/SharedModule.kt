@@ -43,13 +43,13 @@ val sharedModule =
         viewModel { RootViewModel(get()) }
         viewModel { OnboardingViewModel(get()) }
         viewModel { LedgerViewModel(get(), get(), get(), get()) }
-        viewModel { AddExpenseViewModel(get(), get(), get()) }
-        viewModel { InsightsViewModel(get(), get(), get()) }
+        viewModel { AddExpenseViewModel(get(), get()) }
+        viewModel { InsightsViewModel(get(), get()) }
         viewModel { SettingsViewModel(get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
-        viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
-        viewModel { BudgetsViewModel(get(), get(), get(), get()) }
+        viewModel { ExcludedEntriesViewModel(get(), get()) }
+        viewModel { BudgetsViewModel(get(), get(), get()) }
         viewModel { (transactionId: Long) ->
-            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get(), get())
+            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get())
         }
     }

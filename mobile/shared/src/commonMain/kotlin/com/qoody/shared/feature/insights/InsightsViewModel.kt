@@ -12,13 +12,11 @@ import com.qoody.shared.core.startOfMonth
 import com.qoody.shared.core.startOfPreviousMonth
 import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.core.transactionsIn
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.sumMoneyOf
 import com.qoody.shared.domain.repository.LedgerRepository
-import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.feature.ledger.TrendDirection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,21 +35,19 @@ private const val MAX_MONTH_BUCKETS = 6
 
 class InsightsViewModel(
     ledger: LedgerRepository,
-    settings: SettingsRepository,
     private val dates: DateProvider,
 ) : ViewModel() {
     private val period = MutableStateFlow(InsightsPeriod.ThisMonth)
 
     val uiState: StateFlow<InsightsUiState> =
-        combine(ledger.transactions, settings.settings, period) { transactions, appSettings, period ->
-            build(transactions, appSettings.currency, period, dates.today(), dates.zone)
+        combine(ledger.transactions, period) { transactions, period ->
+            build(transactions, period, dates.today(), dates.zone)
         }.stateInViewModel(viewModelScope, InsightsUiState.Loading)
 
     fun onPeriodSelected(selected: InsightsPeriod) = period.update { selected }
 
     private fun build(
         transactions: List<Transaction>,
-        currency: Currency,
         period: InsightsPeriod,
         today: LocalDate,
         zone: TimeZone,
@@ -74,7 +70,6 @@ class InsightsViewModel(
             }
 
         return InsightsUiState.Content(
-            currency = currency,
             period = period,
             currentMonth = today.month,
             total = total,

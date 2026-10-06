@@ -7,7 +7,6 @@ import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
@@ -229,8 +228,6 @@ class RoomSettingsRepository(
     override suspend fun setNotificationListenerEnabled(enabled: Boolean) {
         listenerEnabled.value = enabled
     }
-
-    override suspend fun setCurrency(currency: Currency) = modify { it.copy(currency = currency) }
 
     override suspend fun setTheme(theme: AppTheme) = modify { it.copy(theme = theme) }
 

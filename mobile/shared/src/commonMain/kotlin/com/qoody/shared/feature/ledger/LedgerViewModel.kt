@@ -47,7 +47,6 @@ class LedgerViewModel(
             val zone = dates.zone
             val today = dates.today()
             LedgerUiState.Content(
-                currency = appSettings.currency,
                 hapticsEnabled = appSettings.hapticsEnabled,
                 summary = summarise(transactions, limits, today, zone),
                 selectedCategory = category,

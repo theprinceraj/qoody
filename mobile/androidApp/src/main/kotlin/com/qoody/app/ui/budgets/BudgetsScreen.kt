@@ -41,7 +41,6 @@ import com.qoody.app.ui.theme.nameRes
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.feature.budgets.BudgetEditor
 import com.qoody.shared.feature.budgets.BudgetRow
@@ -64,7 +63,6 @@ fun BudgetsScreen(
     (state as? BudgetsUiState.Content)?.editor?.let { editor ->
         BudgetSheet(
             editor = editor,
-            currency = (state as BudgetsUiState.Content).currency,
             onAmountChange = viewModel::onAmountChanged,
             onSave = viewModel::onSave,
             onRemove = viewModel::onRemove,
@@ -110,7 +108,7 @@ fun BudgetsContent(
                             )
                         }
                         items(state.rows, key = { it.category.name }) { row ->
-                            BudgetCard(row, state.currency, onClick = { onEdit(row.category) })
+                            BudgetCard(row, onClick = { onEdit(row.category) })
                         }
                     }
                 }
@@ -122,7 +120,6 @@ fun BudgetsContent(
 @Composable
 private fun BudgetCard(
     row: BudgetRow,
-    currency: Currency,
     onClick: () -> Unit,
 ) {
     val progress = row.progress
@@ -150,7 +147,7 @@ private fun BudgetCard(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = budgetLine(progress.spent, progress.limit, currency),
+                    text = budgetLine(progress.spent, progress.limit),
                     style = QoodyTheme.typography.bodySm,
                     color = detailColor,
                 )
@@ -182,22 +179,20 @@ private fun BudgetCard(
 private fun budgetLine(
     spent: Money,
     limit: Money?,
-    currency: Currency,
 ): String =
     if (limit == null) {
-        stringResource(R.string.budgets_no_budget, MoneyFormatter.format(spent, currency))
+        stringResource(R.string.budgets_no_budget, MoneyFormatter.format(spent))
     } else {
         stringResource(
             R.string.budgets_spent_of,
-            MoneyFormatter.format(spent, currency),
-            MoneyFormatter.format(limit, currency),
+            MoneyFormatter.format(spent),
+            MoneyFormatter.format(limit),
         )
     }
 
 @Composable
 private fun BudgetSheet(
     editor: BudgetEditor,
-    currency: Currency,
     onAmountChange: (String) -> Unit,
     onSave: () -> Unit,
     onRemove: () -> Unit,
@@ -219,7 +214,7 @@ private fun BudgetSheet(
                 placeholder = MoneyFormatter.formatPlain(Money.Zero),
                 leading = {
                     Text(
-                        text = currency.symbol,
+                        text = MoneyFormatter.SYMBOL,
                         style = QoodyTheme.typography.numericHero,
                         color = MaterialTheme.colorScheme.primaryContainer,
                     )

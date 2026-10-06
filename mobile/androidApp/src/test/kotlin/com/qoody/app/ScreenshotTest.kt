@@ -150,7 +150,7 @@ class ScreenshotTest {
 
     @Test
     fun insights() {
-        val state = InsightsViewModel(ledger, settings, dates).uiState.await { it is InsightsUiState.Content }
+        val state = InsightsViewModel(ledger, dates).uiState.await { it is InsightsUiState.Content }
         capture("insights", TALL_PAGE) {
             InsightsContent(state = state, onPeriodSelected = {}, onSearchClick = {})
         }
@@ -163,7 +163,6 @@ class ScreenshotTest {
             ReceiptViewModel(
                 newest.id,
                 ledger,
-                settings,
                 dates,
                 InMemoryMerchantCategoryRepository(),
                 InMemoryBudgetRepository(mapOf(newest.category to Money.of(150))),
@@ -204,7 +203,6 @@ class ScreenshotTest {
                 onOpenUnparsedCaptures = {},
                 onOpenExcludedEntries = {},
                 onThemeSelected = {},
-                onCurrencySelected = {},
                 onHapticsToggled = {},
                 onOpenSource = {},
                 onExport = {},
@@ -236,7 +234,7 @@ class ScreenshotTest {
         val newest = runBlocking { ledger.transactions.first().first() }
         runBlocking { ledger.exclude(newest.id) }
         val state =
-            ExcludedEntriesViewModel(ledger, settings, dates).uiState.await {
+            ExcludedEntriesViewModel(ledger, dates).uiState.await {
                 it is ExcludedEntriesUiState.Content && it.entries.isNotEmpty()
             }
         capture("excluded-entries") {
@@ -251,7 +249,7 @@ class ScreenshotTest {
                 mapOf(Category.FoodAndDrink to Money.of(150), Category.Transport to Money.of(400)),
             )
         val state =
-            BudgetsViewModel(budgets, ledger, settings, dates).uiState.await { it is BudgetsUiState.Content }
+            BudgetsViewModel(budgets, ledger, dates).uiState.await { it is BudgetsUiState.Content }
         capture("budgets", TALL_PAGE) {
             BudgetsContent(state = state, onBack = {}, onEdit = {})
         }

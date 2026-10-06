@@ -8,7 +8,6 @@ data class AppSettings(
     val onboardingCompleted: Boolean,
     val notificationListenerEnabled: Boolean,
     val monitoredAppCount: Int,
-    val currency: Currency,
     val theme: AppTheme,
     val hapticsEnabled: Boolean,
 )

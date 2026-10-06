@@ -10,7 +10,6 @@ import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.Money
@@ -32,6 +31,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -215,7 +215,7 @@ class RoomPersistenceTest {
             val restored = RoomLedgerRepository(database, dates).observe(TransactionId(7)).first()
             assertEquals("Cafe", restored?.merchant)
             assertEquals(Categorization.Manual, restored?.categorization)
-            assertEquals(Currency.Inr, RoomSettingsRepository(database).settings.first().currency)
+            assertTrue(RoomSettingsRepository(database).settings.first().onboardingCompleted)
         }
 
     @Test

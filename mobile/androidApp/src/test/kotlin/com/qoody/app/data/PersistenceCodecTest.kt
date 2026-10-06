@@ -85,7 +85,6 @@ class PersistenceCodecTest {
         val settings = decodeSettings(stored).toModel()
 
         assertEquals(true, settings.onboardingCompleted)
-        assertEquals(com.qoody.shared.domain.model.Currency.Inr, settings.currency)
         assertEquals(false, settings.hapticsEnabled)
     }
 }

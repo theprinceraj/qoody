@@ -30,7 +30,6 @@ import com.qoody.app.ui.components.SectionLabel
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.domain.format.MoneyFormatter
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.feature.receipt.EntryEditor
 import kotlinx.datetime.LocalDate
@@ -43,7 +42,6 @@ import kotlin.time.Instant
 @Composable
 fun EditEntrySheet(
     editor: EntryEditor,
-    currency: Currency,
     onAmountChange: (String) -> Unit,
     onMerchantChange: (String) -> Unit,
     onDateChange: (LocalDate) -> Unit,
@@ -66,7 +64,7 @@ fun EditEntrySheet(
                 placeholder = MoneyFormatter.formatPlain(Money.Zero),
                 leading = {
                     Text(
-                        text = currency.symbol,
+                        text = MoneyFormatter.SYMBOL,
                         style = QoodyTheme.typography.numericHero,
                         color = MaterialTheme.colorScheme.primaryContainer,
                     )

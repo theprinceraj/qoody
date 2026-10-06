@@ -3,7 +3,6 @@ package com.qoody.shared.domain.repository
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewCapturedTransaction
@@ -99,8 +98,6 @@ interface SettingsRepository {
     suspend fun completeOnboarding()
 
     suspend fun setNotificationListenerEnabled(enabled: Boolean)
-
-    suspend fun setCurrency(currency: Currency)
 
     suspend fun setTheme(theme: AppTheme)
 

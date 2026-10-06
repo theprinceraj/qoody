@@ -40,7 +40,7 @@ class BudgetsViewModelTest : ViewModelTest() {
                 Category.Transport to Money.of(60),
             ),
         )
-    private val viewModel by lazy { BudgetsViewModel(budgets, ledger, InMemorySettingsRepository(), dates) }
+    private val viewModel by lazy { BudgetsViewModel(budgets, ledger, dates) }
 
     private fun content() = viewModel.uiState.latest() as BudgetsUiState.Content
 

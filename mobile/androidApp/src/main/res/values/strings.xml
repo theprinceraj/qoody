@@ -50,8 +50,8 @@
     <string name="onboarding_step_2_body">Qoody securely reads the push alert on this phone in real time.</string>
     <string name="onboarding_step_3_title">Instantly organized</string>
     <string name="onboarding_step_3_body">Qoody reads the merchant and amount and files it under a category, right on your phone.</string>
-    <string name="onboarding_preview_merchant">Monmouth Coffee Co.</string>
-    <string name="onboarding_preview_amount">-£3.80</string>
+    <string name="onboarding_preview_merchant">Third Wave Coffee</string>
+    <string name="onboarding_preview_amount">-₹240.00</string>
     <string name="onboarding_cta">Enable notification access</string>
     <string name="onboarding_learn_more">Learn what we read (and what we never touch)</string>
     <string name="onboarding_trust_footer">100% on-device. Zero cloud servers. Open source &amp; free forever.</string>
@@ -219,9 +219,6 @@
     <string name="settings_theme_title">Theme</string>
     <string name="settings_theme_subtitle">Physical ivory stationery</string>
     <string name="theme_warm_paper">Warm Paper</string>
-    <string name="settings_currency_title">Ledger Currency</string>
-    <string name="settings_currency_subtitle">Display symbol &amp; alignment</string>
-    <string name="settings_currency_option">%1$s (%2$s)</string>
     <string name="settings_haptics_title">Haptic Feedback</string>
     <string name="settings_haptics_subtitle">Mechanical stamp tap on entries</string>
     <string name="settings_section_privacy">Sovereignty &amp; Privacy</string>
