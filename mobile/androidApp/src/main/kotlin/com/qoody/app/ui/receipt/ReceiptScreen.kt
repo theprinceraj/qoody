@@ -232,11 +232,13 @@ private fun ReceiptBody(
     val formats = rememberDateFormats()
     val focusManager = LocalFocusManager.current
     var noteBounds by remember { mutableStateOf(Rect.Zero) }
+    var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                .endNoteEditingOnTapOutside(noteBounds) { focusManager.clearFocus() }
+                .onGloballyPositioned { bodyOrigin = it.positionInRoot() }
+                .onTapOutside(isInside = { noteBounds.contains(bodyOrigin + it) }) { focusManager.clearFocus() }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = QoodyTheme.spacing.md)
                 .padding(bottom = QoodyTheme.spacing.lg),
@@ -721,21 +723,18 @@ class EntryEditorActions(
 }
 
 /**
- * Calls [endEditing] for a tap anywhere outside [noteBounds] (root coordinates), including taps on
- * cards and buttons. It listens in the final pass, after the content: a drag that scrolls is not a
- * tap. Losing focus is what saves the note.
+ * Calls [onTap] for a tap anywhere [isInside] rejects, including taps on cards and buttons. It
+ * listens in the final pass, after the content, so a drag that scrolls is not a tap. Used to end
+ * note editing; losing focus is what saves the note.
  */
-private fun Modifier.endNoteEditingOnTapOutside(
-    noteBounds: Rect,
-    endEditing: () -> Unit,
-): Modifier {
-    var origin = Offset.Zero
-    return onGloballyPositioned { origin = it.positionInRoot() }
-        .pointerInput(noteBounds) {
-            awaitEachGesture {
-                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
-                val up = waitForUpOrCancellation(PointerEventPass.Final)
-                if (up != null && !noteBounds.contains(origin + down.position)) endEditing()
-            }
+private fun Modifier.onTapOutside(
+    isInside: (Offset) -> Boolean,
+    onTap: () -> Unit,
+): Modifier =
+    pointerInput(Unit) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
+            val up = waitForUpOrCancellation(PointerEventPass.Final)
+            if (up != null && !isInside(down.position)) onTap()
         }
-}
+    }
