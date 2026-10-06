@@ -1,7 +1,9 @@
 package com.qoody.app.ui.receipt
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,13 +29,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -221,19 +231,19 @@ private fun ReceiptBody(
 ) {
     val formats = rememberDateFormats()
     val focusManager = LocalFocusManager.current
+    var noteBounds by remember { mutableStateOf(Rect.Zero) }
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                // A tap anywhere outside the note field ends editing; losing focus saves the note.
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
+                .endNoteEditingOnTapOutside(noteBounds) { focusManager.clearFocus() }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = QoodyTheme.spacing.md)
                 .padding(bottom = QoodyTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.md),
     ) {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { SheetHandle() }
-        MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory, onEdit)
+        MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory, onEdit) { noteBounds = it }
         state.notification?.let { NotificationCard(it.appName, it.text, formats.time(state.time)) }
         if (state.hasDetails) DetailsCard(state, onOpenBudgets)
         Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
@@ -275,6 +285,7 @@ private fun MainCard(
     onNoteCommit: () -> Unit,
     onChangeCategory: () -> Unit,
     onEdit: () -> Unit,
+    onNoteBounds: (Rect) -> Unit,
 ) {
     QoodyCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(QoodyTheme.spacing.lg)) {
         PerforationRule(modifier = Modifier.padding(bottom = QoodyTheme.spacing.md))
@@ -369,7 +380,10 @@ private fun MainCard(
             QoodyTextField(
                 value = state.note,
                 onValueChange = onNoteChange,
-                modifier = Modifier.onFocusChanged { if (!it.hasFocus) onNoteCommit() },
+                modifier =
+                    Modifier
+                        .onFocusChanged { if (!it.hasFocus) onNoteCommit() }
+                        .onGloballyPositioned { onNoteBounds(it.boundsInRoot()) },
                 style = FieldStyle.Filled,
                 minHeight = QoodyTheme.sizes.noteFieldHeight,
                 placeholder = stringResource(R.string.receipt_note_hint),
@@ -704,4 +718,24 @@ class EntryEditorActions(
         /** For previews and screenshots that never open the sheet. */
         val None = EntryEditorActions({}, {}, {}, {}, {}, {})
     }
+}
+
+/**
+ * Calls [endEditing] for a tap anywhere outside [noteBounds] (root coordinates), including taps on
+ * cards and buttons. It listens in the final pass, after the content: a drag that scrolls is not a
+ * tap. Losing focus is what saves the note.
+ */
+private fun Modifier.endNoteEditingOnTapOutside(
+    noteBounds: Rect,
+    endEditing: () -> Unit,
+): Modifier {
+    var origin = Offset.Zero
+    return onGloballyPositioned { origin = it.positionInRoot() }
+        .pointerInput(noteBounds) {
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
+                val up = waitForUpOrCancellation(PointerEventPass.Final)
+                if (up != null && !noteBounds.contains(origin + down.position)) endEditing()
+            }
+        }
 }
