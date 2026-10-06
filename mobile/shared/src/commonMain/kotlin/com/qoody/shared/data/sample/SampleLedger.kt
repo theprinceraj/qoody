@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 object SampleLedger {
     const val FIRST_ID = 1000L
-    private const val MODEL_NAME = "Jev v1.2"
+    private const val MODEL_NAME = "Qoody on-device v1"
 
     fun build(
         today: LocalDate,

@@ -134,7 +134,7 @@
     <string name="receipt_meta_manual">%1$s • %2$s • Added manually</string>
     <string name="receipt_assigned_category">Assigned Category</string>
     <string name="receipt_change">Change</string>
-    <string name="receipt_model_confidence">%1$s %2$s</string>
+    <string name="receipt_model_confidence">Guessed on this device, %1$s sure</string>
     <string name="receipt_matched_rule">Matched “%1$s”</string>
     <string name="receipt_remembered">Your earlier choice</string>
     <string name="capture_unknown_merchant">Unknown merchant</string>

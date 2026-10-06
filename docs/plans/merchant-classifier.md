@@ -1,6 +1,6 @@
 # Plan: on-device merchant classifier
 
-Status: step 1 done (2026-10-06), see `tools/merchant-classifier/REPORT.md`. Decision: D22.
+Status: steps 1-3 done (2026-10-06); step 4 open. Metrics: `tools/merchant-classifier/REPORT.md`. Decision: D22.
 
 ## Goal
 

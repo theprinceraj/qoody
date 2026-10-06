@@ -447,7 +447,6 @@ private fun CategorizationBadge(categorization: Categorization) {
             is Categorization.Model -> {
                 stringResource(
                     R.string.receipt_model_confidence,
-                    categorization.modelName,
                     PercentFormatter.formatTenths(categorization.confidence),
                 )
             }

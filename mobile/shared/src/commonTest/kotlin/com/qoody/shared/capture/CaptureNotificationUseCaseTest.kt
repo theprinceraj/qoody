@@ -1,5 +1,6 @@
 package com.qoody.shared.capture
 
+import com.qoody.shared.capture.classifier.MerchantGuess
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
@@ -8,6 +9,7 @@ import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.Money
+import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.fixedDates
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -68,6 +70,25 @@ class CaptureNotificationUseCaseTest {
             val saved = ledger.transactions.first().single()
             assertEquals(Category.Uncategorized, saved.category)
             assertEquals(Categorization.None, saved.categorization)
+        }
+
+    @Test
+    fun theOnDeviceModelCategorisesWhatTheRulesMiss() =
+        runTest {
+            val withModel =
+                CaptureNotificationUseCase(
+                    ledger,
+                    unparsed,
+                    merchantCategories,
+                    unknownMerchant = { UNKNOWN },
+                    classifier = FixedClassifier(MerchantGuess(Category.FoodAndDrink, Permille(910), "test model")),
+                )
+
+            withModel(notification("Paid ₹80 to Annapoorna Mess"))
+
+            val saved = ledger.transactions.first().single()
+            assertEquals(Category.FoodAndDrink, saved.category)
+            assertEquals(Categorization.Model("test model", Permille(910)), saved.categorization)
         }
 
     @Test

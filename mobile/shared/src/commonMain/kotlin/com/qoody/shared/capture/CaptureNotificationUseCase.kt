@@ -1,5 +1,6 @@
 package com.qoody.shared.capture
 
+import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
@@ -33,6 +34,7 @@ sealed interface CaptureResult {
  * Allowlist → parse → categorise → dedupe → save, for one posted notification.
  *
  * @param unknownMerchant the name stored when a payment does not name its payee (a localised string).
+ * @param classifier guesses a category when no remembered choice or keyword rule applies.
  * @param appKind which kind of supported app a package is, or `null` when it is not supported.
  */
 class CaptureNotificationUseCase(
@@ -40,9 +42,10 @@ class CaptureNotificationUseCase(
     private val unparsed: UnparsedCaptureRepository,
     merchantCategories: MerchantCategoryRepository,
     private val unknownMerchant: () -> String,
+    classifier: MerchantClassifier = MerchantClassifier.None,
     private val appKind: (String) -> AppKind? = CapturePolicy::kindOf,
 ) {
-    private val categoriser = MerchantCategoriser(merchantCategories)
+    private val categoriser = MerchantCategoriser(merchantCategories, classifier)
 
     suspend operator fun invoke(notification: PaymentNotification): CaptureResult {
         val kind = appKind(notification.packageName) ?: return CaptureResult.UnsupportedApp

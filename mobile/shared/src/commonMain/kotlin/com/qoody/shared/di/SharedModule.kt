@@ -1,5 +1,6 @@
 package com.qoody.shared.di
 
+import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
@@ -25,7 +26,10 @@ import com.qoody.shared.feature.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-/** Wiring for everything in `shared`. The Android app overrides the in-memory repositories with Room ones. */
+/**
+ * Wiring for everything in `shared`. The Android app overrides the in-memory repositories with Room
+ * ones and [MerchantClassifier.None] with the bundled model.
+ */
 val sharedModule =
     module {
         single { DateProvider() }
@@ -34,6 +38,7 @@ val sharedModule =
         single<UnparsedCaptureRepository> { InMemoryUnparsedCaptureRepository() }
         single<MerchantCategoryRepository> { InMemoryMerchantCategoryRepository() }
         single<BudgetRepository> { InMemoryBudgetRepository() }
+        single<MerchantClassifier> { MerchantClassifier.None }
 
         viewModel { RootViewModel(get()) }
         viewModel { OnboardingViewModel(get()) }
@@ -45,6 +50,6 @@ val sharedModule =
         viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
         viewModel { BudgetsViewModel(get(), get(), get(), get()) }
         viewModel { (transactionId: Long) ->
-            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get())
+            ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get(), get())
         }
     }
