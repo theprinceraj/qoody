@@ -29,7 +29,6 @@ data class Sizes(
     val chipHeight: Dp = 36.dp,
     val topBarHeight: Dp = 64.dp,
     val logo: Dp = 32.dp,
-    val avatar: Dp = 32.dp,
     val appMark: Dp = 64.dp,
     val iconSm: Dp = 16.dp,
     val iconMd: Dp = 20.dp,

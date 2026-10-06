@@ -145,7 +145,6 @@ fun SettingsScreen(
         state = state,
         snackbarHost = snackbarHost,
         onSearchClick = onSearchClick,
-        onProfileClick = {},
         // Only Android can grant or revoke notification access; the switch opens its settings page.
         onNotificationToggled = { onOpenNotificationAccessSettings() },
         onManageApps = onOpenNotificationAccessSettings,
@@ -270,7 +269,6 @@ fun SettingsContent(
     state: SettingsUiState,
     snackbarHost: SnackbarHostState,
     onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit,
     onNotificationToggled: (Boolean) -> Unit,
     onManageApps: () -> Unit,
     onOpenUnparsedCaptures: () -> Unit,
@@ -287,7 +285,7 @@ fun SettingsContent(
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                QoodyTopBar(onSearchClick = onSearchClick, onProfileClick = onProfileClick)
+                QoodyTopBar(onSearchClick = onSearchClick)
                 when (state) {
                     SettingsUiState.Loading -> {
                         LoadingIndicator()
@@ -304,7 +302,7 @@ fun SettingsContent(
                                 ),
                             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.lg),
                         ) {
-                            item { Header(state) }
+                            item { Header() }
                             item {
                                 AutomationSection(
                                     state,
@@ -328,26 +326,13 @@ fun SettingsContent(
 }
 
 @Composable
-private fun Header(state: SettingsUiState.Content) {
-    val syncing = state.settings.notificationListenerEnabled
-    val syncLabel = if (syncing) R.string.settings_sync_ok else R.string.settings_sync_paused
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(top = QoodyTheme.spacing.xs),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column {
-            SectionLabel(stringResource(R.string.settings_eyebrow))
-            Text(
-                text = stringResource(R.string.settings_title),
-                style = QoodyTheme.typography.headlineLgMobile,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        StatusPill(
-            label = stringResource(syncLabel).uppercaseForLocale(),
-            dotColor = if (syncing) QoodyTheme.colors.positive else MaterialTheme.colorScheme.tertiaryContainer,
-            textStyle = QoodyTheme.typography.labelCaps,
+private fun Header() {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = QoodyTheme.spacing.xs)) {
+        SectionLabel(stringResource(R.string.settings_eyebrow))
+        Text(
+            text = stringResource(R.string.settings_title),
+            style = QoodyTheme.typography.headlineLgMobile,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

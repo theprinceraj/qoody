@@ -53,14 +53,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun BudgetsScreen(
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     viewModel: BudgetsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     BudgetsContent(
         state = state,
         onBack = onBack,
-        onProfileClick = onProfileClick,
         onEdit = viewModel::onEdit,
     )
     (state as? BudgetsUiState.Content)?.editor?.let { editor ->
@@ -79,7 +77,6 @@ fun BudgetsScreen(
 fun BudgetsContent(
     state: BudgetsUiState,
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onEdit: (Category) -> Unit,
 ) {
     ScreenContainer {
@@ -87,7 +84,6 @@ fun BudgetsContent(
             QoodyDetailTopBar(
                 title = stringResource(R.string.budgets_title),
                 onBackClick = onBack,
-                onProfileClick = onProfileClick,
             )
             when (state) {
                 BudgetsUiState.Loading -> {

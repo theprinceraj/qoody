@@ -2,10 +2,8 @@ package com.qoody.app.ui.components
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,33 +47,10 @@ private fun BrandMark() {
     }
 }
 
-/** The round vermilion profile button. Qoody has no accounts, so it opens Settings. */
-@Composable
-private fun ProfileButton(onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(QoodyTheme.sizes.touchTarget)) {
-        Box(
-            modifier =
-                Modifier
-                    .size(
-                        QoodyTheme.sizes.avatar,
-                    ).background(MaterialTheme.colorScheme.primary, QoodyTheme.shapes.pill),
-            contentAlignment = Alignment.Center,
-        ) {
-            QoodyIcon(
-                id = R.drawable.ic_person,
-                contentDescription = stringResource(R.string.cd_profile),
-                tint = MaterialTheme.colorScheme.onPrimary,
-                size = QoodyTheme.sizes.iconMd,
-            )
-        }
-    }
-}
-
 /** Top bar of the three main tabs. */
 @Composable
 fun QoodyTopBar(
     onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -98,7 +73,6 @@ fun QoodyTopBar(
                     size = QoodyTheme.sizes.iconLg,
                 )
             }
-            ProfileButton(onProfileClick)
         }
     }
 }
@@ -108,7 +82,6 @@ fun QoodyTopBar(
 fun QoodyDetailTopBar(
     title: String,
     onBackClick: () -> Unit,
-    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -118,7 +91,6 @@ fun QoodyDetailTopBar(
                 .height(
                     QoodyTheme.sizes.topBarHeight,
                 ).padding(horizontal = QoodyTheme.spacing.sm),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -140,7 +112,6 @@ fun QoodyDetailTopBar(
             )
             Text(text = title, style = QoodyTheme.typography.wordmark, color = MaterialTheme.colorScheme.onSurface)
         }
-        ProfileButton(onProfileClick)
     }
 }
 

@@ -47,7 +47,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun UnparsedCapturesScreen(
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     viewModel: UnparsedCapturesViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,7 +55,6 @@ fun UnparsedCapturesScreen(
     UnparsedCapturesContent(
         state = state,
         onBack = onBack,
-        onProfileClick = onProfileClick,
         onAddManually = { addingFor = it },
         onDismiss = viewModel::onDismiss,
         onClearAll = viewModel::onClearAll,
@@ -77,7 +75,6 @@ fun UnparsedCapturesScreen(
 fun UnparsedCapturesContent(
     state: UnparsedCapturesUiState,
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onAddManually: (Long) -> Unit,
     onDismiss: (Long) -> Unit,
     onClearAll: () -> Unit,
@@ -87,7 +84,6 @@ fun UnparsedCapturesContent(
             QoodyDetailTopBar(
                 title = stringResource(R.string.unparsed_title),
                 onBackClick = onBack,
-                onProfileClick = onProfileClick,
             )
             when (state) {
                 UnparsedCapturesUiState.Loading -> {

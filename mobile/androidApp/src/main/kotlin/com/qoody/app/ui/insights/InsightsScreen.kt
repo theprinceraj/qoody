@@ -73,7 +73,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun InsightsScreen(
     onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit,
     viewModel: InsightsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -81,7 +80,6 @@ fun InsightsScreen(
         state = state,
         onPeriodSelected = viewModel::onPeriodSelected,
         onSearchClick = onSearchClick,
-        onProfileClick = onProfileClick,
     )
 }
 
@@ -90,11 +88,10 @@ fun InsightsContent(
     state: InsightsUiState,
     onPeriodSelected: (InsightsPeriod) -> Unit,
     onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit,
 ) {
     ScreenContainer {
         Column(modifier = Modifier.fillMaxSize()) {
-            QoodyTopBar(onSearchClick = onSearchClick, onProfileClick = onProfileClick)
+            QoodyTopBar(onSearchClick = onSearchClick)
             when (state) {
                 InsightsUiState.Loading -> LoadingIndicator()
                 is InsightsUiState.Content -> InsightsBody(state, onPeriodSelected)

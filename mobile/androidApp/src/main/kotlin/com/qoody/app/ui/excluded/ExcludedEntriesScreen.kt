@@ -44,7 +44,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ExcludedEntriesScreen(
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onOpenReceipt: (TransactionId) -> Unit,
     viewModel: ExcludedEntriesViewModel = koinViewModel(),
 ) {
@@ -52,7 +51,6 @@ fun ExcludedEntriesScreen(
     ExcludedEntriesContent(
         state = state,
         onBack = onBack,
-        onProfileClick = onProfileClick,
         onOpenReceipt = onOpenReceipt,
         onRestore = viewModel::onRestore,
     )
@@ -62,7 +60,6 @@ fun ExcludedEntriesScreen(
 fun ExcludedEntriesContent(
     state: ExcludedEntriesUiState,
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onOpenReceipt: (TransactionId) -> Unit,
     onRestore: (TransactionId) -> Unit,
 ) {
@@ -71,7 +68,6 @@ fun ExcludedEntriesContent(
             QoodyDetailTopBar(
                 title = stringResource(R.string.excluded_title),
                 onBackClick = onBack,
-                onProfileClick = onProfileClick,
             )
             when (state) {
                 ExcludedEntriesUiState.Loading -> {
