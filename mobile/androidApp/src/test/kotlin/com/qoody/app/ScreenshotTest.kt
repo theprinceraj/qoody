@@ -19,7 +19,6 @@ import com.qoody.app.ui.settings.SettingsContent
 import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.core.DateProvider
-import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
@@ -194,8 +193,7 @@ class ScreenshotTest {
     fun settings() {
         val unparsed = InMemoryUnparsedCaptureRepository()
         runBlocking { unparsed.add(sampleUnparsed()) }
-        val viewModel = SettingsViewModel(settings, ledger, FakeLlmKeyVerifier(), dates, unparsed)
-        viewModel.onApiKeyPasted(SAMPLE_API_KEY)
+        val viewModel = SettingsViewModel(settings, ledger, dates, unparsed)
         viewModel.onNotificationListenerToggled(true)
         val state = viewModel.uiState.await { it is SettingsUiState.Content }
         capture("settings", TALL_PAGE) {
@@ -208,9 +206,6 @@ class ScreenshotTest {
                 onManageApps = {},
                 onOpenUnparsedCaptures = {},
                 onOpenExcludedEntries = {},
-                onPasteKey = {},
-                onToggleKeyVisibility = {},
-                onTestKey = {},
                 onThemeSelected = {},
                 onCurrencySelected = {},
                 onHapticsToggled = {},
@@ -277,8 +272,4 @@ class ScreenshotTest {
             reason = UnparsedReason.NoAmount,
             dedupeKey = "sample",
         )
-
-    private companion object {
-        const val SAMPLE_API_KEY = "sk-ant-api03-9kL20d9f8A1b2c3d4e5f6g7h8j"
-    }
 }

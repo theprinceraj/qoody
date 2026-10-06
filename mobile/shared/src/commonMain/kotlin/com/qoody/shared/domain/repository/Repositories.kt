@@ -100,17 +100,9 @@ interface SettingsRepository {
 
     suspend fun setNotificationListenerEnabled(enabled: Boolean)
 
-    suspend fun setLlmApiKey(key: String?)
-
     suspend fun setCurrency(currency: Currency)
 
     suspend fun setTheme(theme: AppTheme)
 
     suspend fun setHapticsEnabled(enabled: Boolean)
-}
-
-/** Checks whether an LLM API key is accepted by the provider. */
-interface LlmKeyVerifier {
-    /** `true` when [key] is valid. */
-    suspend fun verify(key: String): Boolean
 }

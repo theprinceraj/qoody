@@ -10,6 +10,7 @@ import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.domain.model.CapturedNotification
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.Money
@@ -214,6 +215,7 @@ class RoomPersistenceTest {
             val restored = RoomLedgerRepository(database, dates).observe(TransactionId(7)).first()
             assertEquals("Cafe", restored?.merchant)
             assertEquals(Categorization.Manual, restored?.categorization)
+            assertEquals(Currency.Inr, RoomSettingsRepository(database).settings.first().currency)
         }
 
     @Test

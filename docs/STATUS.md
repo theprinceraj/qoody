@@ -2,11 +2,11 @@
 
 > Agents: read this first, update it last. Keep "Current state" accurate; append to "Log" (newest first). Keep entries short and factual.
 
-## Current state (2026-10-05)
+## Current state (2026-10-06)
 
-- **Product (from the Stitch designs):** Qoody is a free, open-source, fully on-device expense ledger. It will read bank/UPI payment *notifications*, extract merchant/amount/category with an on-device LLM (optional bring-your-own-key), and show a running monthly tab. No cloud, no accounts, no analytics.
-- **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, clipboard key paste, notification-access shortcut.
-- **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, Android Keystore-backed API-key storage, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. The LLM key check is still a placeholder. The shared tests and screenshot fixtures continue to use in-memory repositories.
+- **Product (from the Stitch designs):** Qoody is a free, open-source, fully on-device expense ledger. It will read bank/UPI payment *notifications*, extract merchant/amount with rules and pick a category on the device (remembered corrections, keyword rules, and soon a small on-device classifier, D22), and show a running monthly tab. No cloud, no accounts, no analytics.
+- **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, notification-access shortcut. There is no LLM/API-key section (removed, D23).
+- **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. The shared tests and screenshot fixtures continue to use in-memory repositories.
 - **Notification capture is implemented (rule-based).** `QoodyNotificationListenerService` reads notifications from 64 verified Indian UPI/bank/wallet/card apps plus SMS apps (Google Messages, Truecaller, Jio Messages and the phone's default SMS app; bank SMS pass `SmsMessageFilter`) (`CapturePolicy`), `PaymentNotificationParser` extracts INR debits, `MerchantCategoryRules` assigns a category (`Categorization.Rule`), duplicates are dropped by reference or amount+merchant+5-minute bucket, and unreadable debits land in Settings → Failed to parse. The "Sync OK" pill and listener status now mirror Android's real notification-access state (re-read on every resume); the switch opens Android's settings. See `docs/plans/notification-capture.md`.
 - **Website** is still the unmodified TanStack Start starter.
 - Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
@@ -16,14 +16,13 @@
 
 ## Next up
 
-1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. Then the on-device merchant classifier (D22, `docs/plans/merchant-classifier.md`, step 1 = Python evaluation harness) and real key verification (replace `FakeLlmKeyVerifier`).
+1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. In parallel: the on-device merchant classifier (D22, `docs/plans/merchant-classifier.md`).
 2. Confirm `applicationId` (`com.qoody.app`) before any Play upload, and run `play-policy-insights` for the notification-listener declaration.
 3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
 4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
 5. Website: landing page, download page, changelog, privacy policy, using the same brand tokens as `docs`/DESIGN.md.
-6. Git: create a remote, make the first commit (user's call), confirm CI runs green.
-7. Configure the website for static export/prerendering before enabling the Pages deployment workflow.
-8. Create the Android release keystore and configure the required GitHub Actions repository secrets before pushing the first `v*` release tag.
+6. Configure the website for static export/prerendering before enabling the Pages deployment workflow.
+7. Create the Android release keystore and configure the required GitHub Actions repository secrets before pushing the first `v*` release tag.
 
 ## UI behaviours worth knowing (where the design was silent)
 
@@ -49,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Removed the LLM/API-key section from Settings (D23): `LlmSettings`, `KeyVerification`, `LlmKeyVerifier`/`FakeLlmKeyVerifier`, the Keystore key store, five icons and their strings. `LegacyApiKeyCleanup` deletes a key stored by v0.4 on first launch. Backup format 5 (formats 1–4 still import). Onboarding step 3 no longer says "LLM".
 - 2026-10-06 — Chose an on-device fastText-style classifier for merchant categorisation (D22) over cloud APIs (incl. TypeSafe Jev), LiteRT nets and bundled LLMs; wrote `docs/plans/merchant-classifier.md`. Docs only, `verify` not run. Deleted the merged `plan/notification-capture` branch.
 - 2026-10-05 — Release v0.4.0 (code 6): remembered category corrections, edit entries, monthly category budgets, categorise-on-merchant-edit. DB v4 (auto-migrations from v1–v3), backup format 4.
 - 2026-10-05 — Correcting the merchant of an Uncategorized entry now applies the remembered category or a keyword rule (shared `MerchantCategoriser`, also used by capture). Existing categories are never overwritten. `verify -Target mobile` green.

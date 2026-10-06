@@ -8,10 +8,8 @@ import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
-import com.qoody.shared.domain.model.KeyVerification
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewUnparsedCapture
-import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.feature.ledger.AddExpenseEvent
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
 import com.qoody.shared.feature.onboarding.OnboardingViewModel
@@ -28,8 +26,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
-
-private const val ACCEPTED_KEY = "sk-valid"
 
 class RootAndOnboardingViewModelTest : ViewModelTest() {
     private val settings = InMemorySettingsRepository()
@@ -53,14 +49,10 @@ class SettingsViewModelTest : ViewModelTest() {
     private val dates = fixedDates()
     private val settings = InMemorySettingsRepository()
     private val ledger = InMemoryLedgerRepository(dates, listOf(transaction(0, Money.of(4, 50), merchant = "Coffee")))
-    private val verifier =
-        object : LlmKeyVerifier {
-            override suspend fun verify(key: String) = key == ACCEPTED_KEY
-        }
 
     // Lazy: a ViewModel must be created after the test installs the Main dispatcher.
     private val unparsed = InMemoryUnparsedCaptureRepository()
-    private val viewModel by lazy { SettingsViewModel(settings, ledger, verifier, dates, unparsed) }
+    private val viewModel by lazy { SettingsViewModel(settings, ledger, dates, unparsed) }
 
     private fun content() = viewModel.uiState.latest() as SettingsUiState.Content
 
@@ -85,58 +77,16 @@ class SettingsViewModelTest : ViewModelTest() {
         }
 
     @Test
-    fun pastingAKeyStoresItTrimmedAndResetsVerification() =
-        runTest {
-            viewModel.onApiKeyPasted("  $ACCEPTED_KEY \n")
-
-            val state = content()
-            assertEquals(ACCEPTED_KEY, state.settings.llm.apiKey)
-            assertTrue(state.hasApiKey)
-            assertEquals(KeyVerification.Idle, state.keyVerification)
-        }
-
-    @Test
-    fun blankPasteIsIgnored() =
-        runTest {
-            viewModel.onApiKeyPasted("   ")
-
-            assertFalse(content().hasApiKey)
-        }
-
-    @Test
-    fun testingAcceptedAndRejectedKeys() =
-        runTest {
-            viewModel.onApiKeyPasted(ACCEPTED_KEY)
-            viewModel.onTestKeyRequested()
-            assertEquals(KeyVerification.Verified, content().keyVerification)
-
-            viewModel.onApiKeyPasted("sk-wrong")
-            assertEquals(KeyVerification.Idle, content().keyVerification)
-            viewModel.onTestKeyRequested()
-            assertEquals(KeyVerification.Failed, content().keyVerification)
-        }
-
-    @Test
-    fun testingWithoutAKeyDoesNothing() =
-        runTest {
-            viewModel.onTestKeyRequested()
-
-            assertEquals(KeyVerification.Idle, content().keyVerification)
-        }
-
-    @Test
     fun togglesAndPreferencesArePersisted() =
         runTest {
             viewModel.onCurrencySelected(Currency.Inr)
             viewModel.onHapticsToggled(false)
             viewModel.onNotificationListenerToggled(true)
-            viewModel.onKeyVisibilityToggled()
 
             val state = content()
             assertEquals(Currency.Inr, state.settings.currency)
             assertFalse(state.settings.hapticsEnabled)
             assertTrue(state.settings.notificationListenerEnabled)
-            assertTrue(state.isKeyVisible)
         }
 
     @Test

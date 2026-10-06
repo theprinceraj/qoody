@@ -9,7 +9,6 @@ import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
-import com.qoody.shared.domain.model.LlmSettings
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.domain.model.Permille
@@ -62,8 +61,6 @@ data class SettingsRecord(
     val onboardingCompleted: Boolean,
     val notificationListenerEnabled: Boolean,
     val monitoredAppCount: Int,
-    val modelLabel: String,
-    val localFallbackReady: Boolean,
     val currency: String,
     val theme: String,
     val hapticsEnabled: Boolean,
@@ -202,8 +199,6 @@ fun AppSettings.toRecord(): SettingsRecord =
         onboardingCompleted = onboardingCompleted,
         notificationListenerEnabled = false,
         monitoredAppCount = monitoredAppCount,
-        modelLabel = llm.modelLabel,
-        localFallbackReady = llm.localFallbackReady,
         currency = currency.name,
         theme = theme.name,
         hapticsEnabled = hapticsEnabled,
@@ -214,7 +209,6 @@ fun SettingsRecord.toModel(): AppSettings =
         onboardingCompleted = onboardingCompleted,
         notificationListenerEnabled = false,
         monitoredAppCount = monitoredAppCount,
-        llm = LlmSettings(apiKey = null, modelLabel = modelLabel, localFallbackReady = localFallbackReady),
         currency = enumValueOfOrDefault(currency, Currency.Usd),
         theme = enumValueOfOrDefault(theme, AppTheme.WarmPaper),
         hapticsEnabled = hapticsEnabled,
@@ -253,9 +247,10 @@ private val Categorization.kind: String
 
 /**
  * Version of [BackupPayload]. 2 added dedupe keys and unparsed captures, 3 remembered merchant
- * categories, 4 category budgets; older versions are still importable.
+ * categories, 4 category budgets, 5 dropped the language-model settings; older versions are still
+ * importable (their extra settings fields are ignored).
  */
-const val BACKUP_FORMAT_VERSION = 4
+const val BACKUP_FORMAT_VERSION = 5
 val SUPPORTED_BACKUP_FORMAT_VERSIONS = 1..BACKUP_FORMAT_VERSION
 
 /** Version of the encryption [BackupEnvelope], independent of the payload inside it. */

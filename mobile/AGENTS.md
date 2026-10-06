@@ -33,7 +33,7 @@ Kotlin 2.4 · AGP 9.4 (built-in Kotlin; **no `kotlin-android` plugin**) · Gradl
 - Screens are split into a stateful wrapper (gets its ViewModel from Koin, collects state) and a stateless `*Content` composable that takes state + lambdas. The `*Content` ones are what `ScreenshotTest` renders.
 - Money is `Money` (minor units) formatted by `MoneyFormatter`; dates go through `DateFormats` (locale-aware ICU skeletons); never `String.format` or hard-coded patterns.
 - Fonts (DM Sans, Plus Jakarta Sans, JetBrains Mono; OFL, licences in `docs/licenses`) and Material Symbols icons (`ic_*.xml`, Apache 2.0) are bundled; icons are tinted at the call site (`QoodyIcon`).
-- Placeholder backends: `InMemoryLedgerRepository`, `InMemorySettingsRepository`, `FakeLlmKeyVerifier` in `shared/.../data`, seeded from `data/sample/SampleLedger`. Replace the three bindings in `SharedModule` when real persistence, notification capture and the LLM client land; the UI will not need to change.
+- In-memory backends (`InMemoryLedgerRepository`, `InMemorySettingsRepository`, ...) in `shared/.../data`, seeded from `data/sample/SampleLedger`, are bound in `SharedModule` and used by tests and screenshot fixtures; the app overrides them with the Room repositories in `AppModule`. There is no LLM or API key (D23).
 
 ## iOS (future)
 

@@ -68,10 +68,24 @@ class PersistenceCodecTest {
     }
 
     @Test
-    fun backupSettingsNeverContainApiKey() {
-        val settings = com.qoody.shared.data.InMemorySettingsRepository.defaultSettings
-        val encoded = encodeSettings(settings.copy(llm = settings.llm.copy(apiKey = "secret")))
+    fun settingsNoLongerStoreLanguageModelFields() {
+        val encoded = encodeSettings(com.qoody.shared.data.InMemorySettingsRepository.defaultSettings)
 
-        assertEquals(false, encoded.contains("secret"))
+        assertEquals(false, encoded.contains("modelLabel"))
+        assertEquals(false, encoded.contains("localFallbackReady"))
+    }
+
+    @Test
+    fun settingsStoredByOlderVersionsStillDecode() {
+        val stored =
+            """{"onboardingCompleted":true,"notificationListenerEnabled":false,"monitoredAppCount":6,
+              "modelLabel":"Jev v1.2","localFallbackReady":true,"currency":"Inr","theme":"WarmPaper",
+              "hapticsEnabled":false}"""
+
+        val settings = decodeSettings(stored).toModel()
+
+        assertEquals(true, settings.onboardingCompleted)
+        assertEquals(com.qoody.shared.domain.model.Currency.Inr, settings.currency)
+        assertEquals(false, settings.hapticsEnabled)
     }
 }
