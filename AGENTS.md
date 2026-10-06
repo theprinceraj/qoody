@@ -25,6 +25,7 @@ mobile/            Gradle project (Kotlin Multiplatform). Open this folder in An
 web/               TanStack Start site (React 19, Vite, Tailwind v4, shadcn/ui, Biome), deployed to Cloudflare.
 docs/              Project memory: STATUS, DECISIONS, ARCHITECTURE.
 scripts/           verify.ps1 / verify.sh, hook scripts.
+tools/             Dev-only tooling, e.g. merchant-classifier/ (Python; trains the model asset the app ships).
 .claude/skills/    Official Android skills (installed with `android skills add`).
 .github/           CI (path-filtered per area), Dependabot.
 ```

@@ -1,6 +1,6 @@
 # Plan: on-device merchant classifier
 
-Status: planned (2026-10-06). Decision: D22.
+Status: step 1 done (2026-10-06), see `tools/merchant-classifier/REPORT.md`. Decision: D22.
 
 ## Goal
 
@@ -22,7 +22,7 @@ Predict only the merchant-driven categories: Food & Drink, Transport, Shopping, 
 
 ## Steps (one PR each, verify green before the next)
 
-1. **Evaluation harness (no app change).** `tools/merchant-classifier/` (Python): labelled merchant set, train/validate split, trains the model, reports accuracy and a confusion matrix, writes the weights file. Includes noisy UPI forms (`shop0011-1@fbl`, truncated bank names). Decide the confidence threshold from the precision/coverage curve.
+1. **Evaluation harness (no app change).** `tools/merchant-classifier/` (Python): labelled merchant set, train/validate split, trains the model, reports accuracy and a confusion matrix, writes the weights file. Includes noisy UPI forms (`shop0011-1@fbl`, truncated bank names). Decide the confidence threshold from the precision/coverage curve. **Done:** classes are the five merchant categories plus `Other` (people, generic businesses → Uncategorized); threshold 0.77 (0.95 precision on validation); the shipped model reaches 0.945 precision / 0.846 coverage on the hand-written test set.
 2. **Kotlin inference.** `shared/.../capture/classifier/` with `MerchantClassifier` (interface), `FastTextMerchantClassifier` (loads the weights, hashes n-grams, softmax). Parity test: Kotlin output equals the Python reference for a fixture of strings. Latency test (target well under 5 ms per entry).
 3. **Wire it in.** Weights as an Android asset loaded through a platform interface; `MerchantCategoriser` takes the classifier; Koin binding; receipt copy for model guesses ("Guessed on this device"). Backup already carries `Categorization.Model`.
 4. **Learn from corrections (optional).** The existing remembered-category map already wins; later, export consented corrections to retrain.
