@@ -83,6 +83,7 @@ fun SettingsScreen(
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
     onOpenBudgets: () -> Unit,
+    onOpenCategories: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -150,6 +151,7 @@ fun SettingsScreen(
         onOpenUnparsedCaptures = onOpenUnparsedCaptures,
         onOpenExcludedEntries = onOpenExcludedEntries,
         onOpenBudgets = onOpenBudgets,
+        onOpenCategories = onOpenCategories,
         onThemeSelected = viewModel::onThemeSelected,
         onHapticsToggled = viewModel::onHapticsToggled,
         onOpenSource = {
@@ -272,6 +274,7 @@ fun SettingsContent(
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
     onOpenBudgets: () -> Unit = {},
+    onOpenCategories: () -> Unit = {},
     onThemeSelected: (AppTheme) -> Unit,
     onHapticsToggled: (Boolean) -> Unit,
     onOpenSource: () -> Unit,
@@ -308,6 +311,7 @@ fun SettingsContent(
                                     onOpenUnparsedCaptures,
                                     onOpenExcludedEntries,
                                     onOpenBudgets,
+                                    onOpenCategories,
                                 )
                             }
                             item { InterfaceSection(state, onThemeSelected, onHapticsToggled) }
@@ -372,6 +376,7 @@ private fun AutomationSection(
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
     onOpenBudgets: () -> Unit,
+    onOpenCategories: () -> Unit,
 ) {
     val enabled = state.settings.notificationListenerEnabled
     val listenerLabel = if (enabled) R.string.settings_listener_active else R.string.settings_listener_paused
@@ -512,6 +517,19 @@ private fun AutomationSection(
                 title = stringResource(R.string.settings_budgets_title),
                 subtitle = stringResource(R.string.settings_budgets_subtitle),
                 onClick = onOpenBudgets,
+            ) {
+                QoodyIcon(
+                    R.drawable.ic_arrow_forward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+            }
+            HairlineDivider()
+            SettingRow(
+                icon = R.drawable.ic_edit_note,
+                title = stringResource(R.string.settings_categories_title),
+                subtitle = stringResource(R.string.settings_categories_subtitle),
+                onClick = onOpenCategories,
             ) {
                 QoodyIcon(
                     R.drawable.ic_arrow_forward,

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.qoody.app.ui.budgets.BudgetsContent
 import com.qoody.app.ui.capture.UnparsedCapturesContent
+import com.qoody.app.ui.categories.CategoriesContent
 import com.qoody.app.ui.excluded.ExcludedEntriesContent
 import com.qoody.app.ui.insights.InsightsContent
 import com.qoody.app.ui.ledger.LedgerContent
@@ -20,17 +21,21 @@ import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.capture.UnparsedReason
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemoryBudgetRepository
+import com.qoody.shared.data.InMemoryCategoryRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewUnparsedCapture
 import com.qoody.shared.feature.budgets.BudgetsUiState
 import com.qoody.shared.feature.budgets.BudgetsViewModel
 import com.qoody.shared.feature.capture.UnparsedCapturesUiState
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
+import com.qoody.shared.feature.categories.CategoriesUiState
+import com.qoody.shared.feature.categories.CategoriesViewModel
 import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.insights.InsightsUiState
@@ -190,7 +195,7 @@ class ScreenshotTest {
     fun settings() {
         val unparsed = InMemoryUnparsedCaptureRepository()
         runBlocking { unparsed.add(sampleUnparsed()) }
-        val viewModel = SettingsViewModel(settings, ledger, dates, unparsed)
+        val viewModel = SettingsViewModel(settings, ledger, dates, InMemoryCategoryRepository(), unparsed)
         viewModel.onNotificationListenerToggled(true)
         val state = viewModel.uiState.await { it is SettingsUiState.Content }
         capture("settings", TALL_PAGE) {
@@ -243,13 +248,30 @@ class ScreenshotTest {
     }
 
     @Test
+    fun categories() {
+        val custom = listOf(CustomCategory(1, "Pets", "🐾"), CustomCategory(2, "Health", "💊"))
+        val state =
+            CategoriesViewModel(
+                InMemoryCategoryRepository(custom),
+                ledger,
+                InMemoryBudgetRepository(),
+                InMemoryMerchantCategoryRepository(),
+            ).uiState.await { it is CategoriesUiState.Content }
+        capture("categories") {
+            CategoriesContent(state = state, onBack = {}, onAdd = {}, onEdit = {})
+        }
+    }
+
+    @Test
     fun budgets() {
         val budgets =
             InMemoryBudgetRepository(
                 mapOf(Category.FoodAndDrink to Money.of(150), Category.Transport to Money.of(400)),
             )
         val state =
-            BudgetsViewModel(budgets, ledger, dates).uiState.await { it is BudgetsUiState.Content }
+            BudgetsViewModel(budgets, ledger, InMemoryCategoryRepository(), dates).uiState.await {
+                it is BudgetsUiState.Content
+            }
         capture("budgets", TALL_PAGE) {
             BudgetsContent(state = state, onBack = {}, onEdit = {})
         }

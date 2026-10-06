@@ -27,6 +27,10 @@ data object SettingsKey : TabKey
 @Serializable
 data object BudgetsKey : NavKey
 
+/** The user's own categories, opened from Settings. */
+@Serializable
+data object CategoriesKey : NavKey
+
 /** Entries excluded from the ledger, opened from Settings. */
 @Serializable
 data object ExcludedEntriesKey : NavKey

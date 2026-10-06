@@ -129,14 +129,26 @@ data class QoodyColors(
     val accentSoft: Color = Palette.PrimaryFixed,
     val onAccentSoft: Color = Palette.OnPrimaryFixed,
 ) {
+    /** A user-made category takes one of the built-in pairs, in turn by id, so it fits the theme. */
     fun forCategory(category: Category): CategoryColors =
         when (category) {
-            Category.FoodAndDrink -> CategoryColors(Palette.SageDot, Palette.SageTint)
-            Category.Transport -> CategoryColors(Palette.SlateDot, Palette.MistTint)
-            Category.Shopping -> CategoryColors(Palette.CoralDot, Palette.PeachTint)
-            Category.Bills -> CategoryColors(Palette.LavenderDot, Palette.LavenderTint)
-            Category.Friends -> CategoryColors(Palette.AmberDot, Palette.ButterTint)
-            Category.Subscriptions -> CategoryColors(Palette.SkyDot, Palette.SkyTint)
+            Category.FoodAndDrink -> Sage
+            Category.Transport -> Slate
+            Category.Shopping -> Coral
+            Category.Bills -> Lavender
+            Category.Friends -> Amber
+            Category.Subscriptions -> Sky
             Category.Uncategorized -> CategoryColors(Palette.TertiaryContainer, Palette.MistTint)
+            else -> customPalette[((category.customId ?: 0L) % customPalette.size).toInt()]
         }
+
+    private companion object {
+        val Sage = CategoryColors(Palette.SageDot, Palette.SageTint)
+        val Slate = CategoryColors(Palette.SlateDot, Palette.MistTint)
+        val Coral = CategoryColors(Palette.CoralDot, Palette.PeachTint)
+        val Lavender = CategoryColors(Palette.LavenderDot, Palette.LavenderTint)
+        val Amber = CategoryColors(Palette.AmberDot, Palette.ButterTint)
+        val Sky = CategoryColors(Palette.SkyDot, Palette.SkyTint)
+        val customPalette = listOf(Amber, Sky, Sage, Lavender, Coral, Slate)
+    }
 }

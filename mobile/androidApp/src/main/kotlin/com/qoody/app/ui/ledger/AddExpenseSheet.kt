@@ -25,6 +25,7 @@ import com.qoody.app.ui.components.QoodyModalSheet
 import com.qoody.app.ui.components.QoodyTextField
 import com.qoody.app.ui.components.SectionLabel
 import com.qoody.app.ui.theme.QoodyTheme
+import com.qoody.app.ui.theme.allCategories
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Money
@@ -113,7 +114,7 @@ private fun AddExpenseForm(
             horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm),
             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm),
         ) {
-            Category.entries.forEach { category ->
+            allCategories().forEach { category ->
                 CategoryPill(
                     category = category,
                     selected = category == state.category,

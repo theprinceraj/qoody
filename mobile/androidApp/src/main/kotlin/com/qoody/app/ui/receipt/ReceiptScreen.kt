@@ -73,7 +73,8 @@ import com.qoody.app.ui.components.TonalButton
 import com.qoody.app.ui.format.DateFormats
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.theme.QoodyTheme
-import com.qoody.app.ui.theme.nameRes
+import com.qoody.app.ui.theme.allCategories
+import com.qoody.app.ui.theme.categoryName
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.model.Categorization
@@ -601,7 +602,7 @@ private fun BudgetImpactRows(
     state: ReceiptUiState.Content,
     onOpenBudgets: () -> Unit,
 ) {
-    val categoryName = stringResource(impact.category.nameRes)
+    val categoryName = categoryName(impact.category)
     val share = impact.paymentShare(state.amount)
     val limit = impact.month.limit
     val used = impact.month.used
@@ -695,7 +696,7 @@ private fun CategoryPickerSheet(
             horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm),
             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm),
         ) {
-            Category.entries.forEach { category ->
+            allCategories().forEach { category ->
                 CategoryPill(category = category, selected = category == selected, onClick = { onSelected(category) })
             }
         }
