@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Rewrote `README.md` for non-technical users (what Qoody does, install, notification access, Play Protect blocking, FAQ) and moved developer setup, commands, code rules and the PR flow into a new `CONTRIBUTING.md`. Docs only, `verify` not run.
 - 2026-10-06 — Release v0.6.0 (code 8): custom categories (D25), rupees only with Indian grouping (D24), dated manual entries, receipt and Settings cleanups, note field fix. DB v5, backup format 7.
 - 2026-10-06 — Custom categories (D25): `Category` became a value class (built-in keys unchanged, `custom:<id>` for user ones), Room `custom_categories` (DB v5), backup format 7, Settings → Categories screen with add/edit sheet (name, emoji grid) and delete confirmation. Custom categories show up in pickers, ledger filters, insights, budgets and CSV export.
 - 2026-10-06 — Rupees only (D24): removed the Ledger Currency setting and the `Currency` type; amounts always show `₹` with Indian grouping (`12,34,567.89`). Backup format 6. Five ViewModels no longer depend on settings. Onboarding preview now shows an INR amount.
