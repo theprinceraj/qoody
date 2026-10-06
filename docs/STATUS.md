@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Rupees only (D24): removed the Ledger Currency setting and the `Currency` type; amounts always show `₹` with Indian grouping (`12,34,567.89`). Backup format 6. Five ViewModels no longer depend on settings. Onboarding preview now shows an INR amount.
 - 2026-10-06 — Manual entries can be dated: the add-expense sheet has the same date field as "Edit entry" (shared `EntryDateField`), defaulting to today. `NewExpense.occurredAt` (null = now).
 - 2026-10-06 — UI cleanups: removed the profile button from all top bars and the "Sync OK" pill from Settings; the receipt hides its details card when there is nothing in it (manual entries); the note field now saves and closes the keyboard on Done or on a tap anywhere outside it.
 - 2026-10-06 — Release v0.5.0 (code 7): on-device merchant classifier (D22), LLM/API-key section removed (D23). Backup format 5. DB still v4.
