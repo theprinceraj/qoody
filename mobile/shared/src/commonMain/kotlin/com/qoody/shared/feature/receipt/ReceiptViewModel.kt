@@ -3,6 +3,7 @@ package com.qoody.shared.feature.receipt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qoody.shared.capture.MerchantCategoriser
+import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.core.endOfMonth
 import com.qoody.shared.core.localDate
@@ -53,8 +54,9 @@ class ReceiptViewModel(
     private val dates: DateProvider,
     private val merchantCategories: MerchantCategoryRepository,
     budgets: BudgetRepository,
+    classifier: MerchantClassifier = MerchantClassifier.None,
 ) : ViewModel() {
-    private val categoriser = MerchantCategoriser(merchantCategories)
+    private val categoriser = MerchantCategoriser(merchantCategories, classifier)
     private val noteDraft = MutableStateFlow<String?>(null)
     private val isCategoryPickerOpen = MutableStateFlow(false)
     private val editor = MutableStateFlow<EntryEditor?>(null)

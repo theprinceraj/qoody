@@ -13,6 +13,8 @@ import com.qoody.app.data.RoomSettingsRepository
 import com.qoody.app.data.RoomUnparsedCaptureRepository
 import com.qoody.app.data.createQoodyDatabase
 import com.qoody.shared.capture.CaptureNotificationUseCase
+import com.qoody.shared.capture.classifier.LazyMerchantClassifier
+import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
@@ -29,6 +31,10 @@ fun appModule(database: QoodyDatabase) =
         single<MerchantCategoryRepository> { RoomMerchantCategoryRepository(get()) }
         single<BudgetRepository> { RoomBudgetRepository(get()) }
         single<SettingsRepository> { RoomSettingsRepository(get()) }
+        single<MerchantClassifier> {
+            val assets = androidContext().assets
+            LazyMerchantClassifier({ assets.open(MERCHANT_MODEL_ASSET).use { it.readBytes() } })
+        }
         single { BackupService(get(), get()) }
         single {
             CaptureNotificationUseCase(
@@ -36,6 +42,7 @@ fun appModule(database: QoodyDatabase) =
                 unparsed = get(),
                 merchantCategories = get(),
                 unknownMerchant = { androidContext().getString(R.string.capture_unknown_merchant) },
+                classifier = get(),
                 appKind = get<CaptureSources>()::kindOf,
             )
         }
@@ -43,5 +50,8 @@ fun appModule(database: QoodyDatabase) =
         single { NotificationCaptureHandler(get(), androidContext().packageName, get()) }
         single<NotificationAccessChecker> { AndroidNotificationAccessChecker(androidContext()) }
     }
+
+/** Trained by `tools/merchant-classifier`; see its README. */
+private const val MERCHANT_MODEL_ASSET = "merchant_classifier.bin"
 
 fun createAppModule(application: QoodyApplication) = appModule(createQoodyDatabase(application))
