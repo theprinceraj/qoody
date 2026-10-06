@@ -18,13 +18,18 @@ import com.qoody.shared.feature.root.RootViewModel
 import com.qoody.shared.feature.settings.SettingsUiState
 import com.qoody.shared.feature.settings.SettingsViewModel
 import com.qoody.shared.fixedDates
+import com.qoody.shared.testToday
 import com.qoody.shared.transaction
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 class RootAndOnboardingViewModelTest : ViewModelTest() {
@@ -104,7 +109,7 @@ class AddExpenseViewModelTest : ViewModelTest() {
     private val ledger = InMemoryLedgerRepository(dates, emptyList())
 
     // Lazy: a ViewModel must be created after the test installs the Main dispatcher.
-    private val viewModel by lazy { AddExpenseViewModel(ledger, InMemorySettingsRepository()) }
+    private val viewModel by lazy { AddExpenseViewModel(ledger, InMemorySettingsRepository(), dates) }
 
     @Test
     fun canSaveOnlyWithAPositiveAmountAndAMerchant() =
@@ -138,6 +143,54 @@ class AddExpenseViewModelTest : ViewModelTest() {
             assertEquals(Category.FoodAndDrink, saved.category)
             assertEquals("", viewModel.uiState.latest().amountInput)
             assertFalse(viewModel.uiState.latest().canSave)
+        }
+
+    @Test
+    fun theDateDefaultsToTodayAndANewEntryIsStampedNow() =
+        runTest {
+            assertEquals(testToday, viewModel.uiState.latest().date)
+            assertEquals(testToday, viewModel.uiState.latest().maxDate)
+
+            viewModel.onAmountChanged("40")
+            viewModel.onMerchantChanged("Chai")
+            viewModel.onSave()
+
+            assertEquals(
+                dates.now(),
+                ledger.transactions
+                    .first()
+                    .single()
+                    .occurredAt,
+            )
+        }
+
+    @Test
+    fun anEarlierDayKeepsTheCurrentTimeOfDay() =
+        runTest {
+            val threeDaysAgo = testToday.minus(3, DateTimeUnit.DAY)
+            viewModel.onAmountChanged("250")
+            viewModel.onMerchantChanged("Dinner")
+            viewModel.onDateChanged(threeDaysAgo)
+
+            assertEquals(threeDaysAgo, viewModel.uiState.latest().date)
+            viewModel.onSave()
+
+            assertEquals(
+                dates.now() - 3.days,
+                ledger.transactions
+                    .first()
+                    .single()
+                    .occurredAt,
+            )
+            assertEquals(testToday, viewModel.uiState.latest().date)
+        }
+
+    @Test
+    fun futureDaysAreIgnored() =
+        runTest {
+            viewModel.onDateChanged(testToday.plus(1, DateTimeUnit.DAY))
+
+            assertEquals(testToday, viewModel.uiState.latest().date)
         }
 
     @Test

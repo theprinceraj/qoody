@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import com.qoody.app.R
-import com.qoody.app.ui.components.PaperButton
+import com.qoody.app.ui.components.EntryDateField
 import com.qoody.app.ui.components.PrimaryButton
 import com.qoody.app.ui.components.QoodyModalSheet
 import com.qoody.app.ui.components.QoodyTextField
@@ -50,9 +50,6 @@ fun EditEntrySheet(
     onSave: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var isPickingDate by rememberSaveable { mutableStateOf(false) }
-    val formats = rememberDateFormats()
-
     QoodyModalSheet(onDismiss = onDismiss) {
         Text(
             text = stringResource(R.string.edit_entry_title),
@@ -86,15 +83,7 @@ fun EditEntrySheet(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             )
         }
-        Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs)) {
-            SectionLabel(stringResource(R.string.edit_entry_date_label))
-            PaperButton(
-                text = formats.weekdayMonthDay(editor.date),
-                onClick = { isPickingDate = true },
-                leadingIcon = R.drawable.ic_calendar_today,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        EntryDateField(date = editor.date, maxDate = editor.maxDate, onDateChange = onDateChange)
         PrimaryButton(
             text = stringResource(R.string.action_save),
             onClick = onSave,
@@ -102,53 +91,4 @@ fun EditEntrySheet(
             modifier = Modifier.fillMaxWidth(),
         )
     }
-
-    if (isPickingDate) {
-        EntryDatePicker(
-            selected = editor.date,
-            maxDate = editor.maxDate,
-            onPicked = {
-                onDateChange(it)
-                isPickingDate = false
-            },
-            onDismiss = { isPickingDate = false },
-        )
-    }
 }
-
-/** Material's date picker works in UTC midnights; entries never lie in the future. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun EntryDatePicker(
-    selected: LocalDate,
-    maxDate: LocalDate,
-    onPicked: (LocalDate) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val latest = maxDate.toUtcMillis()
-    val state =
-        rememberDatePickerState(
-            initialSelectedDateMillis = selected.toUtcMillis(),
-            selectableDates =
-                object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= latest
-
-                    override fun isSelectableYear(year: Int) = year <= maxDate.year
-                },
-        )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = { state.selectedDateMillis?.let { onPicked(it.toUtcDate()) } ?: onDismiss() },
-            ) { Text(stringResource(R.string.edit_entry_date_confirm)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
-    ) {
-        DatePicker(state = state)
-    }
-}
-
-private fun LocalDate.toUtcMillis(): Long = atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
-
-private fun Long.toUtcDate(): LocalDate = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.UTC).date

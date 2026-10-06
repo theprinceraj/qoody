@@ -67,7 +67,7 @@ class RoomLedgerRepository(
                     id = id,
                     merchant = expense.merchant,
                     amount = expense.amount,
-                    occurredAt = dates.now(),
+                    occurredAt = expense.occurredAt ?: dates.now(),
                     category = expense.category,
                     categorization =
                         if (expense.category == Category.Uncategorized) {
