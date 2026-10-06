@@ -16,7 +16,7 @@
 
 ## Next up
 
-1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. Then the LLM work: on-device categorisation and real key verification (replace `FakeLlmKeyVerifier`), blocked on the model choice.
+1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. Then the on-device merchant classifier (D22, `docs/plans/merchant-classifier.md`, step 1 = Python evaluation harness) and real key verification (replace `FakeLlmKeyVerifier`).
 2. Confirm `applicationId` (`com.qoody.app`) before any Play upload, and run `play-policy-insights` for the notification-listener declaration.
 3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
 4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
@@ -45,10 +45,11 @@
 - Final application ID / package name; GitHub repository URL for the "Open Source Code" row.
 - Domain name and hosting account for the website.
 - Direct APK download in addition to Google Play? (Android developer verification rules may apply.)
-- Which on-device LLM runtime/model (the mocks mention "Jev v1.2")? Needed before the categorisation backend.
+- Training data for the merchant classifier: can the user export some of their own corrected entries (consented, never committed) to supplement a hand-built merchant list? (Model choice is settled: D22; "Jev v1.2" in the mocks is placeholder text.)
 
 ## Log
 
+- 2026-10-06 — Chose an on-device fastText-style classifier for merchant categorisation (D22) over cloud APIs (incl. TypeSafe Jev), LiteRT nets and bundled LLMs; wrote `docs/plans/merchant-classifier.md`. Docs only, `verify` not run. Deleted the merged `plan/notification-capture` branch.
 - 2026-10-05 — Release v0.4.0 (code 6): remembered category corrections, edit entries, monthly category budgets, categorise-on-merchant-edit. DB v4 (auto-migrations from v1–v3), backup format 4.
 - 2026-10-05 — Correcting the merchant of an Uncategorized entry now applies the remembered category or a keyword rule (shared `MerchantCategoriser`, also used by capture). Existing categories are never overwritten. `verify -Target mobile` green.
 - 2026-10-05 — Monthly category budgets (D21): `BudgetRepository` + Room `category_budgets` (DB v4, backup format 4), Settings → Monthly budgets screen (set/change/remove per category, over-budget in red), ledger summary bar and receipt "Monthly Budget Impact" now use real budgets. `ProgressTrack` moved to `ui/components`. `verify -Target mobile` green.
