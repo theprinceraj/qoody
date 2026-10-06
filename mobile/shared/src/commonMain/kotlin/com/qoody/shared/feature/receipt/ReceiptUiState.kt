@@ -60,5 +60,8 @@ sealed interface ReceiptUiState {
         val budgetImpact: BudgetImpact?,
         val isCategoryPickerOpen: Boolean,
         val editor: EntryEditor? = null,
-    ) : ReceiptUiState
+    ) : ReceiptUiState {
+        /** Whether there is a payment method, reference or budget impact to show; manual entries often have none. */
+        val hasDetails: Boolean get() = paymentMethod != null || referenceCode != null || budgetImpact != null
+    }
 }

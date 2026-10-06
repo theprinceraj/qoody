@@ -1,6 +1,7 @@
 package com.qoody.app.ui.receipt
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -81,7 +84,6 @@ import org.koin.core.parameter.parametersOf
 fun ReceiptScreen(
     transactionId: Long,
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onOpenBudgets: () -> Unit = {},
     viewModel: ReceiptViewModel = koinViewModel(key = transactionId.toString()) { parametersOf(transactionId) },
 ) {
@@ -103,7 +105,6 @@ fun ReceiptScreen(
         state = state,
         snackbarHost = snackbarHost,
         onBack = onBack,
-        onProfileClick = onProfileClick,
         onNoteChange = viewModel::onNoteChanged,
         onNoteCommit = viewModel::onNoteCommitted,
         onChangeCategory = viewModel::onCategoryPickerRequested,
@@ -131,7 +132,6 @@ fun ReceiptContent(
     state: ReceiptUiState,
     snackbarHost: SnackbarHostState,
     onBack: () -> Unit,
-    onProfileClick: () -> Unit,
     onNoteChange: (String) -> Unit,
     onNoteCommit: () -> Unit,
     onChangeCategory: () -> Unit,
@@ -150,7 +150,6 @@ fun ReceiptContent(
                 QoodyDetailTopBar(
                     title = stringResource(R.string.receipt_title),
                     onBackClick = onBack,
-                    onProfileClick = onProfileClick,
                 )
                 when (state) {
                     ReceiptUiState.Loading -> {
@@ -221,10 +220,13 @@ private fun ReceiptBody(
     onOpenBudgets: () -> Unit,
 ) {
     val formats = rememberDateFormats()
+    val focusManager = LocalFocusManager.current
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
+                // A tap anywhere outside the note field ends editing; losing focus saves the note.
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = QoodyTheme.spacing.md)
                 .padding(bottom = QoodyTheme.spacing.lg),
@@ -233,7 +235,7 @@ private fun ReceiptBody(
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { SheetHandle() }
         MainCard(state, formats, onNoteChange, onNoteCommit, onChangeCategory, onEdit)
         state.notification?.let { NotificationCard(it.appName, it.text, formats.time(state.time)) }
-        DetailsCard(state, onOpenBudgets)
+        if (state.hasDetails) DetailsCard(state, onOpenBudgets)
         Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
             PaperButton(
                 text = stringResource(R.string.receipt_split),
@@ -363,6 +365,7 @@ private fun MainCard(
             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs),
         ) {
             SectionLabel(stringResource(R.string.receipt_personal_note), color = MaterialTheme.colorScheme.tertiary)
+            val focusManager = LocalFocusManager.current
             QoodyTextField(
                 value = state.note,
                 onValueChange = onNoteChange,
@@ -378,7 +381,7 @@ private fun MainCard(
                     )
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onNoteCommit() }),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             )
         }
     }

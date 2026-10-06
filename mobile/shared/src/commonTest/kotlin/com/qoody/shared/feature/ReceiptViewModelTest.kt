@@ -74,6 +74,18 @@ class ReceiptViewModelTest : ViewModelTest() {
         }
 
     @Test
+    fun aManualUncategorizedEntryHasNoDetailsToShow() =
+        runTest {
+            val manual = ledger.add(NewExpense("Street food", Money.of(60), Category.Uncategorized))
+
+            val state = viewModel(manual).content()
+
+            assertFalse(state.hasDetails)
+            assertNull(state.notification)
+            assertTrue(viewModel().content().hasDetails)
+        }
+
+    @Test
     fun unknownIdIsNotFound() =
         runTest {
             val state = viewModel(TransactionId(Long.MAX_VALUE)).uiState.latest()
