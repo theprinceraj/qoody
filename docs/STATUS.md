@@ -37,7 +37,7 @@
 - **Edit entry** (receipt pencil): corrects amount, merchant and date; the time of day is kept. A corrected merchant on an Uncategorized entry picks up the remembered or rule-based category.
 - **Excluded entries** (Settings): entries hidden with "Exclude from ledger"; Restore puts them back in the ledger and totals. An excluded receipt shows "Restore to ledger" instead of "Exclude".
 - **Failed to parse** (Settings): debit-looking notifications from allowlisted apps that had no readable amount; "Add manually" opens the add-expense sheet and removes the entry once saved. Capped at the 50 most recent.
-- Categories were unified across the mixed colours/names in the mocks: Food & Drink, Transport, Shopping, Rent & Bills, Friends, Subscriptions, Uncategorized.
+- Categories were unified across the mixed colours/names in the mocks: Food & Drink, Transport, Shopping, Rent & Bills, Friends, Subscriptions, Uncategorized. Users can add their own (Settings → Categories: name + emoji; rename; delete moves entries to Uncategorized), which appear in every picker, filter, insight and budget (D25).
 
 ## Open questions for the user
 
@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Custom categories (D25): `Category` became a value class (built-in keys unchanged, `custom:<id>` for user ones), Room `custom_categories` (DB v5), backup format 7, Settings → Categories screen with add/edit sheet (name, emoji grid) and delete confirmation. Custom categories show up in pickers, ledger filters, insights, budgets and CSV export.
 - 2026-10-06 — Rupees only (D24): removed the Ledger Currency setting and the `Currency` type; amounts always show `₹` with Indian grouping (`12,34,567.89`). Backup format 6. Five ViewModels no longer depend on settings. Onboarding preview now shows an INR amount.
 - 2026-10-06 — Manual entries can be dated: the add-expense sheet has the same date field as "Edit entry" (shared `EntryDateField`), defaulting to today. `NewExpense.occurredAt` (null = now).
 - 2026-10-06 — UI cleanups: removed the profile button from all top bars and the "Sync OK" pill from Settings; the receipt hides its details card when there is nothing in it (manual entries); the note field now saves and closes the keyboard on Done or on a tap anywhere outside it.
