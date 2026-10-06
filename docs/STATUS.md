@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Release v0.5.0 (code 7): on-device merchant classifier (D22), LLM/API-key section removed (D23). Backup format 5. DB still v4.
 - 2026-10-06 — Merchant classifier steps 2-3: pure-Kotlin inference in `shared/.../capture/classifier` (`QmcFeatures`, `QmcModel`, `QmcMerchantClassifier`, `LazyMerchantClassifier` loading the asset off the main thread, rules-only fallback if it fails). Wired into capture and the receipt merchant edit after remembered choices and keyword rules; stored as `Categorization.Model("Qoody on-device v1", confidence)`; receipt reads "Guessed on this device, N% sure". Parity test: Kotlin matches Python within 1e-4 on 178 strings. `verify -Target mobile` green. Not run on a device.
 - 2026-10-06 — Merchant classifier step 1: `tools/merchant-classifier/` (Python + numpy, dev-only) trains a fastText-style model on synthetic data (public brands, invented shop and person names, uniform UPI/SMS noise) and exports `androidApp/src/main/assets/merchant_classifier.bin` (1 MB, int8) plus a Kotlin parity reference. Threshold 0.77; hand-written test set: 0.945 precision, 0.846 coverage. Deterministic rebuild. Not wired into the app yet.
 - 2026-10-06 — Removed the LLM/API-key section from Settings (D23): `LlmSettings`, `KeyVerification`, `LlmKeyVerifier`/`FakeLlmKeyVerifier`, the Keystore key store, five icons and their strings. `LegacyApiKeyCleanup` deletes a key stored by v0.4 on first launch. Backup format 5 (formats 1–4 still import). Onboarding step 3 no longer says "LLM".
