@@ -1,0 +1,172 @@
+# Hand-written evaluation set, never used for training: <class>\t<merchant as the parser might produce it>.
+# Mixes unseen brands, unseen shop names, people, and the noisy forms bank SMS and UPI apps use.
+# Some entries are deliberately hard (a brand with no telling word); missing them is expected.
+FoodAndDrink	Meghana Foods
+FoodAndDrink	Truffles Cafe
+FoodAndDrink	Empire Restaurant
+FoodAndDrink	The Rameshwaram Cafe
+FoodAndDrink	Vidyarthi Bhavan
+FoodAndDrink	Leon Grill
+FoodAndDrink	Shiv Sagar Veg Restaurant
+FoodAndDrink	Bademiya Kebabs
+FoodAndDrink	Paradise Biryani
+FoodAndDrink	Burger Singh
+FoodAndDrink	La Pinoz Pizza
+FoodAndDrink	Mad Over Donuts
+FoodAndDrink	Polar Bear Ice Cream
+FoodAndDrink	Hatti Kaapi
+FoodAndDrink	Karims
+FoodAndDrink	Adyar Ananda Bhavan
+FoodAndDrink	Anand Sweets and Savouries
+FoodAndDrink	Kanti Sweets
+FoodAndDrink	Brijwasi Mithai Wala
+FoodAndDrink	Punjab Grill
+FoodAndDrink	Sharma Dhaba
+FoodAndDrink	Annapoorna Mess
+FoodAndDrink	Murugan Idli Shop
+FoodAndDrink	Hotel Saravana
+FoodAndDrink	Kerala Kitchen
+FoodAndDrink	Fresh Juice Corner
+FoodAndDrink	Nilgiris Dairy Farm
+FoodAndDrink	Sri Venkateshwara Bakery
+FoodAndDrink	SHREE BALAJI SWEE
+FoodAndDrink	ganeshbakery@okaxis
+FoodAndDrink	UPI-SWIGGY
+FoodAndDrink	ZOMATO ONLINE
+FoodAndDrink	Instamart
+FoodAndDrink	Chicken Point
+FoodAndDrink	Biryani Blues
+FoodAndDrink	Chai Sutta Bar
+FoodAndDrink	MBA Chai Wala
+FoodAndDrink	Kirana King General Store
+FoodAndDrink	Daily Fresh Vegetables
+FoodAndDrink	Royal Caterers
+FoodAndDrink	Momo Mia
+FoodAndDrink	Cake Walk Bakers
+Transport	Uber Rides
+Transport	Ola Cabs
+Transport	Rapido Bike Taxi
+Transport	IRCTC Ticketing
+Transport	Vistara
+Transport	Air Asia
+Transport	Kolkata Metro Railway
+Transport	Pune Mahanagar Parivahan
+Transport	Shree Ram Petrol Pump
+Transport	HP Petrol Pump
+Transport	Indian Oil Filling Station
+Transport	Sai Fuel Station
+Transport	Om Sai Travels
+Transport	Kaveri Tours and Travels
+Transport	Airport Parking
+Transport	NHAI Toll Plaza
+Transport	Vrl Travels
+Transport	SRS Travels
+Transport	Zingbus
+Transport	Intrcity Smartbus
+Transport	Jugnoo Auto
+Transport	Ather Energy Charging
+Transport	Balaji Tyres
+Transport	UPI/OLA
+Transport	UBER INDIA SYSTEMS
+Transport	Royal Cabs
+Transport	Speed Car Rentals
+Transport	Metro Card Recharge
+Shopping	Amazon Seller Services
+Shopping	Flipkart Internet
+Shopping	Myntra Designs
+Shopping	Nykaa Fashion
+Shopping	Tira Beauty
+Shopping	Croma Retail
+Shopping	Poorvika Mobiles
+Shopping	Sangeetha Mobiles
+Shopping	Pothys
+Shopping	Nalli Silk Sarees
+Shopping	Chennai Silks
+Shopping	Kalyan Jewellers
+Shopping	Malabar Gold
+Shopping	Shree Krishna Garments
+Shopping	Sharma Cloth House
+Shopping	New Fashion Footwear
+Shopping	Global Electronics
+Shopping	Laxmi Furniture
+Shopping	Royal Opticals
+Shopping	Happy Toys
+Shopping	Gupta Stationery
+Shopping	Vijay Hardware
+Shopping	Lulu Hypermarket
+Shopping	More Supermarket
+Shopping	Nature's Basket Store
+Shopping	Trends Footwear
+Shopping	Mr DIY
+Shopping	Miniso
+Shopping	AJIO.COM
+Shopping	meesho@ybl
+Bills	Airtel Payments
+Bills	Jio Prepaid Recharge
+Bills	Vi Postpaid
+Bills	BSNL Broadband
+Bills	Excitel Broadband
+Bills	You Broadband
+Bills	Tata Sky
+Bills	MSEB Electricity Bill
+Bills	Noida Power Company
+Bills	Kerala Water Authority
+Bills	Gujarat Gas
+Bills	Mahesh Gas Agency
+Bills	LIC Premium
+Bills	Max Life Insurance
+Bills	Care Health Insurance
+Bills	HDFC Credit Card Bill
+Bills	Home Loan EMI
+Bills	Bajaj Finance
+Bills	Sunshine Apartments Maintenance
+Bills	Green Valley Residents Welfare
+Bills	Room Rent
+Bills	Stanza Living
+Bills	Zolo Stays
+Bills	Pune Municipal Corporation
+Bills	Property Tax BBMP
+Subscriptions	Netflix Entertainment
+Subscriptions	Spotify India
+Subscriptions	YouTube Music
+Subscriptions	Google Play Services
+Subscriptions	Apple Media Services
+Subscriptions	Amazon Prime Membership
+Subscriptions	Hotstar Premium
+Subscriptions	Zee5 Subscription
+Subscriptions	ChatGPT Plus
+Subscriptions	Claude Pro
+Subscriptions	Microsoft Office
+Subscriptions	Coursera Plus
+Subscriptions	Medium Membership
+Subscriptions	Nord VPN
+Subscriptions	Truecaller Premium
+Subscriptions	Cultfit Membership
+Subscriptions	Gold's Gym Membership
+Subscriptions	The Hindu Newspaper
+Other	Rahul Verma
+Other	PRIYA SHARMA
+Other	Mr Amit Kumar
+Other	Sunita Devi
+Other	Mohammed Irfan
+Other	Arun Krishnan
+Other	K Venkatesh
+Other	Deepa R
+Other	rakesh.gupta99@okhdfcbank
+Other	9876543210@ybl
+Other	Balaji Enterprises
+Other	Sai Traders
+Other	Apollo Clinic
+Other	City Hospital
+Other	Wellness Medicals
+Other	Jan Aushadhi Kendra
+Other	Lal Path Labs
+Other	DPS School Fees
+Other	Brilliant Tuition Classes
+Other	ISKCON Temple
+Other	Looks Salon
+Other	Quick Dry Cleaners
+Other	Om Xerox
+Other	Blue Dart Courier
+Other	Self Transfer
+Other	ATM Cash Withdrawal

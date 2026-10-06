@@ -1,0 +1,289 @@
+# Well-known merchants and brands in India, one per line: <class>\t<name>.
+# Public brand names only. Classes: FoodAndDrink, Transport, Shopping, Bills, Subscriptions.
+FoodAndDrink	Swiggy
+FoodAndDrink	Zomato
+FoodAndDrink	Dominos Pizza
+FoodAndDrink	McDonalds
+FoodAndDrink	KFC
+FoodAndDrink	Burger King
+FoodAndDrink	Pizza Hut
+FoodAndDrink	Starbucks
+FoodAndDrink	Cafe Coffee Day
+FoodAndDrink	Chaayos
+FoodAndDrink	Chai Point
+FoodAndDrink	Third Wave Coffee
+FoodAndDrink	Blue Tokai Coffee
+FoodAndDrink	Haldirams
+FoodAndDrink	Bikanervala
+FoodAndDrink	Barbeque Nation
+FoodAndDrink	Wow Momo
+FoodAndDrink	Behrouz Biryani
+FoodAndDrink	Faasos
+FoodAndDrink	EatSure
+FoodAndDrink	Box8
+FoodAndDrink	FreshMenu
+FoodAndDrink	Rebel Foods
+FoodAndDrink	Subway
+FoodAndDrink	Taco Bell
+FoodAndDrink	Dunkin
+FoodAndDrink	Baskin Robbins
+FoodAndDrink	Naturals Ice Cream
+FoodAndDrink	Amul
+FoodAndDrink	Mother Dairy
+FoodAndDrink	Nandini Milk
+FoodAndDrink	Aavin
+FoodAndDrink	Licious
+FoodAndDrink	FreshToHome
+FoodAndDrink	Country Delight
+FoodAndDrink	Milkbasket
+FoodAndDrink	Blinkit
+FoodAndDrink	Zepto
+FoodAndDrink	BigBasket
+FoodAndDrink	Swiggy Instamart
+FoodAndDrink	Theobroma
+FoodAndDrink	Monginis
+FoodAndDrink	Kwality Walls
+FoodAndDrink	Sagar Ratna
+FoodAndDrink	Saravana Bhavan
+FoodAndDrink	MTR Foods
+FoodAndDrink	Biryani By Kilo
+FoodAndDrink	Goli Vada Pav
+FoodAndDrink	Jumboking
+FoodAndDrink	Keventers
+FoodAndDrink	Wendys
+FoodAndDrink	Krispy Kreme
+FoodAndDrink	Social Offline
+FoodAndDrink	Hard Rock Cafe
+FoodAndDrink	Cream Stone
+FoodAndDrink	Hocco
+FoodAndDrink	Domino
+FoodAndDrink	Zomato Ltd
+FoodAndDrink	Bundl Technologies
+FoodAndDrink	Grofers
+FoodAndDrink	Dunzo Daily
+Transport	Uber
+Transport	Uber India
+Transport	Ola
+Transport	ANI Technologies
+Transport	Rapido
+Transport	Roppen Transportation
+Transport	Namma Yatri
+Transport	BluSmart
+Transport	Meru Cabs
+Transport	IRCTC
+Transport	Indian Railways
+Transport	redBus
+Transport	AbhiBus
+Transport	MakeMyTrip
+Transport	Goibibo
+Transport	Cleartrip
+Transport	ixigo
+Transport	Yatra
+Transport	EaseMyTrip
+Transport	IndiGo
+Transport	InterGlobe Aviation
+Transport	Air India
+Transport	Akasa Air
+Transport	SpiceJet
+Transport	Air India Express
+Transport	DMRC
+Transport	Delhi Metro
+Transport	BMRCL
+Transport	Namma Metro
+Transport	Mumbai Metro One
+Transport	Chennai Metro Rail
+Transport	Hyderabad Metro Rail
+Transport	KSRTC
+Transport	MSRTC
+Transport	TSRTC
+Transport	APSRTC
+Transport	UPSRTC
+Transport	FASTag
+Transport	NETC FASTag
+Transport	Indian Oil
+Transport	IOCL
+Transport	Bharat Petroleum
+Transport	BPCL
+Transport	Hindustan Petroleum
+Transport	HPCL
+Transport	Shell
+Transport	Nayara Energy
+Transport	Jio-bp
+Transport	Park Plus
+Transport	Yulu
+Transport	Bounce
+Transport	Zoomcar
+Transport	Revv
+Transport	Quick Ride
+Transport	Porter
+Transport	BEST Bus
+Transport	Chalo
+Shopping	Amazon
+Shopping	Amazon Pay India
+Shopping	Flipkart
+Shopping	Myntra
+Shopping	Ajio
+Shopping	Meesho
+Shopping	Nykaa
+Shopping	Tata CLiQ
+Shopping	Croma
+Shopping	Reliance Digital
+Shopping	Reliance Trends
+Shopping	Reliance Retail
+Shopping	Vijay Sales
+Shopping	Decathlon
+Shopping	DMart
+Shopping	Avenue Supermarts
+Shopping	Lenskart
+Shopping	IKEA
+Shopping	Pepperfry
+Shopping	Urban Ladder
+Shopping	FirstCry
+Shopping	Bewakoof
+Shopping	Snapdeal
+Shopping	Shoppers Stop
+Shopping	Lifestyle Stores
+Shopping	Pantaloons
+Shopping	Westside
+Shopping	Max Fashion
+Shopping	Zudio
+Shopping	H and M
+Shopping	Zara
+Shopping	Uniqlo
+Shopping	Puma
+Shopping	Nike
+Shopping	Adidas
+Shopping	Bata
+Shopping	Titan
+Shopping	Tanishq
+Shopping	CaratLane
+Shopping	boAt
+Shopping	Samsung Store
+Shopping	Xiaomi Store
+Shopping	Purplle
+Shopping	Mamaearth
+Shopping	Sugar Cosmetics
+Shopping	The Souled Store
+Shopping	JioMart
+Shopping	Big Bazaar
+Shopping	Spencers
+Shopping	Star Bazaar
+Shopping	Smart Bazaar
+Shopping	Vishal Mega Mart
+Shopping	Fabindia
+Shopping	Raymond
+Shopping	Manyavar
+Shopping	Libas
+Shopping	Biba
+Shopping	W for Woman
+Shopping	Woodland
+Shopping	Red Tape
+Shopping	Hush Puppies
+Shopping	Crossword
+Shopping	Hamleys
+Shopping	Apollo Pharmacy Store
+Bills	Airtel
+Bills	Bharti Airtel
+Bills	Jio
+Bills	Reliance Jio
+Bills	Vodafone Idea
+Bills	Vi
+Bills	BSNL
+Bills	ACT Fibernet
+Bills	Hathway
+Bills	Tata Play
+Bills	Dish TV
+Bills	Sun Direct
+Bills	Airtel Xstream Fiber
+Bills	BESCOM
+Bills	MSEDCL
+Bills	Mahavitaran
+Bills	Tata Power
+Bills	Adani Electricity
+Bills	BSES Rajdhani
+Bills	BSES Yamuna
+Bills	TANGEDCO
+Bills	KSEB
+Bills	WBSEDCL
+Bills	CESC
+Bills	Torrent Power
+Bills	UPPCL
+Bills	TSSPDCL
+Bills	APSPDCL
+Bills	Mahanagar Gas
+Bills	Indraprastha Gas
+Bills	Indane Gas
+Bills	HP Gas
+Bills	Bharat Gas
+Bills	Delhi Jal Board
+Bills	BWSSB
+Bills	LIC
+Bills	Life Insurance Corporation
+Bills	HDFC Life
+Bills	ICICI Prudential
+Bills	SBI Life
+Bills	Star Health
+Bills	Policybazaar
+Bills	Acko
+Bills	Go Digit Insurance
+Bills	Bajaj Finserv
+Bills	Bajaj Finance EMI
+Bills	Home Credit
+Bills	CRED
+Bills	NoBroker
+Bills	NestAway
+Bills	MyGate
+Bills	ApnaComplex
+Bills	BBMP
+Bills	MCGM
+Bills	GHMC
+Subscriptions	Netflix
+Subscriptions	Spotify
+Subscriptions	Amazon Prime
+Subscriptions	Prime Video
+Subscriptions	Disney Hotstar
+Subscriptions	JioCinema
+Subscriptions	JioHotstar
+Subscriptions	SonyLIV
+Subscriptions	ZEE5
+Subscriptions	YouTube Premium
+Subscriptions	Google One
+Subscriptions	Google Play
+Subscriptions	Apple Services
+Subscriptions	iCloud
+Subscriptions	Apple Music
+Subscriptions	Audible
+Subscriptions	Kindle Unlimited
+Subscriptions	ChatGPT
+Subscriptions	OpenAI
+Subscriptions	Anthropic
+Subscriptions	Canva
+Subscriptions	Notion
+Subscriptions	Microsoft 365
+Subscriptions	Adobe
+Subscriptions	LinkedIn Premium
+Subscriptions	Gaana
+Subscriptions	Wynk Music
+Subscriptions	JioSaavn
+Subscriptions	Discovery Plus
+Subscriptions	MUBI
+Subscriptions	ALTBalaji
+Subscriptions	Aha
+Subscriptions	Sun NXT
+Subscriptions	Hoichoi
+Subscriptions	Eros Now
+Subscriptions	Times Prime
+Subscriptions	GitHub
+Subscriptions	Dropbox
+Subscriptions	Zoom
+Subscriptions	Duolingo
+Subscriptions	Headspace
+Subscriptions	Cult Fit
+Subscriptions	Tinder
+Subscriptions	Bumble
+Subscriptions	Pocket FM
+Subscriptions	Kuku FM
+Subscriptions	Storytel
+Subscriptions	Lionsgate Play
+Subscriptions	ShemarooMe
+Subscriptions	Apple One

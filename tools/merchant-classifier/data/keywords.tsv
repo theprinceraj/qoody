@@ -1,0 +1,245 @@
+# Words that name a kind of business, one per line: <class>\t<word or phrase>.
+# Combined with the stems in stems.txt to make names like "Shree Ganesh Sweets".
+# Other covers businesses Qoody has no category for and generic company words.
+FoodAndDrink	Sweets
+FoodAndDrink	Sweet House
+FoodAndDrink	Mithai Bhandar
+FoodAndDrink	Bakery
+FoodAndDrink	Bakers
+FoodAndDrink	Cafe
+FoodAndDrink	Restaurant
+FoodAndDrink	Family Restaurant
+FoodAndDrink	Hotel
+FoodAndDrink	Bhojanalaya
+FoodAndDrink	Dhaba
+FoodAndDrink	Kitchen
+FoodAndDrink	Foods
+FoodAndDrink	Food Court
+FoodAndDrink	Biryani
+FoodAndDrink	Biryani House
+FoodAndDrink	Pizza
+FoodAndDrink	Pizzeria
+FoodAndDrink	Burger
+FoodAndDrink	Momos
+FoodAndDrink	Chaat Bhandar
+FoodAndDrink	Juice Centre
+FoodAndDrink	Juice Bar
+FoodAndDrink	Tea Stall
+FoodAndDrink	Chai Wala
+FoodAndDrink	Coffee House
+FoodAndDrink	Canteen
+FoodAndDrink	Mess
+FoodAndDrink	Tiffin Centre
+FoodAndDrink	Tiffins
+FoodAndDrink	Dairy
+FoodAndDrink	Milk Centre
+FoodAndDrink	Ice Cream Parlour
+FoodAndDrink	Kulfi
+FoodAndDrink	Bhavan
+FoodAndDrink	Udupi
+FoodAndDrink	Veg Restaurant
+FoodAndDrink	Chicken Centre
+FoodAndDrink	Mutton Shop
+FoodAndDrink	Meat Shop
+FoodAndDrink	Fish Market
+FoodAndDrink	Fruits
+FoodAndDrink	Fruit Stall
+FoodAndDrink	Vegetables
+FoodAndDrink	Sabzi Mandi
+FoodAndDrink	Kirana Store
+FoodAndDrink	Grocery
+FoodAndDrink	General Provision Store
+FoodAndDrink	Caterers
+FoodAndDrink	Pav Bhaji
+FoodAndDrink	Vada Pav
+FoodAndDrink	Dosa Corner
+FoodAndDrink	Idli House
+FoodAndDrink	Thali
+FoodAndDrink	Rasoi
+FoodAndDrink	Eatery
+FoodAndDrink	Diner
+FoodAndDrink	Bistro
+FoodAndDrink	Grill
+FoodAndDrink	Tandoor
+FoodAndDrink	Bar and Restaurant
+FoodAndDrink	Pub
+FoodAndDrink	Brewery
+FoodAndDrink	Lounge
+FoodAndDrink	Kebabs
+FoodAndDrink	Shawarma
+FoodAndDrink	Paratha House
+FoodAndDrink	Snacks
+FoodAndDrink	Namkeen
+FoodAndDrink	Cake Shop
+FoodAndDrink	Confectionery
+Transport	Travels
+Transport	Tours and Travels
+Transport	Cabs
+Transport	Taxi Service
+Transport	Auto Rickshaw
+Transport	Bike Taxi
+Transport	Petrol Pump
+Transport	Filling Station
+Transport	Fuel Station
+Transport	Fuels
+Transport	Petroleum
+Transport	Service Station
+Transport	CNG Station
+Transport	Parking
+Transport	Toll Plaza
+Transport	Metro Rail
+Transport	Railway Station
+Transport	Bus Service
+Transport	Transport
+Transport	Car Rental
+Transport	Bike Rental
+Transport	Roadways
+Transport	Airlines
+Transport	Airways
+Transport	Tyres
+Transport	Auto Garage
+Transport	Motor Works
+Transport	EV Charging
+Shopping	Garments
+Shopping	Fashion
+Shopping	Textiles
+Shopping	Sarees
+Shopping	Cloth House
+Shopping	Clothing
+Shopping	Boutique
+Shopping	Footwear
+Shopping	Shoe Store
+Shopping	Electronics
+Shopping	Mobiles
+Shopping	Mobile Shop
+Shopping	Mobile Store
+Shopping	Computers
+Shopping	Appliances
+Shopping	Furniture
+Shopping	Home Decor
+Shopping	Jewellers
+Shopping	Jewellery
+Shopping	Watches
+Shopping	Opticals
+Shopping	Cosmetics
+Shopping	Beauty Store
+Shopping	Gift Shop
+Shopping	Toys
+Shopping	Stationery
+Shopping	Book Store
+Shopping	Sports
+Shopping	Hardware
+Shopping	Mart
+Shopping	Bazaar
+Shopping	Emporium
+Shopping	Collection
+Shopping	Trends
+Shopping	Showroom
+Shopping	Retail
+Shopping	Mall
+Shopping	Supermarket
+Shopping	Departmental Store
+Shopping	Handloom
+Shopping	Bags
+Shopping	Lifestyle
+Shopping	Paints
+Shopping	Kitchenware
+Bills	Electricity
+Bills	Electricity Board
+Bills	Power
+Bills	Power Distribution
+Bills	Gas Agency
+Bills	Gas Service
+Bills	Water Supply
+Bills	Jal Board
+Bills	Broadband
+Bills	Internet
+Bills	Fibernet
+Bills	Cable Network
+Bills	DTH
+Bills	Mobile Recharge
+Bills	Recharge
+Bills	Telecom
+Bills	Postpaid
+Bills	Prepaid
+Bills	Insurance
+Bills	Life Insurance
+Bills	Finance
+Bills	EMI
+Bills	Loan
+Bills	Housing Finance
+Bills	Rent
+Bills	House Rent
+Bills	PG
+Bills	Hostel
+Bills	Maintenance
+Bills	Society
+Bills	Apartment Owners Association
+Bills	Residents Welfare Association
+Bills	Municipal Corporation
+Bills	Property Tax
+Bills	Nagar Nigam
+Bills	Bill Payment
+Bills	Utility
+Bills	Credit Card Bill
+Subscriptions	Premium
+Subscriptions	Subscription
+Subscriptions	Membership
+Subscriptions	Plus
+Subscriptions	Pro Plan
+Subscriptions	Music
+Subscriptions	Streaming
+Subscriptions	OTT
+Subscriptions	Cloud Storage
+Subscriptions	App Store
+Subscriptions	Digital Services
+Subscriptions	Magazine
+Subscriptions	Newspaper
+Subscriptions	Gym Membership
+Subscriptions	Annual Plan
+Subscriptions	Monthly Plan
+Other	Traders
+Other	Enterprises
+Other	Agencies
+Other	Associates
+Other	Services
+Other	Solutions
+Other	Consultants
+Other	Medical
+Other	Medicals
+Other	Pharmacy
+Other	Chemist
+Other	Clinic
+Other	Hospital
+Other	Diagnostics
+Other	Lab
+Other	Dental Care
+Other	School
+Other	College
+Other	Academy
+Other	Tuition
+Other	Coaching Classes
+Other	Temple
+Other	Trust
+Other	Foundation
+Other	Donation
+Other	Salon
+Other	Beauty Parlour
+Other	Laundry
+Other	Dry Cleaners
+Other	Tailors
+Other	Xerox
+Other	Photo Studio
+Other	Courier
+Other	Plumbing Works
+Other	Electrical Works
+Other	Builders
+Other	Constructions
+Other	Industries
+Other	Exports
+Other	Infotech
+Other	Technologies
+Other	Fund Transfer
+Other	Money Transfer
+Other	Cash Deposit
+Other	Wallet Load

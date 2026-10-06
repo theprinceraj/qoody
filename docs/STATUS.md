@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Merchant classifier step 1: `tools/merchant-classifier/` (Python + numpy, dev-only) trains a fastText-style model on synthetic data (public brands, invented shop and person names, uniform UPI/SMS noise) and exports `androidApp/src/main/assets/merchant_classifier.bin` (1 MB, int8) plus a Kotlin parity reference. Threshold 0.77; hand-written test set: 0.945 precision, 0.846 coverage. Deterministic rebuild. Not wired into the app yet.
 - 2026-10-06 — Removed the LLM/API-key section from Settings (D23): `LlmSettings`, `KeyVerification`, `LlmKeyVerifier`/`FakeLlmKeyVerifier`, the Keystore key store, five icons and their strings. `LegacyApiKeyCleanup` deletes a key stored by v0.4 on first launch. Backup format 5 (formats 1–4 still import). Onboarding step 3 no longer says "LLM".
 - 2026-10-06 — Chose an on-device fastText-style classifier for merchant categorisation (D22) over cloud APIs (incl. TypeSafe Jev), LiteRT nets and bundled LLMs; wrote `docs/plans/merchant-classifier.md`. Docs only, `verify` not run. Deleted the merged `plan/notification-capture` branch.
 - 2026-10-05 — Release v0.4.0 (code 6): remembered category corrections, edit entries, monthly category budgets, categorise-on-merchant-edit. DB v4 (auto-migrations from v1–v3), backup format 4.
