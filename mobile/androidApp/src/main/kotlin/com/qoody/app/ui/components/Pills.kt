@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import com.qoody.app.ui.theme.QoodyTheme
-import com.qoody.app.ui.theme.emojiRes
-import com.qoody.app.ui.theme.nameRes
+import com.qoody.app.ui.theme.categoryEmoji
+import com.qoody.app.ui.theme.categoryName
 import com.qoody.shared.domain.model.Category
 
 /** A selectable filter pill: dark ink when chosen, white paper otherwise. */
@@ -126,8 +126,8 @@ fun CategoryPill(
             horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = stringResource(category.emojiRes), style = QoodyTheme.typography.bodyMd)
-            Text(text = stringResource(category.nameRes), style = QoodyTheme.typography.bodyMdMedium)
+            Text(text = categoryEmoji(category), style = QoodyTheme.typography.bodyMd)
+            Text(text = categoryName(category), style = QoodyTheme.typography.bodyMdMedium)
         }
     }
     val color = if (onClick != null) tint else MaterialTheme.colorScheme.surfaceContainerLowest

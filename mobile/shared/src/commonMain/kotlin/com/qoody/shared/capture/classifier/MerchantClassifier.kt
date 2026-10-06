@@ -31,7 +31,7 @@ class QmcMerchantClassifier(
     private val model: QmcModel,
 ) : MerchantClassifier {
     private val categories: List<Category?> =
-        model.classes.map { name -> Category.entries.firstOrNull { it.name == name && it != Category.Uncategorized } }
+        model.classes.map { name -> Category.builtIns.firstOrNull { it.key == name && it != Category.Uncategorized } }
 
     override suspend fun classify(merchant: String): MerchantGuess? = guess(merchant)
 

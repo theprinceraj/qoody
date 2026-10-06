@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.qoody.app.ui.budgets.BudgetsScreen
 import com.qoody.app.ui.capture.UnparsedCapturesScreen
+import com.qoody.app.ui.categories.CategoriesScreen
 import com.qoody.app.ui.components.QoodyBottomBar
 import com.qoody.app.ui.excluded.ExcludedEntriesScreen
 import com.qoody.app.ui.insights.InsightsScreen
@@ -29,6 +31,7 @@ import com.qoody.app.ui.ledger.LedgerScreen
 import com.qoody.app.ui.onboarding.OnboardingScreen
 import com.qoody.app.ui.receipt.ReceiptScreen
 import com.qoody.app.ui.settings.SettingsScreen
+import com.qoody.app.ui.theme.LocalCustomCategories
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.feature.root.RootUiState
 import com.qoody.shared.feature.root.RootViewModel
@@ -38,12 +41,15 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun QoodyApp(rootViewModel: RootViewModel = koinViewModel()) {
     val root by rootViewModel.uiState.collectAsStateWithLifecycle()
+    val customCategories by rootViewModel.customCategories.collectAsStateWithLifecycle()
     val openNotificationAccess = rememberNotificationAccessLauncher()
 
-    when (root) {
-        RootUiState.Loading -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
-        RootUiState.Onboarding -> OnboardingScreen(onOpenNotificationAccessSettings = openNotificationAccess)
-        RootUiState.Main -> MainNavigation(onOpenNotificationAccessSettings = openNotificationAccess)
+    CompositionLocalProvider(LocalCustomCategories provides customCategories) {
+        when (root) {
+            RootUiState.Loading -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+            RootUiState.Onboarding -> OnboardingScreen(onOpenNotificationAccessSettings = openNotificationAccess)
+            RootUiState.Main -> MainNavigation(onOpenNotificationAccessSettings = openNotificationAccess)
+        }
     }
 }
 
@@ -87,7 +93,11 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                             onOpenUnparsedCaptures = navigator::openUnparsedCaptures,
                             onOpenExcludedEntries = navigator::openExcludedEntries,
                             onOpenBudgets = navigator::openBudgets,
+                            onOpenCategories = navigator::openCategories,
                         )
+                    }
+                    entry<CategoriesKey> {
+                        CategoriesScreen(onBack = navigator::pop)
                     }
                     entry<BudgetsKey> {
                         BudgetsScreen(onBack = navigator::pop)

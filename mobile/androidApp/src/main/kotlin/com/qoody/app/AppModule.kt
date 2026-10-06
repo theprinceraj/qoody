@@ -7,6 +7,7 @@ import com.qoody.app.capture.NotificationCaptureHandler
 import com.qoody.app.data.BackupService
 import com.qoody.app.data.QoodyDatabase
 import com.qoody.app.data.RoomBudgetRepository
+import com.qoody.app.data.RoomCategoryRepository
 import com.qoody.app.data.RoomLedgerRepository
 import com.qoody.app.data.RoomMerchantCategoryRepository
 import com.qoody.app.data.RoomSettingsRepository
@@ -16,6 +17,7 @@ import com.qoody.shared.capture.CaptureNotificationUseCase
 import com.qoody.shared.capture.classifier.LazyMerchantClassifier
 import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.domain.repository.BudgetRepository
+import com.qoody.shared.domain.repository.CategoryRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
@@ -30,6 +32,7 @@ fun appModule(database: QoodyDatabase) =
         single<UnparsedCaptureRepository> { RoomUnparsedCaptureRepository(get()) }
         single<MerchantCategoryRepository> { RoomMerchantCategoryRepository(get()) }
         single<BudgetRepository> { RoomBudgetRepository(get()) }
+        single<CategoryRepository> { RoomCategoryRepository(get()) }
         single<SettingsRepository> { RoomSettingsRepository(get()) }
         single<MerchantClassifier> {
             val assets = androidContext().assets

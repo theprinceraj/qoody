@@ -55,7 +55,7 @@ import com.qoody.app.ui.format.StyledArg
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.format.styledStringResource
 import com.qoody.app.ui.theme.QoodyTheme
-import com.qoody.app.ui.theme.nameRes
+import com.qoody.app.ui.theme.categoryName
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.feature.insights.BucketKind
@@ -491,7 +491,7 @@ private fun CategoryRow(spend: CategorySpend) {
             ) {
                 Dot(color = color, size = QoodyTheme.sizes.dot)
                 Text(
-                    text = stringResource(spend.category.nameRes),
+                    text = categoryName(spend.category),
                     style = QoodyTheme.typography.bodyMdMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

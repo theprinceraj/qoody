@@ -8,6 +8,7 @@ import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.LedgerCsv
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
+import com.qoody.shared.domain.repository.CategoryRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
@@ -32,6 +33,7 @@ class SettingsViewModel(
     private val settings: SettingsRepository,
     private val ledger: LedgerRepository,
     private val dates: DateProvider,
+    private val categories: CategoryRepository,
     unparsedCaptures: UnparsedCaptureRepository,
 ) : ViewModel() {
     val uiState: StateFlow<SettingsUiState> =
@@ -60,5 +62,8 @@ class SettingsViewModel(
     }
 
     /** The whole ledger as CSV text, ready to be written to a file the user picked. */
-    suspend fun buildCsvExport(): String = LedgerCsv.build(ledger.transactions.first(), dates.zone)
+    suspend fun buildCsvExport(): String {
+        val names = categories.custom.first().associate { it.category to it.name }
+        return LedgerCsv.build(ledger.transactions.first(), dates.zone, names)
+    }
 }

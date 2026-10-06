@@ -7,6 +7,7 @@ import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.EntrySource
 import com.qoody.shared.domain.model.EntryStatus
@@ -19,6 +20,7 @@ import com.qoody.shared.domain.model.Transaction
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.model.UnparsedCapture
 import com.qoody.shared.domain.repository.BudgetRepository
+import com.qoody.shared.domain.repository.CategoryRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
@@ -128,6 +130,21 @@ class RoomLedgerRepository(
 
     override suspend fun restore(id: TransactionId) = modify(id) { it.copy(status = EntryStatus.Settled) }
 
+    override suspend fun recategorise(
+        from: Category,
+        to: Category,
+    ) {
+        database.withWriteTransaction {
+            dao.getAll().forEach { entity ->
+                val transaction = decodeTransaction(entity.payload)
+                if (transaction.category == from) {
+                    val moved = transaction.copy(category = to, categorization = Categorization.None)
+                    dao.upsert(entity.copy(payload = encodeTransaction(moved)))
+                }
+            }
+        }
+    }
+
     /** Only call inside a write transaction, so two writers cannot take the same id. */
     private suspend fun nextId() = TransactionId((dao.maxId() ?: 0L) + 1L)
 
@@ -172,15 +189,37 @@ class RoomMerchantCategoryRepository(
     private val dao = database.merchantCategoryDao()
 
     override suspend fun categoryFor(merchant: String): Category? =
-        dao.get(MerchantKey.of(merchant))?.let { entity -> Category.entries.firstOrNull { it.name == entity.category } }
+        dao.get(MerchantKey.of(merchant))?.let { entity -> Category.fromKey(entity.category) }
 
     override suspend fun remember(
         merchant: String,
         category: Category,
     ) {
         val key = MerchantKey.of(merchant)
-        if (key.isNotEmpty()) dao.upsert(MerchantCategoryEntity(key, category.name))
+        if (key.isNotEmpty()) dao.upsert(MerchantCategoryEntity(key, category.key))
     }
+
+    override suspend fun forget(category: Category) = dao.deleteFor(category.key)
+}
+
+class RoomCategoryRepository(
+    database: QoodyDatabase,
+) : CategoryRepository {
+    private val dao = database.customCategoryDao()
+
+    override val custom: Flow<List<CustomCategory>> = dao.observeAll().map { list -> list.map { it.toModel() } }
+
+    override suspend fun create(
+        name: String,
+        emoji: String,
+    ): CustomCategory {
+        val id = dao.insert(CustomCategoryEntity(name = name, emoji = emoji))
+        return CustomCategory(id, name, emoji)
+    }
+
+    override suspend fun update(category: CustomCategory) = dao.upsert(category.toEntity())
+
+    override suspend fun delete(id: Long) = dao.delete(id)
 }
 
 class RoomBudgetRepository(
@@ -192,7 +231,7 @@ class RoomBudgetRepository(
         dao.observeAll().map { entities ->
             entities
                 .mapNotNull { entity ->
-                    Category.entries.firstOrNull { it.name == entity.category }?.let { it to Money(entity.limitMinor) }
+                    Category.fromKey(entity.category)?.let { it to Money(entity.limitMinor) }
                 }.toMap()
         }
 
@@ -201,9 +240,9 @@ class RoomBudgetRepository(
         limit: Money?,
     ) {
         if (limit == null) {
-            dao.delete(category.name)
+            dao.delete(category.key)
         } else {
-            dao.upsert(CategoryBudgetEntity(category.name, limit.minorUnits))
+            dao.upsert(CategoryBudgetEntity(category.key, limit.minorUnits))
         }
     }
 }

@@ -51,6 +51,14 @@ data class MerchantCategoryEntity(
     val category: String,
 )
 
+/** A category the user made (D25); transactions refer to it as `custom:<id>`. */
+@Entity(tableName = "custom_categories")
+data class CustomCategoryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val emoji: String,
+)
+
 /** A category's monthly limit in minor units. */
 @Entity(tableName = "category_budgets")
 data class CategoryBudgetEntity(
@@ -133,7 +141,34 @@ interface MerchantCategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(entries: List<MerchantCategoryEntity>)
 
+    @Query("DELETE FROM merchant_categories WHERE category = :category")
+    suspend fun deleteFor(category: String)
+
     @Query("DELETE FROM merchant_categories")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface CustomCategoryDao {
+    @Query("SELECT * FROM custom_categories ORDER BY id")
+    fun observeAll(): Flow<List<CustomCategoryEntity>>
+
+    @Query("SELECT * FROM custom_categories ORDER BY id")
+    suspend fun getAll(): List<CustomCategoryEntity>
+
+    @Insert
+    suspend fun insert(category: CustomCategoryEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(category: CustomCategoryEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(categories: List<CustomCategoryEntity>)
+
+    @Query("DELETE FROM custom_categories WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("DELETE FROM custom_categories")
     suspend fun deleteAll()
 }
 
@@ -177,6 +212,7 @@ interface SettingsDao {
         UnparsedCaptureEntity::class,
         MerchantCategoryEntity::class,
         CategoryBudgetEntity::class,
+        CustomCategoryEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -184,6 +220,7 @@ interface SettingsDao {
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5),
     ],
 )
 abstract class QoodyDatabase : RoomDatabase() {
@@ -196,7 +233,9 @@ abstract class QoodyDatabase : RoomDatabase() {
     abstract fun merchantCategoryDao(): MerchantCategoryDao
 
     abstract fun categoryBudgetDao(): CategoryBudgetDao
+
+    abstract fun customCategoryDao(): CustomCategoryDao
 }
 
-const val DATABASE_VERSION = 4
+const val DATABASE_VERSION = 5
 const val SETTINGS_ID = 1

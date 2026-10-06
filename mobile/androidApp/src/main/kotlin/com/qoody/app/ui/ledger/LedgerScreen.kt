@@ -64,7 +64,8 @@ import com.qoody.app.ui.format.StyledArg
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.format.styledStringResource
 import com.qoody.app.ui.theme.QoodyTheme
-import com.qoody.app.ui.theme.chipLabelRes
+import com.qoody.app.ui.theme.allCategories
+import com.qoody.app.ui.theme.categoryChipLabel
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.format.SignStyle
@@ -392,6 +393,7 @@ private fun CategoryFilters(
     onSelected: (Category?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val categories = allCategories()
     LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
         item(key = ALL_FILTER_KEY) {
             FilterPill(
@@ -400,9 +402,9 @@ private fun CategoryFilters(
                 onClick = { onSelected(null) },
             )
         }
-        items(items = Category.entries, key = { it.name }) { category ->
+        items(items = categories, key = { it.key }) { category ->
             FilterPill(
-                label = stringResource(category.chipLabelRes),
+                label = categoryChipLabel(category),
                 selected = selected == category,
                 onClick = { onSelected(category) },
             )

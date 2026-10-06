@@ -3,6 +3,7 @@ package com.qoody.shared.feature
 import com.qoody.shared.ViewModelTest
 import com.qoody.shared.capture.CapturePolicy
 import com.qoody.shared.capture.UnparsedReason
+import com.qoody.shared.data.InMemoryCategoryRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
@@ -37,7 +38,7 @@ class RootAndOnboardingViewModelTest : ViewModelTest() {
     @Test
     fun showsOnboardingUntilItIsCompleted() =
         runTest {
-            val root = RootViewModel(settings)
+            val root = RootViewModel(settings, InMemoryCategoryRepository())
             assertEquals(RootUiState.Onboarding, root.uiState.latest())
 
             OnboardingViewModel(settings).onEnableNotificationAccess()
@@ -56,7 +57,7 @@ class SettingsViewModelTest : ViewModelTest() {
 
     // Lazy: a ViewModel must be created after the test installs the Main dispatcher.
     private val unparsed = InMemoryUnparsedCaptureRepository()
-    private val viewModel by lazy { SettingsViewModel(settings, ledger, dates, unparsed) }
+    private val viewModel by lazy { SettingsViewModel(settings, ledger, dates, InMemoryCategoryRepository(), unparsed) }
 
     private fun content() = viewModel.uiState.latest() as SettingsUiState.Content
 

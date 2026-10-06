@@ -103,4 +103,20 @@ class LedgerCsvTest {
         assertEquals(true, lines[1].contains("\"Cafe, \"\"Bar\"\"\""))
         assertEquals(true, lines[1].contains("4.50"))
     }
+
+    @Test
+    fun customCategoriesAreWrittenByName() {
+        val pets =
+            com.qoody.shared.domain.model.Category
+                .custom(2)
+        val csv =
+            LedgerCsv.build(
+                listOf(transaction(daysAgo = 0, amount = Money.of(900), category = pets, merchant = "Vet")),
+                testZone,
+                customNames = mapOf(pets to "Pets"),
+            )
+
+        assertEquals(true, csv.contains(",Pets,"))
+        assertEquals(false, csv.contains("custom:"))
+    }
 }

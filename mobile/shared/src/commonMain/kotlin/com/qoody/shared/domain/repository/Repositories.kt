@@ -3,6 +3,7 @@ package com.qoody.shared.domain.repository
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Category
+import com.qoody.shared.domain.model.CustomCategory
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.NewCapturedTransaction
@@ -49,6 +50,12 @@ interface LedgerRepository {
 
     /** Puts an excluded entry back into the ledger and its totals. */
     suspend fun restore(id: TransactionId)
+
+    /** Moves every entry in [from], excluded ones included, to [to] with no categorisation source. */
+    suspend fun recategorise(
+        from: Category,
+        to: Category,
+    )
 }
 
 /** Monthly spending limits per category. */
@@ -72,6 +79,27 @@ interface MerchantCategoryRepository {
         merchant: String,
         category: Category,
     )
+
+    /** Drops every remembered merchant that points at [category]. */
+    suspend fun forget(category: Category)
+}
+
+/** Categories the user made (D25). Built-in categories are fixed and not stored. */
+interface CategoryRepository {
+    /** Oldest first. */
+    val custom: Flow<List<CustomCategory>>
+
+    /** Stores a new category named [name] shown with [emoji]. */
+    suspend fun create(
+        name: String,
+        emoji: String,
+    ): CustomCategory
+
+    /** Renames [category] or changes its emoji; its entries keep pointing at it. */
+    suspend fun update(category: CustomCategory)
+
+    /** Removes the definition only; the caller moves its entries, budget and memories first. */
+    suspend fun delete(id: Long)
 }
 
 /** Notifications that looked like payments but could not be read. */

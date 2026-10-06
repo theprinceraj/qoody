@@ -1,5 +1,6 @@
 package com.qoody.shared.domain.format
 
+import com.qoody.shared.domain.model.Category
 import com.qoody.shared.domain.model.Transaction
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -15,9 +16,11 @@ private val columnHeaders =
 
 /** Serialises the ledger as RFC 4180 CSV (plain text, one receipt per row). */
 object LedgerCsv {
+    /** [customNames] maps the user's own categories to their names; built-ins use their keys. */
     fun build(
         transactions: List<Transaction>,
         zone: TimeZone,
+        customNames: Map<Category, String> = emptyMap(),
     ): String =
         buildString {
             appendRecord(columnHeaders)
@@ -30,7 +33,7 @@ object LedgerCsv {
                         local.time.toString(),
                         transaction.merchant,
                         MoneyFormatter.formatPlain(transaction.amount),
-                        transaction.category.name,
+                        customNames[transaction.category] ?: transaction.category.key,
                         transaction.paymentApp,
                         transaction.tag.orEmpty(),
                         transaction.note,

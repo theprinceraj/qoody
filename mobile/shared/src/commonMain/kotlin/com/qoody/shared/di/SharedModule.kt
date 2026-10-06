@@ -3,18 +3,21 @@ package com.qoody.shared.di
 import com.qoody.shared.capture.classifier.MerchantClassifier
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemoryBudgetRepository
+import com.qoody.shared.data.InMemoryCategoryRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
 import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.BudgetRepository
+import com.qoody.shared.domain.repository.CategoryRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
 import com.qoody.shared.feature.budgets.BudgetsViewModel
 import com.qoody.shared.feature.capture.UnparsedCapturesViewModel
+import com.qoody.shared.feature.categories.CategoriesViewModel
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
 import com.qoody.shared.feature.insights.InsightsViewModel
 import com.qoody.shared.feature.ledger.AddExpenseViewModel
@@ -39,16 +42,18 @@ val sharedModule =
         single<MerchantCategoryRepository> { InMemoryMerchantCategoryRepository() }
         single<BudgetRepository> { InMemoryBudgetRepository() }
         single<MerchantClassifier> { MerchantClassifier.None }
+        single<CategoryRepository> { InMemoryCategoryRepository() }
 
-        viewModel { RootViewModel(get()) }
+        viewModel { RootViewModel(get(), get()) }
         viewModel { OnboardingViewModel(get()) }
         viewModel { LedgerViewModel(get(), get(), get(), get()) }
         viewModel { AddExpenseViewModel(get(), get()) }
         viewModel { InsightsViewModel(get(), get()) }
-        viewModel { SettingsViewModel(get(), get(), get(), get()) }
+        viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { ExcludedEntriesViewModel(get(), get()) }
-        viewModel { BudgetsViewModel(get(), get(), get()) }
+        viewModel { BudgetsViewModel(get(), get(), get(), get()) }
+        viewModel { CategoriesViewModel(get(), get(), get(), get()) }
         viewModel { (transactionId: Long) ->
             ReceiptViewModel(TransactionId(transactionId), get(), get(), get(), get(), get())
         }

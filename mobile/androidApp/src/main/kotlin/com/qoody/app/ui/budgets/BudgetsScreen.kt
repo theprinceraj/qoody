@@ -37,7 +37,7 @@ import com.qoody.app.ui.components.ScreenContainer
 import com.qoody.app.ui.components.SectionLabel
 import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.theme.QoodyTheme
-import com.qoody.app.ui.theme.nameRes
+import com.qoody.app.ui.theme.categoryName
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.model.Category
@@ -107,7 +107,7 @@ fun BudgetsContent(
                                 color = MaterialTheme.colorScheme.secondary,
                             )
                         }
-                        items(state.rows, key = { it.category.name }) { row ->
+                        items(state.rows, key = { it.category.key }) { row ->
                             BudgetCard(row, onClick = { onEdit(row.category) })
                         }
                     }
@@ -142,7 +142,7 @@ private fun BudgetCard(
             CategoryMarker(row.category)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(row.category.nameRes),
+                    text = categoryName(row.category),
                     style = QoodyTheme.typography.titleMd,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -200,7 +200,7 @@ private fun BudgetSheet(
 ) {
     QoodyModalSheet(onDismiss = onDismiss) {
         Text(
-            text = stringResource(R.string.budgets_sheet_title, stringResource(editor.category.nameRes)),
+            text = stringResource(R.string.budgets_sheet_title, categoryName(editor.category)),
             style = QoodyTheme.typography.headlineSm,
             color = MaterialTheme.colorScheme.onSurface,
         )

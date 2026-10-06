@@ -247,4 +247,21 @@
     <string name="settings_backup_replace_confirm">Choose backup</string>
     <string name="cancel">Cancel</string>
     <string name="settings_no_browser">No app available to open this link.</string>
+    <string name="categories_title">Categories</string>
+    <string name="categories_intro">Add your own categories. They work everywhere the built-in ones do: the category picker, ledger filters, insights and budgets.</string>
+    <string name="categories_empty">No categories of your own yet.</string>
+    <string name="categories_add">Add category</string>
+    <string name="categories_edit">Edit %1$s</string>
+    <string name="categories_sheet_new">New category</string>
+    <string name="categories_sheet_edit">Edit category</string>
+    <string name="categories_name_label">Name</string>
+    <string name="categories_name_hint">e.g. Pets</string>
+    <string name="categories_emoji_label">Emoji</string>
+    <string name="categories_duplicate">You already have a category with this name.</string>
+    <string name="categories_delete">Delete category</string>
+    <string name="categories_delete_title">Delete “%1$s”?</string>
+    <string name="categories_delete_body">Its entries move to Uncategorized, and its budget and remembered merchants are removed.</string>
+    <string name="categories_delete_confirm">Delete</string>
+    <string name="settings_categories_title">Categories</string>
+    <string name="settings_categories_subtitle">Add, rename or delete your own</string>
 </resources>
