@@ -86,7 +86,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LedgerScreen(
     onOpenReceipt: (TransactionId) -> Unit,
-    onProfileClick: () -> Unit,
     onOpenBudgets: () -> Unit = {},
     startWithSearch: Boolean,
     viewModel: LedgerViewModel = koinViewModel(),
@@ -101,7 +100,6 @@ fun LedgerScreen(
         onSearchClick = viewModel::onSearchOpened,
         onSearchQueryChange = viewModel::onSearchQueryChanged,
         onSearchClose = viewModel::onSearchClosed,
-        onProfileClick = onProfileClick,
         onCategorySelected = viewModel::onCategorySelected,
         onRowClick = onOpenReceipt,
         onAddExpenseClick = { showAddExpense = true },
@@ -117,7 +115,6 @@ fun LedgerContent(
     onSearchClick: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onSearchClose: () -> Unit,
-    onProfileClick: () -> Unit,
     onCategorySelected: (Category?) -> Unit,
     onRowClick: (TransactionId) -> Unit,
     onAddExpenseClick: () -> Unit,
@@ -126,7 +123,7 @@ fun LedgerContent(
     ScreenContainer {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                QoodyTopBar(onSearchClick = onSearchClick, onProfileClick = onProfileClick)
+                QoodyTopBar(onSearchClick = onSearchClick)
                 when (state) {
                     LedgerUiState.Loading -> {
                         LoadingIndicator()

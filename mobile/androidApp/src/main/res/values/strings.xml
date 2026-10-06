@@ -8,7 +8,6 @@
     <!-- Shared actions & accessibility -->
     <string name="cd_search">Search ledger</string>
     <string name="cd_close_search">Close search</string>
-    <string name="cd_profile">Open settings</string>
     <string name="cd_back">Go back</string>
     <string name="action_save">Save entry</string>
 
@@ -206,8 +205,6 @@
     <!-- Settings -->
     <string name="settings_eyebrow">Configuration</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_sync_ok">Sync OK</string>
-    <string name="settings_sync_paused">Paused</string>
     <string name="settings_section_core">Core Automation</string>
     <string name="settings_listener_title">Notification Listener</string>
     <string name="settings_listener_active">Active</string>

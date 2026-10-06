@@ -141,7 +141,6 @@ class ScreenshotTest {
                 onSearchClick = {},
                 onSearchQueryChange = {},
                 onSearchClose = {},
-                onProfileClick = {},
                 onCategorySelected = {},
                 onRowClick = {},
                 onAddExpenseClick = {},
@@ -153,7 +152,7 @@ class ScreenshotTest {
     fun insights() {
         val state = InsightsViewModel(ledger, settings, dates).uiState.await { it is InsightsUiState.Content }
         capture("insights", TALL_PAGE) {
-            InsightsContent(state = state, onPeriodSelected = {}, onSearchClick = {}, onProfileClick = {})
+            InsightsContent(state = state, onPeriodSelected = {}, onSearchClick = {})
         }
     }
 
@@ -175,7 +174,6 @@ class ScreenshotTest {
                 state = state,
                 snackbarHost = SnackbarHostState(),
                 onBack = {},
-                onProfileClick = {},
                 onNoteChange = {},
                 onNoteCommit = {},
                 onChangeCategory = {},
@@ -201,7 +199,6 @@ class ScreenshotTest {
                 state = state,
                 snackbarHost = SnackbarHostState(),
                 onSearchClick = {},
-                onProfileClick = {},
                 onNotificationToggled = {},
                 onManageApps = {},
                 onOpenUnparsedCaptures = {},
@@ -227,7 +224,6 @@ class ScreenshotTest {
             UnparsedCapturesContent(
                 state = state,
                 onBack = {},
-                onProfileClick = {},
                 onAddManually = {},
                 onDismiss = {},
                 onClearAll = {},
@@ -244,7 +240,7 @@ class ScreenshotTest {
                 it is ExcludedEntriesUiState.Content && it.entries.isNotEmpty()
             }
         capture("excluded-entries") {
-            ExcludedEntriesContent(state = state, onBack = {}, onProfileClick = {}, onOpenReceipt = {}, onRestore = {})
+            ExcludedEntriesContent(state = state, onBack = {}, onOpenReceipt = {}, onRestore = {})
         }
     }
 
@@ -257,7 +253,7 @@ class ScreenshotTest {
         val state =
             BudgetsViewModel(budgets, ledger, settings, dates).uiState.await { it is BudgetsUiState.Content }
         capture("budgets", TALL_PAGE) {
-            BudgetsContent(state = state, onBack = {}, onProfileClick = {}, onEdit = {})
+            BudgetsContent(state = state, onBack = {}, onEdit = {})
         }
     }
 

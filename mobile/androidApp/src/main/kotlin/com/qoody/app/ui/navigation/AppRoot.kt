@@ -50,7 +50,6 @@ fun QoodyApp(rootViewModel: RootViewModel = koinViewModel()) {
 @Composable
 private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
     val navigator = rememberQoodyNavigator()
-    val openSettings = { navigator.switchTo(TopLevelDestination.Settings) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -74,13 +73,12 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                     entry<LedgerKey> { key ->
                         LedgerScreen(
                             onOpenReceipt = { id: TransactionId -> navigator.openReceipt(id) },
-                            onProfileClick = openSettings,
                             onOpenBudgets = navigator::openBudgets,
                             startWithSearch = key.openSearch,
                         )
                     }
                     entry<InsightsKey> {
-                        InsightsScreen(onSearchClick = navigator::openSearch, onProfileClick = openSettings)
+                        InsightsScreen(onSearchClick = navigator::openSearch)
                     }
                     entry<SettingsKey> {
                         SettingsScreen(
@@ -92,23 +90,21 @@ private fun MainNavigation(onOpenNotificationAccessSettings: () -> Unit) {
                         )
                     }
                     entry<BudgetsKey> {
-                        BudgetsScreen(onBack = navigator::pop, onProfileClick = openSettings)
+                        BudgetsScreen(onBack = navigator::pop)
                     }
                     entry<ExcludedEntriesKey> {
                         ExcludedEntriesScreen(
                             onBack = navigator::pop,
-                            onProfileClick = openSettings,
                             onOpenReceipt = { id: TransactionId -> navigator.openReceipt(id) },
                         )
                     }
                     entry<UnparsedCapturesKey> {
-                        UnparsedCapturesScreen(onBack = navigator::pop, onProfileClick = openSettings)
+                        UnparsedCapturesScreen(onBack = navigator::pop)
                     }
                     entry<ReceiptKey> { key ->
                         ReceiptScreen(
                             transactionId = key.transactionId,
                             onBack = navigator::pop,
-                            onProfileClick = openSettings,
                             onOpenBudgets = navigator::openBudgets,
                         )
                     }
