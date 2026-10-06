@@ -27,7 +27,7 @@
 ## UI behaviours worth knowing (where the design was silent)
 
 - **Search icon** on Insights/Settings opens the Ledger tab with its search field focused. There is no profile button (no accounts; Settings is a tab).
-- **Add Expense** opens a bottom sheet (amount, merchant, category). Manual entries show "Added manually".
+- **Add Expense** opens a bottom sheet (amount, merchant, category, date). The date defaults to today; an earlier day keeps the current time of day; future days cannot be picked. Manual entries show "Added manually".
 - **Split expense** is visible but only shows "isn't available yet" — no split flow was designed.
 - **Calendar button** on Insights jumps back to "This month".
 - **Month progress bar** (ledger) = this month's spending in budgeted categories ÷ the sum of all category budgets, red when over; without budgets it is replaced by a "Set a monthly budget" link. Budgets live in Settings → Monthly budgets.
@@ -48,6 +48,7 @@
 
 ## Log
 
+- 2026-10-06 — Manual entries can be dated: the add-expense sheet has the same date field as "Edit entry" (shared `EntryDateField`), defaulting to today. `NewExpense.occurredAt` (null = now).
 - 2026-10-06 — UI cleanups: removed the profile button from all top bars and the "Sync OK" pill from Settings; the receipt hides its details card when there is nothing in it (manual entries); the note field now saves and closes the keyboard on Done or on a tap anywhere outside it.
 - 2026-10-06 — Release v0.5.0 (code 7): on-device merchant classifier (D22), LLM/API-key section removed (D23). Backup format 5. DB still v4.
 - 2026-10-06 — Merchant classifier steps 2-3: pure-Kotlin inference in `shared/.../capture/classifier` (`QmcFeatures`, `QmcModel`, `QmcMerchantClassifier`, `LazyMerchantClassifier` loading the asset off the main thread, rules-only fallback if it fails). Wired into capture and the receipt merchant edit after remembered choices and keyword rules; stored as `Categorization.Model("Qoody on-device v1", confidence)`; receipt reads "Guessed on this device, N% sure". Parity test: Kotlin matches Python within 1e-4 on 178 strings. `verify -Target mobile` green. Not run on a device.
