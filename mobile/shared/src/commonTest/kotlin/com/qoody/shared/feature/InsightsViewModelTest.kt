@@ -31,8 +31,7 @@ class InsightsViewModelTest : ViewModelTest() {
             transaction(30, Money.of(300), Category.Bills), // Sep 24
         )
 
-    private fun viewModel() =
-        InsightsViewModel(InMemoryLedgerRepository(dates, ledger), InMemorySettingsRepository(), dates)
+    private fun viewModel() = InsightsViewModel(InMemoryLedgerRepository(dates, ledger), dates)
 
     private fun InsightsViewModel.content() = uiState.latest() as InsightsUiState.Content
 
@@ -105,7 +104,7 @@ class InsightsViewModelTest : ViewModelTest() {
     fun emptyLedgerHasNoReflection() =
         runTest {
             val empty =
-                InsightsViewModel(InMemoryLedgerRepository(dates, emptyList()), InMemorySettingsRepository(), dates)
+                InsightsViewModel(InMemoryLedgerRepository(dates, emptyList()), dates)
 
             val state = empty.content()
 

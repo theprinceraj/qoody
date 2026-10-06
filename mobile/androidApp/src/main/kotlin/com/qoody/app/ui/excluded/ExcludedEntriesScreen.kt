@@ -33,7 +33,6 @@ import com.qoody.app.ui.format.rememberDateFormats
 import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.SignStyle
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.feature.excluded.ExcludedEntriesUiState
 import com.qoody.shared.feature.excluded.ExcludedEntriesViewModel
@@ -116,7 +115,6 @@ private fun ExcludedList(
         items(state.entries, key = { it.id.value }) { entry ->
             ExcludedCard(
                 entry = entry,
-                currency = state.currency,
                 formats = formats,
                 onOpen = { onOpenReceipt(entry.id) },
                 onRestore = { onRestore(entry.id) },
@@ -128,7 +126,6 @@ private fun ExcludedList(
 @Composable
 private fun ExcludedCard(
     entry: ExcludedEntry,
-    currency: Currency,
     formats: DateFormats,
     onOpen: () -> Unit,
     onRestore: () -> Unit,
@@ -163,7 +160,7 @@ private fun ExcludedCard(
                 )
             }
             Text(
-                text = MoneyFormatter.format(entry.amount, currency, SignStyle.Outflow),
+                text = MoneyFormatter.format(entry.amount, SignStyle.Outflow),
                 style = QoodyTheme.typography.numericMd,
                 color = MaterialTheme.colorScheme.onSurface,
             )

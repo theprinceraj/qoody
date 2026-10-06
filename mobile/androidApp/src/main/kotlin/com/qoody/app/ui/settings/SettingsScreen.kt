@@ -67,7 +67,6 @@ import com.qoody.app.ui.components.StatusPill
 import com.qoody.app.ui.components.uppercaseForLocale
 import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.domain.model.AppTheme
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.feature.settings.SettingsUiState
 import com.qoody.shared.feature.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -152,7 +151,6 @@ fun SettingsScreen(
         onOpenExcludedEntries = onOpenExcludedEntries,
         onOpenBudgets = onOpenBudgets,
         onThemeSelected = viewModel::onThemeSelected,
-        onCurrencySelected = viewModel::onCurrencySelected,
         onHapticsToggled = viewModel::onHapticsToggled,
         onOpenSource = {
             runCatching { uriHandler.openUri(ProjectLinks.SOURCE_CODE_URL) }
@@ -275,7 +273,6 @@ fun SettingsContent(
     onOpenExcludedEntries: () -> Unit,
     onOpenBudgets: () -> Unit = {},
     onThemeSelected: (AppTheme) -> Unit,
-    onCurrencySelected: (Currency) -> Unit,
     onHapticsToggled: (Boolean) -> Unit,
     onOpenSource: () -> Unit,
     onExport: () -> Unit,
@@ -313,7 +310,7 @@ fun SettingsContent(
                                     onOpenBudgets,
                                 )
                             }
-                            item { InterfaceSection(state, onThemeSelected, onCurrencySelected, onHapticsToggled) }
+                            item { InterfaceSection(state, onThemeSelected, onHapticsToggled) }
                             item { PrivacySection(onOpenSource, onExport, onExportFull, onImportFull) }
                             item { Footer() }
                         }
@@ -530,7 +527,6 @@ private fun AutomationSection(
 private fun InterfaceSection(
     state: SettingsUiState.Content,
     onThemeSelected: (AppTheme) -> Unit,
-    onCurrencySelected: (Currency) -> Unit,
     onHapticsToggled: (Boolean) -> Unit,
 ) {
     Section(title = stringResource(R.string.settings_section_interface)) {
@@ -541,21 +537,6 @@ private fun InterfaceSection(
                 subtitle = stringResource(R.string.settings_theme_subtitle),
             ) {
                 ThemeDropdown(selected = state.settings.theme, onSelected = onThemeSelected)
-            }
-            HairlineDivider()
-            SettingRow(
-                icon = R.drawable.ic_payments,
-                title = stringResource(R.string.settings_currency_title),
-                subtitle = stringResource(R.string.settings_currency_subtitle),
-            ) {
-                SegmentedControl(
-                    options = Currency.entries,
-                    selected = state.settings.currency,
-                    onSelect = onCurrencySelected,
-                    label = { stringResource(R.string.settings_currency_option, it.isoCode, it.symbol) },
-                    equalWidth = false,
-                    textStyle = QoodyTheme.typography.numericSm,
-                )
             }
             HairlineDivider()
             SettingRow(

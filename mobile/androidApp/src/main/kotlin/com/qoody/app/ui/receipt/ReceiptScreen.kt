@@ -197,7 +197,6 @@ fun ReceiptContent(
         state.editor?.let { editor ->
             EditEntrySheet(
                 editor = editor,
-                currency = state.currency,
                 onAmountChange = editActions.onAmountChange,
                 onMerchantChange = editActions.onMerchantChange,
                 onDateChange = editActions.onDateChange,
@@ -341,12 +340,12 @@ private fun MainCard(
             verticalAlignment = Alignment.Bottom,
         ) {
             Text(
-                text = MoneyFormatter.format(state.amount, state.currency),
+                text = MoneyFormatter.format(state.amount),
                 style = QoodyTheme.typography.numericHero,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = state.currency.isoCode,
+                text = MoneyFormatter.ISO_CODE,
                 style = QoodyTheme.typography.bodySm,
                 color = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.padding(bottom = QoodyTheme.spacing.xs),
@@ -646,8 +645,8 @@ private fun BudgetImpactRows(
         text =
             stringResource(
                 R.string.receipt_budget_month,
-                MoneyFormatter.format(impact.month.spent, state.currency),
-                MoneyFormatter.format(limit, state.currency),
+                MoneyFormatter.format(impact.month.spent),
+                MoneyFormatter.format(limit),
             ),
         style = QoodyTheme.typography.bodySm,
         color = if (impact.month.isOver) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,

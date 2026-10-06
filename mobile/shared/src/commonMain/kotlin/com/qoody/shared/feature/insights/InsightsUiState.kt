@@ -1,7 +1,6 @@
 package com.qoody.shared.feature.insights
 
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.feature.ledger.TrendDirection
@@ -50,7 +49,6 @@ sealed interface InsightsUiState {
     data object Loading : InsightsUiState
 
     data class Content(
-        val currency: Currency,
         val period: InsightsPeriod,
         val currentMonth: Month,
         val total: Money,

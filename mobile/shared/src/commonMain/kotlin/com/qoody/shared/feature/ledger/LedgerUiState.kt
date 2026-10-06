@@ -2,7 +2,6 @@ package com.qoody.shared.feature.ledger
 
 import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.TransactionId
@@ -14,7 +13,6 @@ sealed interface LedgerUiState {
     data object Loading : LedgerUiState
 
     data class Content(
-        val currency: Currency,
         val hapticsEnabled: Boolean,
         val summary: MonthSummary,
         val selectedCategory: Category?,

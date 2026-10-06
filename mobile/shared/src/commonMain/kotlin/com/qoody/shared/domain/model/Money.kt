@@ -8,7 +8,7 @@ private const val HALF_DIVISOR = 2
 
 /**
  * An amount of money stored as an exact integer number of minor units (cents, paise).
- * The currency is a display concern ([Currency]) and is deliberately not part of the value.
+ * Qoody is for India, so every amount is in rupees (paise as minor units).
  */
 @JvmInline
 value class Money(

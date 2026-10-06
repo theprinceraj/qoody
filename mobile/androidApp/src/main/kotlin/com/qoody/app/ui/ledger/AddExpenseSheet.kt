@@ -88,7 +88,7 @@ private fun AddExpenseForm(
             placeholder = MoneyFormatter.formatPlain(Money.Zero),
             leading = {
                 Text(
-                    text = state.currency.symbol,
+                    text = MoneyFormatter.SYMBOL,
                     style = QoodyTheme.typography.numericHero,
                     color = MaterialTheme.colorScheme.primaryContainer,
                 )

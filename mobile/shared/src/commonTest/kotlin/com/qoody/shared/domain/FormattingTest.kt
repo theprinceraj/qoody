@@ -6,7 +6,6 @@ import com.qoody.shared.domain.format.MoneyInput
 import com.qoody.shared.domain.format.PercentFormatter
 import com.qoody.shared.domain.format.SignStyle
 import com.qoody.shared.domain.format.toReceiptCode
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Permille
 import com.qoody.shared.domain.model.TransactionId
@@ -18,20 +17,21 @@ import kotlin.test.assertNull
 
 class MoneyFormatterTest {
     @Test
-    fun groupsThousandsAndAlwaysShowsTwoDecimals() {
+    fun usesIndianGroupingAndAlwaysShowsTwoDecimals() {
         assertEquals("1,482.50", MoneyFormatter.formatPlain(Money.of(1482, 50)))
-        assertEquals("1,234,567.89", MoneyFormatter.formatPlain(Money.of(1_234_567, 89)))
+        assertEquals("12,34,567.89", MoneyFormatter.formatPlain(Money.of(1_234_567, 89)))
+        assertEquals("1,00,00,000.00", MoneyFormatter.formatPlain(Money.of(10_000_000)))
+        assertEquals("999.00", MoneyFormatter.formatPlain(Money.of(999)))
         assertEquals("0.00", MoneyFormatter.formatPlain(Money.Zero))
-        assertEquals("$1,483", MoneyFormatter.formatWhole(Money.of(1482, 50), Currency.Usd))
-        assertEquals("₹340", MoneyFormatter.formatWhole(Money.of(339, 50), Currency.Inr))
         assertEquals("4.05", MoneyFormatter.formatPlain(Money.of(4, 5)))
+        assertEquals("₹1,483", MoneyFormatter.formatWhole(Money.of(1482, 50)))
+        assertEquals("₹1,50,000", MoneyFormatter.formatWhole(Money.of(150_000)))
     }
 
     @Test
-    fun addsSymbolAndOutflowSign() {
-        assertEquals("$4.50", MoneyFormatter.format(Money.of(4, 50), Currency.Usd))
-        assertEquals("-$4.50", MoneyFormatter.format(Money.of(4, 50), Currency.Usd, SignStyle.Outflow))
-        assertEquals("-₹280.00", MoneyFormatter.format(Money.of(280), Currency.Inr, SignStyle.Outflow))
+    fun addsRupeeSymbolAndOutflowSign() {
+        assertEquals("₹4.50", MoneyFormatter.format(Money.of(4, 50)))
+        assertEquals("-₹280.00", MoneyFormatter.format(Money.of(280), SignStyle.Outflow))
     }
 }
 

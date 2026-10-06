@@ -16,7 +16,6 @@ import com.qoody.shared.domain.format.toReceiptCode
 import com.qoody.shared.domain.model.BudgetProgress
 import com.qoody.shared.domain.model.Categorization
 import com.qoody.shared.domain.model.Category
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.model.EntryDetails
 import com.qoody.shared.domain.model.Money
 import com.qoody.shared.domain.model.Transaction
@@ -24,7 +23,6 @@ import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
-import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.feature.ledger.MERCHANT_MAX_LENGTH
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -50,7 +48,6 @@ sealed interface ReceiptEvent {
 class ReceiptViewModel(
     private val id: TransactionId,
     private val ledger: LedgerRepository,
-    settings: SettingsRepository,
     private val dates: DateProvider,
     private val merchantCategories: MerchantCategoryRepository,
     budgets: BudgetRepository,
@@ -68,14 +65,13 @@ class ReceiptViewModel(
         combine(
             ledger.observe(id),
             ledger.transactions,
-            settings.settings,
             combine(noteDraft, isCategoryPickerOpen, editor, ::Overlays),
             budgets.budgets,
-        ) { transaction, settled, appSettings, overlays, limits ->
+        ) { transaction, settled, overlays, limits ->
             if (transaction == null) {
                 ReceiptUiState.NotFound
             } else {
-                content(transaction, settled, appSettings.currency, overlays, limits)
+                content(transaction, settled, overlays, limits)
             }
         }.stateInViewModel(viewModelScope, ReceiptUiState.Loading)
 
@@ -187,7 +183,6 @@ class ReceiptViewModel(
     private fun content(
         transaction: Transaction,
         settled: List<Transaction>,
-        currency: Currency,
         overlays: Overlays,
         limits: Map<Category, Money>,
     ): ReceiptUiState.Content {
@@ -197,7 +192,6 @@ class ReceiptViewModel(
             code = id.toReceiptCode(),
             merchant = transaction.merchant,
             amount = transaction.amount,
-            currency = currency,
             date = local.date,
             time = local.time,
             paymentApp = transaction.paymentApp,

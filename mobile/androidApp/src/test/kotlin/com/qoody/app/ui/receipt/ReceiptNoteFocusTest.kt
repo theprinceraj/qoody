@@ -16,7 +16,6 @@ import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
-import com.qoody.shared.data.InMemorySettingsRepository
 import com.qoody.shared.feature.receipt.ReceiptUiState
 import com.qoody.shared.feature.receipt.ReceiptViewModel
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +55,6 @@ class ReceiptNoteFocusTest {
             ReceiptViewModel(
                 newest.id,
                 ledger,
-                InMemorySettingsRepository(),
                 dates,
                 InMemoryMerchantCategoryRepository(),
                 InMemoryBudgetRepository(),

@@ -43,7 +43,7 @@ class ReceiptViewModelTest : ViewModelTest() {
     private val budgets = InMemoryBudgetRepository()
 
     private fun viewModel(id: TransactionId = coffee.id) =
-        ReceiptViewModel(id, ledger, InMemorySettingsRepository(), dates, merchantCategories, budgets)
+        ReceiptViewModel(id, ledger, dates, merchantCategories, budgets)
 
     private fun ReceiptViewModel.content() = uiState.latest() as ReceiptUiState.Content
 
@@ -242,7 +242,7 @@ class ReceiptViewModelTest : ViewModelTest() {
     fun excludedEntriesListShowsAndRestoresHiddenEntries() =
         runTest {
             ledger.exclude(groceries.id)
-            val excluded = ExcludedEntriesViewModel(ledger, InMemorySettingsRepository(), dates)
+            val excluded = ExcludedEntriesViewModel(ledger, dates)
 
             val entries = (excluded.uiState.latest() as ExcludedEntriesUiState.Content).entries
             assertEquals(listOf("Groceries"), entries.map { it.merchant })

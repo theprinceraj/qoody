@@ -8,7 +8,6 @@ import com.qoody.shared.core.stateInViewModel
 import com.qoody.shared.domain.format.LedgerCsv
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.domain.repository.LedgerRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
@@ -50,10 +49,6 @@ class SettingsViewModel(
 
     fun onNotificationListenerToggled(enabled: Boolean) {
         viewModelScope.launch { settings.setNotificationListenerEnabled(enabled) }
-    }
-
-    fun onCurrencySelected(currency: Currency) {
-        viewModelScope.launch { settings.setCurrency(currency) }
     }
 
     fun onThemeSelected(theme: AppTheme) {

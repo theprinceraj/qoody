@@ -58,7 +58,6 @@ import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.app.ui.theme.nameRes
 import com.qoody.shared.domain.format.MoneyFormatter
 import com.qoody.shared.domain.format.PercentFormatter
-import com.qoody.shared.domain.model.Currency
 import com.qoody.shared.feature.insights.BucketKind
 import com.qoody.shared.feature.insights.CategorySpend
 import com.qoody.shared.feature.insights.InsightsPeriod
@@ -126,8 +125,8 @@ private fun InsightsBody(
             }
         } else {
             item { PaceCard(state, formats) }
-            item { CategoryBreakdownCard(state.categories, state.currency) }
-            state.reflection?.let { reflection -> item { ReflectionCard(reflection, state.currency) } }
+            item { CategoryBreakdownCard(state.categories) }
+            state.reflection?.let { reflection -> item { ReflectionCard(reflection) } }
             item { VerifiedFooter() }
         }
     }
@@ -229,7 +228,7 @@ private fun PaceCard(
                 horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs),
             ) {
                 Text(
-                    text = MoneyFormatter.format(state.total, state.currency),
+                    text = MoneyFormatter.format(state.total),
                     style = QoodyTheme.typography.numericMd,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -243,7 +242,6 @@ private fun PaceCard(
         HairlineDivider()
         PaceChart(
             buckets = state.buckets,
-            currency = state.currency,
             kind = state.bucketKind,
             formats = formats,
             modifier = Modifier.padding(vertical = QoodyTheme.spacing.md),
@@ -296,7 +294,6 @@ private fun PaceFooter(
 @Composable
 private fun PaceChart(
     buckets: List<SpendBucket>,
-    currency: Currency,
     kind: BucketKind,
     formats: DateFormats,
     modifier: Modifier = Modifier,
@@ -309,7 +306,6 @@ private fun PaceChart(
         buckets.forEachIndexed { index, bucket ->
             BucketColumn(
                 bucket = bucket,
-                currency = currency,
                 title = bucketTitle(kind, index, bucket, formats),
                 subtitle = bucketSubtitle(kind, bucket, formats),
                 modifier = Modifier.weight(1f),
@@ -353,7 +349,6 @@ private fun bucketSubtitle(
 @Composable
 private fun BucketColumn(
     bucket: SpendBucket,
-    currency: Currency,
     title: String,
     subtitle: String?,
     modifier: Modifier = Modifier,
@@ -379,7 +374,7 @@ private fun BucketColumn(
             verticalArrangement = Arrangement.Bottom,
         ) {
             Text(
-                text = MoneyFormatter.formatWhole(bucket.amount, currency),
+                text = MoneyFormatter.formatWhole(bucket.amount),
                 style = QoodyTheme.typography.numericSm,
                 color = if (bucket.isCurrent) accent else MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = QoodyTheme.spacing.sm),
@@ -446,10 +441,7 @@ private fun CurrentBadge() {
 }
 
 @Composable
-private fun CategoryBreakdownCard(
-    categories: List<CategorySpend>,
-    currency: Currency,
-) {
+private fun CategoryBreakdownCard(categories: List<CategorySpend>) {
     QoodyCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -477,16 +469,13 @@ private fun CategoryBreakdownCard(
             modifier = Modifier.padding(top = QoodyTheme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.md),
         ) {
-            categories.forEach { CategoryRow(it, currency) }
+            categories.forEach { CategoryRow(it) }
         }
     }
 }
 
 @Composable
-private fun CategoryRow(
-    spend: CategorySpend,
-    currency: Currency,
-) {
+private fun CategoryRow(spend: CategorySpend) {
     val color = QoodyTheme.colors.forCategory(spend.category).dot
     val fill by animateFloatAsState(spend.share.fraction, tween(QoodyTheme.motion.chartMillis))
     Column {
@@ -513,7 +502,7 @@ private fun CategoryRow(
                 )
             }
             Text(
-                text = MoneyFormatter.format(spend.amount, currency),
+                text = MoneyFormatter.format(spend.amount),
                 style = QoodyTheme.typography.numericMd,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -548,11 +537,8 @@ private fun ShareBar(
 }
 
 @Composable
-private fun ReflectionCard(
-    reflection: Reflection,
-    currency: Currency,
-) {
-    val average = MoneyFormatter.format(reflection.averageDaily, currency)
+private fun ReflectionCard(reflection: Reflection) {
+    val average = MoneyFormatter.format(reflection.averageDaily)
     val accent = SpanStyle(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primaryContainer)
     val comparison = reflection.comparison
     val sentence =
@@ -561,7 +547,7 @@ private fun ReflectionCard(
                 styledStringResource(
                     R.string.insights_reflection_lower,
                     StyledArg(average, SpanStyle(fontWeight = FontWeight.Medium)),
-                    StyledArg(MoneyFormatter.formatWhole(comparison.difference, currency), accent),
+                    StyledArg(MoneyFormatter.formatWhole(comparison.difference), accent),
                 )
             }
 
@@ -569,7 +555,7 @@ private fun ReflectionCard(
                 styledStringResource(
                     R.string.insights_reflection_higher,
                     StyledArg(average, SpanStyle(fontWeight = FontWeight.Medium)),
-                    StyledArg(MoneyFormatter.formatWhole(comparison.difference, currency), accent),
+                    StyledArg(MoneyFormatter.formatWhole(comparison.difference), accent),
                 )
             }
 
