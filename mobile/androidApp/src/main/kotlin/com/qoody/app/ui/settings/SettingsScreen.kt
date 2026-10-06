@@ -22,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,14 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qoody.app.BackupExport
@@ -54,12 +51,8 @@ import com.qoody.app.LedgerExport
 import com.qoody.app.ProjectLinks
 import com.qoody.app.R
 import com.qoody.app.data.BackupService
-import com.qoody.app.ui.components.BadgePill
-import com.qoody.app.ui.components.Dot
-import com.qoody.app.ui.components.FieldStyle
 import com.qoody.app.ui.components.HairlineDivider
 import com.qoody.app.ui.components.LoadingIndicator
-import com.qoody.app.ui.components.PrimaryButton
 import com.qoody.app.ui.components.QoodyCard
 import com.qoody.app.ui.components.QoodyIcon
 import com.qoody.app.ui.components.QoodyInset
@@ -71,12 +64,10 @@ import com.qoody.app.ui.components.SectionLabel
 import com.qoody.app.ui.components.SegmentedControl
 import com.qoody.app.ui.components.SheetHandle
 import com.qoody.app.ui.components.StatusPill
-import com.qoody.app.ui.components.TonalButton
 import com.qoody.app.ui.components.uppercaseForLocale
 import com.qoody.app.ui.theme.QoodyTheme
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Currency
-import com.qoody.shared.domain.model.KeyVerification
 import com.qoody.shared.feature.settings.SettingsUiState
 import com.qoody.shared.feature.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -85,7 +76,7 @@ import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-/** Everything configurable: automation, the optional LLM key, appearance, privacy and export. */
+/** Everything configurable: automation, appearance, privacy and export. */
 @Composable
 fun SettingsScreen(
     onSearchClick: () -> Unit,
@@ -99,14 +90,12 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHost = remember { SnackbarHostState() }
-    val clipboard = LocalClipboard.current
     val uriHandler = LocalUriHandler.current
     val backupService: BackupService = koinInject()
     var backupAction by remember { mutableStateOf<BackupAction?>(null) }
     var backupPassword by remember { mutableStateOf("") }
     var showImportWarning by remember { mutableStateOf(false) }
 
-    val clipboardEmpty = stringResource(R.string.settings_clipboard_empty)
     val noBrowser = stringResource(R.string.settings_no_browser)
     val exportDone = stringResource(R.string.settings_export_done)
     val exportFailed = stringResource(R.string.settings_export_failed)
@@ -163,24 +152,6 @@ fun SettingsScreen(
         onOpenUnparsedCaptures = onOpenUnparsedCaptures,
         onOpenExcludedEntries = onOpenExcludedEntries,
         onOpenBudgets = onOpenBudgets,
-        onPasteKey = {
-            scope.launch {
-                val pasted =
-                    clipboard
-                        .getClipEntry()
-                        ?.clipData
-                        ?.takeIf { it.itemCount > 0 }
-                        ?.getItemAt(0)
-                        ?.text
-                if (pasted.isNullOrBlank()) {
-                    snackbarHost.showSnackbar(clipboardEmpty)
-                } else {
-                    viewModel.onApiKeyPasted(pasted.toString())
-                }
-            }
-        },
-        onToggleKeyVisibility = viewModel::onKeyVisibilityToggled,
-        onTestKey = viewModel::onTestKeyRequested,
         onThemeSelected = viewModel::onThemeSelected,
         onCurrencySelected = viewModel::onCurrencySelected,
         onHapticsToggled = viewModel::onHapticsToggled,
@@ -305,9 +276,6 @@ fun SettingsContent(
     onOpenUnparsedCaptures: () -> Unit,
     onOpenExcludedEntries: () -> Unit,
     onOpenBudgets: () -> Unit = {},
-    onPasteKey: () -> Unit,
-    onToggleKeyVisibility: () -> Unit,
-    onTestKey: () -> Unit,
     onThemeSelected: (AppTheme) -> Unit,
     onCurrencySelected: (Currency) -> Unit,
     onHapticsToggled: (Boolean) -> Unit,
@@ -347,7 +315,6 @@ fun SettingsContent(
                                     onOpenBudgets,
                                 )
                             }
-                            item { IntelligenceSection(state, onPasteKey, onToggleKeyVisibility, onTestKey) }
                             item { InterfaceSection(state, onThemeSelected, onCurrencySelected, onHapticsToggled) }
                             item { PrivacySection(onOpenSource, onExport, onExportFull, onImportFull) }
                             item { Footer() }
@@ -389,18 +356,10 @@ private fun Header(state: SettingsUiState.Content) {
 private fun Section(
     title: String,
     modifier: Modifier = Modifier,
-    badge: String? = null,
     content: @Composable () -> Unit,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = QoodyTheme.spacing.xs),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SectionLabel(title)
-            if (badge != null) BadgePill(badge)
-        }
+        SectionLabel(title, modifier = Modifier.padding(horizontal = QoodyTheme.spacing.xs))
         content()
     }
 }
@@ -580,142 +539,6 @@ private fun AutomationSection(
             }
         }
     }
-}
-
-@Composable
-private fun IntelligenceSection(
-    state: SettingsUiState.Content,
-    onPasteKey: () -> Unit,
-    onToggleKeyVisibility: () -> Unit,
-    onTestKey: () -> Unit,
-) {
-    Section(
-        title = stringResource(R.string.settings_section_intelligence),
-        badge = stringResource(R.string.settings_byok_badge),
-    ) {
-        QoodyCard(modifier = Modifier.fillMaxWidth()) {
-            Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.cozy)) {
-                Column(verticalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.xs)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_llm_title),
-                            style = QoodyTheme.typography.headlineSm,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        BadgePill(stringResource(R.string.settings_optional_badge))
-                    }
-                    Text(
-                        text = stringResource(R.string.settings_llm_body),
-                        style = QoodyTheme.typography.bodyMd,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                }
-                ApiKeyField(state, onToggleKeyVisibility)
-                Row(horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm)) {
-                    TonalButton(
-                        text = stringResource(R.string.settings_paste_key),
-                        onClick = onPasteKey,
-                        leadingIcon = R.drawable.ic_content_paste,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TestKeyButton(state, onTestKey, modifier = Modifier.weight(1f))
-                }
-                QoodyInset(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding =
-                        PaddingValues(
-                            horizontal = QoodyTheme.spacing.cozy,
-                            vertical = QoodyTheme.spacing.sm,
-                        ),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(QoodyTheme.spacing.sm),
-                        ) {
-                            Dot(color = MaterialTheme.colorScheme.primaryContainer, size = QoodyTheme.sizes.dotSm)
-                            Text(
-                                text = stringResource(R.string.settings_model_label, state.settings.llm.modelLabel),
-                                style = QoodyTheme.typography.bodySmMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                        if (state.settings.llm.localFallbackReady) {
-                            SectionLabel(stringResource(R.string.settings_local_fallback_ready))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ApiKeyField(
-    state: SettingsUiState.Content,
-    onToggleVisibility: () -> Unit,
-) {
-    val visibilityLabel = if (state.isKeyVisible) R.string.cd_hide_key else R.string.cd_show_key
-    QoodyTextField(
-        value =
-            state.settings.llm.apiKey
-                .orEmpty(),
-        onValueChange = {},
-        readOnly = true,
-        style = FieldStyle.Filled,
-        textStyle = QoodyTheme.typography.numericMd,
-        placeholder = stringResource(R.string.settings_key_empty),
-        visualTransformation = if (state.isKeyVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        leading = {
-            QoodyIcon(
-                R.drawable.ic_key,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary,
-            )
-        },
-        trailing = {
-            if (state.hasApiKey) {
-                IconButton(onClick = onToggleVisibility, modifier = Modifier.size(QoodyTheme.sizes.touchTarget)) {
-                    QoodyIcon(
-                        id = if (state.isKeyVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
-                        contentDescription = stringResource(visibilityLabel),
-                        tint = MaterialTheme.colorScheme.secondary,
-                    )
-                }
-            }
-        },
-    )
-}
-
-@Composable
-private fun TestKeyButton(
-    state: SettingsUiState.Content,
-    onTest: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val (label, icon) =
-        when (state.keyVerification) {
-            KeyVerification.Idle -> R.string.settings_test_link to R.drawable.ic_bolt
-            KeyVerification.Testing -> R.string.settings_key_testing to R.drawable.ic_refresh
-            KeyVerification.Verified -> R.string.settings_key_verified to R.drawable.ic_check_circle
-            KeyVerification.Failed -> R.string.settings_key_failed to R.drawable.ic_error
-        }
-    PrimaryButton(
-        text = stringResource(label),
-        onClick = onTest,
-        leadingIcon = icon,
-        enabled = state.hasApiKey && state.keyVerification != KeyVerification.Testing,
-        compact = true,
-        modifier = modifier,
-    )
 }
 
 @Composable

@@ -9,16 +9,12 @@ import com.qoody.shared.domain.format.LedgerCsv
 import com.qoody.shared.domain.model.AppSettings
 import com.qoody.shared.domain.model.AppTheme
 import com.qoody.shared.domain.model.Currency
-import com.qoody.shared.domain.model.KeyVerification
 import com.qoody.shared.domain.repository.LedgerRepository
-import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface SettingsUiState {
@@ -26,39 +22,27 @@ sealed interface SettingsUiState {
 
     data class Content(
         val settings: AppSettings,
-        val isKeyVisible: Boolean,
-        val keyVerification: KeyVerification,
         /** Notifications in the "Failed to parse" list. */
         val unparsedCount: Int = 0,
         /** Entries the user excluded from the ledger. */
         val excludedCount: Int = 0,
-    ) : SettingsUiState {
-        val hasApiKey: Boolean get() = !settings.llm.apiKey.isNullOrEmpty()
-    }
+    ) : SettingsUiState
 }
 
 class SettingsViewModel(
     private val settings: SettingsRepository,
     private val ledger: LedgerRepository,
-    private val keyVerifier: LlmKeyVerifier,
     private val dates: DateProvider,
     unparsedCaptures: UnparsedCaptureRepository,
 ) : ViewModel() {
-    private val isKeyVisible = MutableStateFlow(false)
-    private val keyVerification = MutableStateFlow<KeyVerification>(KeyVerification.Idle)
-
     val uiState: StateFlow<SettingsUiState> =
         combine(
             settings.settings,
-            isKeyVisible,
-            keyVerification,
             unparsedCaptures.captures,
             ledger.excluded,
-        ) { appSettings, visible, verification, unparsed, excluded ->
+        ) { appSettings, unparsed, excluded ->
             SettingsUiState.Content(
                 settings = appSettings.copy(monitoredAppCount = CapturePolicy.supportedApps.size),
-                isKeyVisible = visible,
-                keyVerification = verification,
                 unparsedCount = unparsed.size,
                 excludedCount = excluded.size,
             )
@@ -66,27 +50,6 @@ class SettingsViewModel(
 
     fun onNotificationListenerToggled(enabled: Boolean) {
         viewModelScope.launch { settings.setNotificationListenerEnabled(enabled) }
-    }
-
-    fun onApiKeyPasted(text: String) {
-        val key = text.trim()
-        if (key.isEmpty()) return
-        keyVerification.value = KeyVerification.Idle
-        viewModelScope.launch { settings.setLlmApiKey(key) }
-    }
-
-    fun onKeyVisibilityToggled() = isKeyVisible.update { !it }
-
-    fun onTestKeyRequested() {
-        if (keyVerification.value == KeyVerification.Testing) return
-        viewModelScope.launch {
-            val key =
-                settings.settings
-                    .first()
-                    .llm.apiKey ?: return@launch
-            keyVerification.value = KeyVerification.Testing
-            keyVerification.value = if (keyVerifier.verify(key)) KeyVerification.Verified else KeyVerification.Failed
-        }
     }
 
     fun onCurrencySelected(currency: Currency) {

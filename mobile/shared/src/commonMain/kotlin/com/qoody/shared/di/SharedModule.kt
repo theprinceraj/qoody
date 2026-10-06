@@ -1,7 +1,6 @@
 package com.qoody.shared.di
 
 import com.qoody.shared.core.DateProvider
-import com.qoody.shared.data.FakeLlmKeyVerifier
 import com.qoody.shared.data.InMemoryBudgetRepository
 import com.qoody.shared.data.InMemoryLedgerRepository
 import com.qoody.shared.data.InMemoryMerchantCategoryRepository
@@ -10,7 +9,6 @@ import com.qoody.shared.data.InMemoryUnparsedCaptureRepository
 import com.qoody.shared.domain.model.TransactionId
 import com.qoody.shared.domain.repository.BudgetRepository
 import com.qoody.shared.domain.repository.LedgerRepository
-import com.qoody.shared.domain.repository.LlmKeyVerifier
 import com.qoody.shared.domain.repository.MerchantCategoryRepository
 import com.qoody.shared.domain.repository.SettingsRepository
 import com.qoody.shared.domain.repository.UnparsedCaptureRepository
@@ -27,10 +25,7 @@ import com.qoody.shared.feature.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-/**
- * Wiring for everything in `shared`. The in-memory repositories and the fake key verifier are
- * placeholders: swap these three bindings when real persistence and the LLM client exist.
- */
+/** Wiring for everything in `shared`. The Android app overrides the in-memory repositories with Room ones. */
 val sharedModule =
     module {
         single { DateProvider() }
@@ -39,14 +34,13 @@ val sharedModule =
         single<UnparsedCaptureRepository> { InMemoryUnparsedCaptureRepository() }
         single<MerchantCategoryRepository> { InMemoryMerchantCategoryRepository() }
         single<BudgetRepository> { InMemoryBudgetRepository() }
-        single<LlmKeyVerifier> { FakeLlmKeyVerifier() }
 
         viewModel { RootViewModel(get()) }
         viewModel { OnboardingViewModel(get()) }
         viewModel { LedgerViewModel(get(), get(), get(), get()) }
         viewModel { AddExpenseViewModel(get(), get()) }
         viewModel { InsightsViewModel(get(), get(), get()) }
-        viewModel { SettingsViewModel(get(), get(), get(), get(), get()) }
+        viewModel { SettingsViewModel(get(), get(), get(), get()) }
         viewModel { UnparsedCapturesViewModel(get(), get()) }
         viewModel { ExcludedEntriesViewModel(get(), get(), get()) }
         viewModel { BudgetsViewModel(get(), get(), get(), get()) }

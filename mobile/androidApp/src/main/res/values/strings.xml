@@ -50,7 +50,7 @@
     <string name="onboarding_step_2_title">Notification captured</string>
     <string name="onboarding_step_2_body">Qoody securely reads the push alert on this phone in real time.</string>
     <string name="onboarding_step_3_title">Instantly organized</string>
-    <string name="onboarding_step_3_body">An on-device LLM extracts the merchant and category in seconds.</string>
+    <string name="onboarding_step_3_body">Qoody reads the merchant and amount and files it under a category, right on your phone.</string>
     <string name="onboarding_preview_merchant">Monmouth Coffee Co.</string>
     <string name="onboarding_preview_amount">-£3.80</string>
     <string name="onboarding_cta">Enable notification access</string>
@@ -218,21 +218,6 @@
         <item quantity="other">Listening to %d financial apps</item>
     </plurals>
     <string name="settings_manage">Manage</string>
-    <string name="settings_section_intelligence">Intelligence &amp; Parsing</string>
-    <string name="settings_byok_badge">BYOK Model</string>
-    <string name="settings_llm_title">LLM Categorization</string>
-    <string name="settings_optional_badge">Optional</string>
-    <string name="settings_llm_body">Used strictly for semantic category tags and receipt cleanups. Keys remain exclusively on this device.</string>
-    <string name="settings_key_empty">No key saved</string>
-    <string name="cd_show_key">Show key</string>
-    <string name="cd_hide_key">Hide key</string>
-    <string name="settings_paste_key">Paste Key</string>
-    <string name="settings_test_link">Test Link</string>
-    <string name="settings_key_testing">Testing…</string>
-    <string name="settings_key_verified">Verified!</string>
-    <string name="settings_key_failed">Key rejected</string>
-    <string name="settings_model_label">Model: %1$s</string>
-    <string name="settings_local_fallback_ready">Local fallback ready</string>
     <string name="settings_section_interface">Tactile &amp; Interface</string>
     <string name="settings_theme_title">Theme</string>
     <string name="settings_theme_subtitle">Physical ivory stationery</string>
@@ -267,6 +252,5 @@
     <string name="settings_backup_replace_body">Importing this backup will replace the ledger and supported settings currently stored on this device. This cannot be undone.</string>
     <string name="settings_backup_replace_confirm">Choose backup</string>
     <string name="cancel">Cancel</string>
-    <string name="settings_clipboard_empty">Nothing to paste: the clipboard is empty.</string>
     <string name="settings_no_browser">No app available to open this link.</string>
 </resources>

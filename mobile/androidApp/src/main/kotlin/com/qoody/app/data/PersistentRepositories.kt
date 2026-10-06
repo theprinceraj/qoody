@@ -1,7 +1,5 @@
 package com.qoody.app.data
 
-import android.content.Context
-import android.util.Base64
 import androidx.room3.withWriteTransaction
 import com.qoody.shared.core.DateProvider
 import com.qoody.shared.data.InMemorySettingsRepository
@@ -33,11 +31,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 
 class RoomLedgerRepository(
     private val database: QoodyDatabase,
@@ -216,98 +209,25 @@ class RoomBudgetRepository(
     }
 }
 
-class EncryptedKeyStore(
-    context: Context,
-) {
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-    private val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-
-    fun read(): String? = preferences.getString(API_KEY_VALUE, null)?.let(::decrypt)
-
-    fun write(value: String?) {
-        preferences
-            .edit()
-            .apply {
-                if (value == null) remove(API_KEY_VALUE) else putString(API_KEY_VALUE, encrypt(value))
-            }.apply()
-    }
-
-    private fun encrypt(value: String): String {
-        val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key())
-        val combined = cipher.iv + cipher.doFinal(value.encodeToByteArray())
-        return Base64.encodeToString(combined, Base64.NO_WRAP)
-    }
-
-    private fun decrypt(value: String): String? =
-        runCatching {
-            val combined = Base64.decode(value, Base64.NO_WRAP)
-            val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(
-                Cipher.DECRYPT_MODE,
-                key(),
-                GCMParameterSpec(GCM_TAG_BITS, combined.copyOfRange(0, GCM_IV_BYTES)),
-            )
-            cipher.doFinal(combined.copyOfRange(GCM_IV_BYTES, combined.size)).decodeToString()
-        }.getOrNull()
-
-    private fun key(): SecretKey {
-        val existing = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
-        if (existing != null) return existing
-        return KeyGenerator
-            .getInstance(KEY_ALGORITHM, ANDROID_KEYSTORE)
-            .apply {
-                init(
-                    android.security.keystore.KeyGenParameterSpec
-                        .Builder(
-                            KEY_ALIAS,
-                            android.security.keystore.KeyProperties.PURPOSE_ENCRYPT or
-                                android.security.keystore.KeyProperties.PURPOSE_DECRYPT,
-                        ).setBlockModes(android.security.keystore.KeyProperties.BLOCK_MODE_GCM)
-                        .setEncryptionPaddings(android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE)
-                        .build(),
-                )
-            }.generateKey()
-    }
-
-    private companion object {
-        const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        const val KEY_ALGORITHM = "AES"
-        const val TRANSFORMATION = "AES/GCM/NoPadding"
-        const val KEY_ALIAS = "qoody_api_key"
-        const val PREFERENCES_NAME = "qoody_secure_preferences"
-        const val API_KEY_VALUE = "llm_api_key"
-        const val GCM_IV_BYTES = 12
-        const val GCM_TAG_BITS = 128
-    }
-}
-
 class RoomSettingsRepository(
     database: QoodyDatabase,
-    private val keyStore: EncryptedKeyStore,
 ) : SettingsRepository {
     private val dao = database.settingsDao()
-    private val apiKey = MutableStateFlow(keyStore.read())
 
     /** Mirrors Android's notification-access state; set on every resume, never stored or backed up. */
     private val listenerEnabled = MutableStateFlow(false)
 
     override val settings: Flow<AppSettings> =
-        combine(dao.observe(), apiKey, listenerEnabled) { entity, key, listening ->
+        combine(dao.observe(), listenerEnabled) { entity, listening ->
             val stored =
                 entity?.let { decodeSettings(it.payload).toModel() } ?: InMemorySettingsRepository.defaultSettings
-            stored.copy(notificationListenerEnabled = listening, llm = stored.llm.copy(apiKey = key))
+            stored.copy(notificationListenerEnabled = listening)
         }.distinctUntilChanged()
 
     override suspend fun completeOnboarding() = modify { it.copy(onboardingCompleted = true) }
 
     override suspend fun setNotificationListenerEnabled(enabled: Boolean) {
         listenerEnabled.value = enabled
-    }
-
-    override suspend fun setLlmApiKey(key: String?) {
-        keyStore.write(key)
-        apiKey.value = key
     }
 
     override suspend fun setCurrency(currency: Currency) = modify { it.copy(currency = currency) }

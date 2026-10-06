@@ -5,7 +5,6 @@ import com.qoody.app.capture.CaptureSources
 import com.qoody.app.capture.NotificationAccessChecker
 import com.qoody.app.capture.NotificationCaptureHandler
 import com.qoody.app.data.BackupService
-import com.qoody.app.data.EncryptedKeyStore
 import com.qoody.app.data.QoodyDatabase
 import com.qoody.app.data.RoomBudgetRepository
 import com.qoody.app.data.RoomLedgerRepository
@@ -25,12 +24,11 @@ import org.koin.dsl.module
 fun appModule(database: QoodyDatabase) =
     module {
         single { database }
-        single { EncryptedKeyStore(get()) }
         single<LedgerRepository> { RoomLedgerRepository(get(), get()) }
         single<UnparsedCaptureRepository> { RoomUnparsedCaptureRepository(get()) }
         single<MerchantCategoryRepository> { RoomMerchantCategoryRepository(get()) }
         single<BudgetRepository> { RoomBudgetRepository(get()) }
-        single<SettingsRepository> { RoomSettingsRepository(get(), get()) }
+        single<SettingsRepository> { RoomSettingsRepository(get()) }
         single { BackupService(get(), get()) }
         single {
             CaptureNotificationUseCase(
