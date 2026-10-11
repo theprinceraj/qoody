@@ -2,27 +2,38 @@
 
 > Agents: read this first, update it last. Keep "Current state" accurate; append to "Log" (newest first). Keep entries short and factual.
 
-## Current state (2026-10-06)
+## Current state (2026-10-11)
 
 - **Product (from the Stitch designs):** Qoody is a free, open-source, fully on-device expense ledger. It will read bank/UPI payment *notifications*, extract merchant/amount with rules and pick a category on the device (remembered corrections, keyword rules, and soon a small on-device classifier, D22), and show a running monthly tab. No cloud, no accounts, no analytics.
 - **Android UI is built** for all five designed screens: onboarding, ledger (month summary, category filters, search, day groups), insights (period switch, weekly/monthly pace chart, category breakdown, reflection), receipt detail (category change, note, original notification, keep/exclude), settings. Plus bottom navigation, add-expense sheet, privacy sheet, category picker, CSV export, notification-access shortcut. There is no LLM/API-key section (removed, D23).
 - **Android persistence and backup are implemented.** The production app now uses Room/SQLite repositories, password-protected versioned full-data export/import, atomic replacement after confirmation, and disabled Android system backup. The shared tests and screenshot fixtures continue to use in-memory repositories.
 - **Notification capture is implemented** (rule-based parsing, on-device categorisation). `QoodyNotificationListenerService` reads notifications from 64 verified Indian UPI/bank/wallet/card apps plus SMS apps (Google Messages, Truecaller, Jio Messages and the phone's default SMS app; bank SMS pass `SmsMessageFilter`) (`CapturePolicy`), `PaymentNotificationParser` extracts INR debits, `MerchantCategoriser` assigns a category (remembered choice → `MerchantCategoryRules` keyword rule → on-device classifier above 0.77 confidence, D22), duplicates are dropped by reference or amount+merchant+5-minute bucket, and unreadable debits land in Settings → Failed to parse. The listener status mirrors Android's real notification-access state (re-read on every resume); the switch opens Android's settings. See `docs/plans/notification-capture.md`.
 - **Website** is still the unmodified TanStack Start starter.
-- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, 38 shared tests, app tests incl. 5 screenshot renders, Android lint with 0 errors, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs.
-- **Not verified:** running on a real device/emulator (none installed), Cloudflare deploy (disabled in `web.yml`).
-- GitHub workflows now include tag-based Android GitHub Releases and a guarded GitHub Pages deployment. Android releases require four signing secrets and publish a signature-verified APK plus SHA-256 checksum. Pages remains blocked until the TanStack Start site produces a static `web/dist/client/index.html`; the current Cloudflare SSR build does not.
-- **GitHub Actions:** fixed `Website Pages` `build` job failure caused by requiring `web/dist/client/index.html` (TanStack Start build does not emit that file). Workflow now checks for `web/dist/client/assets` and `web/dist/server/index.js`; validated locally with `scripts/verify.sh -Target web`.
+- Verified green on Windows: `scripts/verify.ps1 -Target all` (web typecheck/biome/build; mobile ktlint, detekt, shared tests, app tests incl. screenshot renders, Android lint, debug APK). Screens were compared visually against the designs via `ScreenshotTest` PNGs. CI (`mobile.yml`) was green on every merge up to v0.6.0.
+- **Releases:** signed APKs v0.1.0–v0.6.0 are published on GitHub Releases by `android-release.yml` on `v*` tags. The four `ANDROID_RELEASE_*` signing secrets are configured. Nothing is on Google Play yet (#28).
+- **Device testing:** the user installed builds on their own phone via adb and confirmed SMS debit capture (v0.3.1). There is no emulator on the agent machine. Capture reliability (force-stop, reboot, OEM battery savers) and most UI interactions are still unverified on hardware (#25, #27).
+- **GitHub Pages** is live at https://prince.is-a.dev/qoody/. It is the legacy "deploy from branch" mode serving the repo root on `main` (the README), not the web app. `pages.yml` (the web-app deployment) and the Cloudflare deploy in `web.yml` (`if: false`) are both waiting for the real website.
+
+## Open issues (GitHub)
+
+Android work is tracked as GitHub issues. The website is deliberately not tracked there: the user will build it themselves.
+
+- #25 Check that notification capture keeps working on real devices (force-stop, reboot, OEM battery savers)
+- #26 Improve the merchant classifier using real-world misclassifications
+- #27 Test UI interactions on a real device (haptics, pickers, keyboard in sheets)
+- #28 Get ready for Google Play: final app ID, notification-listener policy audit, data safety
+- #29 Add a dark theme
+- #30 Adaptive layouts for tablets, foldables and landscape
+- #31 Split expense: design and build the flow (or remove the placeholder button)
 
 ## Next up
 
-1. **Real-device pass for notification capture** (no device/emulator here): grant access, post a synthetic UPI notification from an allowlisted package (or a test app), confirm it appears in the ledger; check rebind after force-stop and behaviour with OEM battery optimisation. Then check the classifier on real merchant strings (Settings has no switch for it; receipts say "Guessed on this device"); improve the data in `tools/merchant-classifier/data/` from what it gets wrong.
-2. Confirm `applicationId` (`com.qoody.app`) before any Play upload, and run `play-policy-insights` for the notification-listener declaration.
-3. Run the app on an emulator/device (install a system image with `android sdk install`) and do a real-device pass (haptics, notification-access screen, CSV export picker, keyboard behaviour in the sheets).
-4. Dark theme and tablet layouts (the design only specifies the light "Warm Paper" theme; content is currently width-capped at 600dp).
-5. Website: landing page, download page, changelog, privacy policy, using the same brand tokens as `docs`/DESIGN.md.
-6. Configure the website for static export/prerendering before enabling the Pages deployment workflow.
-7. Create the Android release keystore and configure the required GitHub Actions repository secrets before pushing the first `v*` release tag.
+1. Capture reliability on real devices (#25), then classifier accuracy on real merchant strings (#26). Both need the user's phone.
+2. Play readiness (#28): confirm `applicationId` (`com.qoody.app`) and run `play-policy-insights`. Can be started without a device.
+3. Real-device UI pass (#27).
+4. Dark theme (#29) and adaptive layouts (#30). Can be done without a device, using screenshot tests.
+5. Split expense (#31): needs the user to decide what "split" means first.
+6. Website (user-owned, not an issue): landing/download/changelog/privacy pages, then static export/prerendering before enabling `pages.yml` and switching Pages away from the legacy branch source.
 
 ## UI behaviours worth knowing (where the design was silent)
 
@@ -41,13 +52,15 @@
 
 ## Open questions for the user
 
-- Final application ID / package name; GitHub repository URL for the "Open Source Code" row.
-- Domain name and hosting account for the website.
-- Direct APK download in addition to Google Play? (Android developer verification rules may apply.)
-- Training data for the merchant classifier: can the user export some of their own corrected entries (consented, never committed) to supplement a hand-built merchant list? (Model choice is settled: D22; "Jev v1.2" in the mocks is placeholder text.)
+- Final application ID / package name (#28).
+- Final website domain (Pages currently answers at https://prince.is-a.dev/qoody/).
+- Direct APK download in addition to Google Play? (Android developer verification rules may apply; #28.)
+- Training data for the merchant classifier: can the user export some of their own corrected entries (consented, never committed) to supplement a hand-built merchant list? (#26. Model choice is settled: D22; "Jev v1.2" in the mocks is placeholder text.)
+- What "Split expense" should mean (#31).
 
 ## Log
 
+- 2026-10-11 — Checked the repo against "Next up": release signing secrets were already configured (v0.1.0–v0.6.0 published), GitHub Pages is live from the branch root, and the user had already tested capture on their phone. Opened issues #25–#31 for the remaining Android work (the website is left out on purpose) and rewrote "Current state", "Next up" and "Open questions" to match. Docs only, `verify` not run.
 - 2026-10-06 — Rewrote `README.md` for non-technical users (what Qoody does, install, notification access, Play Protect blocking, FAQ) and moved developer setup, commands, code rules and the PR flow into a new `CONTRIBUTING.md`. Docs only, `verify` not run.
 - 2026-10-06 — Release v0.6.0 (code 8): custom categories (D25), rupees only with Indian grouping (D24), dated manual entries, receipt and Settings cleanups, note field fix. DB v5, backup format 7.
 - 2026-10-06 — Custom categories (D25): `Category` became a value class (built-in keys unchanged, `custom:<id>` for user ones), Room `custom_categories` (DB v5), backup format 7, Settings → Categories screen with add/edit sheet (name, emoji grid) and delete confirmation. Custom categories show up in pickers, ledger filters, insights, budgets and CSV export.
