@@ -56,3 +56,5 @@ Not started. To start: add `iosArm64()` and `iosSimulatorArm64()` targets to `sh
 - `Category` is a value class, not an enum (D25): list categories with `Category.all(custom)` / `allCategories()`, show them with `categoryName()` / `categoryEmoji()` / `categoryChipLabel()`, persist `category.key`, parse with `Category.fromKey`. A `when` over categories needs an `else` branch.
 - Editing files from Python: never `open(path, "w")` before the new text is fully built; an exception after opening truncates the file. Build the string, then write.
 - Detekt `ReturnCount` (max 2) fires on guard-heavy functions; fold guards into one condition or a helper.
+- Dependabot's AGP 9.5.0 update was not buildable because `com.android.application:9.5.0` was unavailable from the configured repositories; verify dependency-update workflow execution rather than trusting a stale check before merging.
+- On Linux/macOS, `scripts/verify.sh` takes a positional target (`scripts/verify.sh mobile`); the PowerShell `-Target` syntax is not accepted by the shell script.
