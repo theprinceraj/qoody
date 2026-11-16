@@ -13,7 +13,7 @@
 - **Releases:** signed APKs v0.1.0–v0.6.0 are published on GitHub Releases by `android-release.yml` on `v*` tags. The four `ANDROID_RELEASE_*` signing secrets are configured. Nothing is on Google Play yet (#28).
 - **Device testing:** the user installed builds on their own phone via adb and confirmed SMS debit capture (v0.3.1). There is no emulator on the agent machine. Capture reliability (force-stop, reboot, OEM battery savers) and most UI interactions are still unverified on hardware (#25, #27).
 - **GitHub Pages** is live at https://prince.is-a.dev/qoody/. It is the legacy "deploy from branch" mode serving the repo root on `main` (the README), not the web app. `pages.yml` (the web-app deployment) and the Cloudflare deploy in `web.yml` (`if: false`) are both waiting for the real website.
-- **Release v0.7.0** is prepared from the merged `main` dependency updates with Android version code 9. The signed APK will be published by `android-release.yml` from the `v0.7.0` tag after local verification.
+- **Release v0.7.0** is published at https://github.com/theprinceraj/qoody/releases/tag/v0.7.0 with a signed APK and SHA-256 checksum. GitHub Actions built and verified the release successfully.
 
 ## Open issues (GitHub)
 
@@ -62,6 +62,7 @@ Android work is tracked as GitHub issues. The website is deliberately not tracke
 ## Log
 
 - 2026-11-16 — Merged all pending Dependabot PRs (#32, #48, #49, #51, #53, #56, #57), resolved conflicts in the Kotlin version catalog and Pages workflow, bumped Android version to v0.7.0 (code 9), and prepared the signed APK release. Local mobile verification and release assembly were blocked because this environment could not resolve `dl.google.com`; GitHub Actions remains the authoritative build.
+- 2026-11-16 — GitHub Actions successfully built, signed, verified and published v0.7.0 (`qoody-v0.7.0.apk`, plus `qoody-v0.7.0.apk.sha256`).
 
 - 2026-10-11 — Checked the repo against "Next up": release signing secrets were already configured (v0.1.0–v0.6.0 published), GitHub Pages is live from the branch root, and the user had already tested capture on their phone. Opened issues #25–#31 for the remaining Android work (the website is left out on purpose) and rewrote "Current state", "Next up" and "Open questions" to match. Docs only, `verify` not run.
 - 2026-10-06 — Rewrote `README.md` for non-technical users (what Qoody does, install, notification access, Play Protect blocking, FAQ) and moved developer setup, commands, code rules and the PR flow into a new `CONTRIBUTING.md`. Docs only, `verify` not run.
